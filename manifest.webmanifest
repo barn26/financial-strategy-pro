@@ -1,0 +1,22 @@
+{
+  "name": "Financial Strategy 2026 PRO",
+  "short_name": "Finance",
+  "description": "Особисті фінанси: доходи, витрати, цілі, борги, бюджет і аналітика",
+  "lang": "uk",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#07111f",
+  "theme_color": "#07111f",
+  "categories": ["finance", "productivity"],
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ],
+  "shortcuts": [
+    {"name": "Додати витрату", "short_name": "Витрата", "url": "./index.html#transactions", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+    {"name": "Додати дохід", "short_name": "Дохід", "url": "./index.html#income", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]}
+  ]
+}
