@@ -1,0 +1,3085 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07111f">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Finance">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Financial Strategy 2026 PRO</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{--bg:#07111f;--p:#0d1b2a;--p2:#101f31;--line:#20344b;--text:#eef6ff;--muted:#8fa6bd;--g:#36e09a;--r:#ff647c;--y:#ffd166;--b:#5aa9ff;--c:#46e0ff;--rad:15px;}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;background:radial-gradient(circle at top right,rgba(70,224,255,.07),transparent 30%),radial-gradient(circle at top left,rgba(54,224,154,.05),transparent 30%),var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;}
+button,input,select,textarea{font:inherit;}
+button{cursor:pointer;}
+header{position:sticky;top:0;z-index:1000;background:rgba(7,17,31,.94);backdrop-filter:blur(15px);border-bottom:1px solid var(--line);}
+.headerInner{max-width:1400px;margin:auto;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:15px;}
+.logo{font-size:18px;font-weight:800;}
+.logo small{display:block;color:var(--muted);font-size:10px;margin-top:3px;letter-spacing:1px;}
+nav{display:flex;gap:6px;overflow-x:auto;padding:4px 0;}
+nav button{white-space:nowrap;background:transparent;border:1px solid transparent;color:var(--muted);padding:9px 11px;border-radius:10px;}
+nav button:hover{background:var(--p2);color:var(--text);border-color:var(--line);}
+.container{width:min(1400px,100%);margin:auto;padding:18px;}
+section{margin-bottom:18px;scroll-margin-top:90px;}
+.card{background:linear-gradient(145deg,rgba(16,31,49,.97),rgba(13,27,42,.97));border:1px solid var(--line);border-radius:var(--rad);padding:18px;box-shadow:0 12px 35px rgba(0,0,0,.16);}
+.card h2,.card h3{margin:0 0 12px;}
+.head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:15px;}
+.sectionToggle{cursor:pointer;user-select:none;margin-bottom:0;}
+.sectionToggle .arrowBadge{transition:transform .2s;}
+.sectionToggle .arrowBadge.open{transform:rotate(90deg);}
+.sectionBody{margin-top:14px;}
+.sectionBody.collapsed{display:none;}
+.muted{color:var(--muted);}
+.small{font-size:12px;}
+.grid{display:grid;gap:14px;}
+.grid2{grid-template-columns:repeat(2,minmax(0,1fr));}
+.grid3{grid-template-columns:repeat(3,minmax(0,1fr));}
+.grid4{grid-template-columns:repeat(4,minmax(0,1fr));}
+.kpi{padding:17px;background:rgba(7,17,31,.5);border:1px solid var(--line);border-radius:13px;}
+.kpi .label{color:var(--muted);font-size:12px;margin-bottom:8px;}
+.kpi .value{font-size:25px;font-weight:800;}
+.green{color:var(--g)!important;}
+.red{color:var(--r)!important;}
+.yellow{color:var(--y)!important;}
+.blue{color:var(--b)!important;}
+.cyan{color:var(--c)!important;}
+input,select,textarea{width:100%;background:#081624;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px 12px;outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--b);box-shadow:0 0 0 3px rgba(90,169,255,.1);}
+label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px;}
+.field{margin-bottom:12px;}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.btn{border:1px solid var(--line);background:#102238;color:var(--text);border-radius:10px;padding:10px 13px;font-weight:700;}
+.btn:hover{filter:brightness(1.15);}
+.btn.primary{background:rgba(90,169,255,.16);border-color:rgba(90,169,255,.4);}
+.btn.green{background:rgba(54,224,154,.12);border-color:rgba(54,224,154,.35);}
+.btn.red{background:rgba(255,100,124,.12);border-color:rgba(255,100,124,.35);}
+.btn.yellow{background:rgba(255,209,102,.12);border-color:rgba(255,209,102,.35);}
+.btn.cyan{background:rgba(70,224,255,.12);border-color:rgba(70,224,255,.35);}
+.btn.smallBtn{padding:7px 9px;font-size:12px;}
+.quick{display:flex;flex-wrap:wrap;gap:8px;}
+.quick button{border:1px solid var(--line);background:#0a1828;color:var(--text);padding:9px 12px;border-radius:10px;}
+.quick button:hover{border-color:var(--b);}
+.periodBox{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;}
+.progress{width:100%;height:9px;border-radius:20px;overflow:hidden;background:#07111f;border:1px solid var(--line);}
+.progress > div{height:100%;background:var(--g);width:0%;transition:.3s;}
+table{width:100%;border-collapse:collapse;}
+th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;}
+th{color:var(--muted);font-size:12px;}
+td{font-size:13px;}
+.empty{padding:25px;text-align:center;color:var(--muted);}
+.item{padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(7,17,31,.4);margin-bottom:9px;}
+.item:last-child{margin-bottom:0;}
+.itemTitle{font-weight:800;margin-bottom:5px;}
+.badge{display:inline-block;padding:4px 7px;border-radius:8px;background:#0a1828;border:1px solid var(--line);color:var(--muted);font-size:11px;margin:2px;}
+.statLine{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid rgba(32,52,75,.6);}
+.statLine:last-child{border-bottom:0;}
+.chartBox{position:relative;height:320px;}
+.adv{border-left:4px solid var(--line);font-size:13px;line-height:1.5;}
+.adv.r{border-left-color:var(--r);background:rgba(255,100,124,.06);}
+.adv.y{border-left-color:var(--y);background:rgba(255,209,102,.06);}
+.adv.b{border-left-color:var(--b);background:rgba(90,169,255,.06);}
+.adv.g{border-left-color:var(--g);background:rgba(54,224,154,.06);}
+footer{color:var(--muted);text-align:center;padding:28px 15px 42px;font-size:12px;border-top:1px solid var(--line);margin-top:10px;}
+footer .footLine1{font-size:12px;color:var(--muted);}
+footer .footLine2{margin-top:6px;font-size:12px;font-weight:800;letter-spacing:.5px;background:linear-gradient(90deg,var(--c),var(--b));-webkit-background-clip:text;background-clip:text;color:transparent;}
+#login{position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle at center,rgba(70,224,255,.08),transparent 35%),#050d17;}
+.loginBox{width:min(420px,100%);background:#0d1b2a;border:1px solid var(--line);border-radius:20px;padding:25px;box-shadow:0 25px 70px rgba(0,0,0,.45);}
+.loginLogo{text-align:center;margin-bottom:25px;}
+.loginLogo .big{font-size:30px;font-weight:900;}
+.loginLogo small{display:block;color:var(--muted);margin-top:5px;}
+#appContent{display:none;}
+.dailyWidget{background:linear-gradient(135deg,rgba(54,224,154,.08),rgba(70,224,255,.05)),#0b1b2b;border-color:rgba(54,224,154,.25);}
+.dailyAmount{font-size:38px;font-weight:900;margin:5px 0 12px;}
+.dailyGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;}
+.dailyMini{padding:10px;border-radius:10px;background:rgba(7,17,31,.45);border:1px solid var(--line);}
+.dailyMini b{display:block;margin-top:4px;}
+.aiCard{border-color:rgba(70,224,255,.3);background:radial-gradient(circle at top right,rgba(70,224,255,.07),transparent 35%),linear-gradient(145deg,rgba(16,31,49,.98),rgba(8,21,34,.98));}
+.aiTitle{display:flex;align-items:center;gap:10px;}
+.aiIcon{width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:13px;background:rgba(70,224,255,.12);border:1px solid rgba(70,224,255,.3);font-size:23px;}
+.aiStatus{color:var(--g);font-size:12px;}
+.aiQuick{margin-bottom:13px;}
+.aiQuick button{background:#091827;border-color:rgba(70,224,255,.18);}
+.aiMessages{height:390px;overflow-y:auto;padding:8px;background:rgba(4,12,21,.5);border:1px solid var(--line);border-radius:13px;margin-bottom:12px;}
+.aiMsg{max-width:88%;padding:11px 13px;border-radius:13px;margin:8px 0;line-height:1.45;white-space:pre-wrap;font-size:13px;}
+.aiMsg.ai{background:#0c2232;border:1px solid rgba(70,224,255,.18);margin-right:auto;}
+.aiMsg.user{background:#132943;border:1px solid rgba(90,169,255,.25);margin-left:auto;}
+.aiMsg .who{color:var(--muted);font-size:10px;margin-bottom:5px;font-weight:700;}
+.aiInputRow{display:grid;grid-template-columns:1fr auto;gap:8px;}
+.aiHint{color:var(--muted);font-size:11px;margin-top:9px;}
+.modal{position:fixed;inset:0;z-index:3000;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.65);padding:15px;}
+.modalBox{width:min(600px,100%);max-height:90vh;overflow:auto;background:#0d1b2a;border:1px solid var(--line);border-radius:17px;padding:18px;}
+.instructionModal{z-index:6000;background:rgba(2,7,13,.8);}
+.instructionBox{width:min(760px,100%);background:linear-gradient(160deg,rgba(16,31,49,.99),rgba(9,19,32,.99));border:1px solid var(--line);}
+.instrHeader{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:4px;}
+.instrHeader h2{margin:0;}
+.instrSteps{display:flex;flex-direction:column;gap:12px;margin-top:14px;}
+.instrStep{display:flex;gap:14px;align-items:flex-start;padding:14px;border:1px solid var(--line);border-radius:13px;background:rgba(7,17,31,.5);}
+.instrNum{flex:none;width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;background:rgba(70,224,255,.12);border:1px solid rgba(70,224,255,.35);color:var(--c);}
+.instrIcon{font-size:22px;line-height:1;}
+.instrBody{flex:1;min-width:0;}
+.instrTitle{font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.instrText{color:var(--muted);font-size:13px;line-height:1.5;}
+.instrTag{display:inline-block;margin-top:8px;padding:3px 9px;border-radius:8px;background:rgba(54,224,154,.12);border:1px solid rgba(54,224,154,.3);color:var(--g);font-size:11px;font-weight:700;}
+.instrDivider{margin:6px 0 2px;padding-top:10px;border-top:1px dashed var(--line);font-weight:800;color:var(--y);font-size:13px;letter-spacing:.3px;}
+.mockScreen{margin-top:8px;padding:10px;background:#050e18;border:1px solid var(--line);border-radius:8px;font-family:monospace;font-size:11px;color:var(--c);}
+.mockBtn{display:inline-block;padding:2px 6px;background:#102238;border:1px solid var(--line);border-radius:4px;color:var(--text);font-weight:700;margin:2px 0;}
+@media(max-width:700px){.instrStep{flex-direction:column;}.instrNum{margin-bottom:4px;}}
+@media(max-width:1000px){.grid4{grid-template-columns:repeat(2,minmax(0,1fr));}.grid3{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:700px){
+ .headerInner{flex-direction:column;align-items:stretch;}
+ nav{width:100%;}
+ .container{padding:10px;}
+ .grid2,.grid3,.grid4{grid-template-columns:1fr;}
+ .periodBox{grid-template-columns:1fr;}
+ .dailyGrid{grid-template-columns:repeat(2,1fr);}
+ .dailyAmount{font-size:31px;}
+ .aiMessages{height:330px;}
+ .aiMsg{max-width:95%;}
+ table{display:block;overflow-x:auto;white-space:nowrap;}
+}
+.modeChips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px;}
+.chip{border:1px solid var(--line);background:#0a1828;color:var(--text);padding:9px 13px;border-radius:999px;font-weight:700;}
+.chip.active{background:rgba(70,224,255,.16);border-color:rgba(70,224,255,.5);color:var(--c);}
+.photoPanel{border:1px dashed rgba(70,224,255,.35);border-radius:13px;padding:14px;margin-bottom:14px;background:rgba(7,17,31,.35);}
+.thumbs{display:flex;flex-wrap:wrap;gap:8px;}
+.thumbWrap{position:relative;}
+.thumb{width:72px;height:72px;object-fit:cover;border-radius:10px;border:1px solid var(--line);cursor:pointer;background:#081624;display:block;}
+.thumbX{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--line);background:#2a1620;color:#fff;font-size:11px;padding:0;line-height:1;}
+.kindTag{position:absolute;left:3px;bottom:3px;font-size:12px;background:rgba(0,0,0,.6);border-radius:6px;padding:1px 3px;}
+#photoViewer{z-index:7000;background:rgba(0,0,0,.88);}
+#photoViewer img{max-width:100%;max-height:92vh;border-radius:10px;}
+pre.ocrPre{white-space:pre-wrap;font-size:11px;color:var(--muted);max-height:200px;overflow:auto;background:#050e18;padding:8px;border-radius:8px;}
+html[data-theme="light"]{--bg:#eef3f9;--p:#ffffff;--p2:#e8eef6;--line:#cfd9e6;--text:#13243a;--muted:#5b7088;--g:#0f9d63;--r:#d6314f;--y:#b7791f;--b:#2563eb;--c:#0e7490;}
+html[data-theme="light"] body{background:radial-gradient(circle at top right,rgba(14,116,144,.07),transparent 30%),var(--bg);}
+html[data-theme="light"] header{background:rgba(255,255,255,.92);}
+html[data-theme="light"] .card{background:#fff;box-shadow:0 6px 20px rgba(20,40,70,.08);}
+html[data-theme="light"] .kpi,html[data-theme="light"] .item,html[data-theme="light"] .dailyMini,html[data-theme="light"] .instrStep,html[data-theme="light"] .photoPanel,html[data-theme="light"] .aiMessages{background:#f6f9fc;}
+html[data-theme="light"] input,html[data-theme="light"] select,html[data-theme="light"] textarea,html[data-theme="light"] .thumb{background:#fff;}
+html[data-theme="light"] .btn,html[data-theme="light"] .quick button,html[data-theme="light"] .chip,html[data-theme="light"] .badge,html[data-theme="light"] .mockBtn{background:#eaf1f9;}
+html[data-theme="light"] .chip.active{background:rgba(14,116,144,.14);}
+html[data-theme="light"] nav button:hover{background:#e8eef6;}
+html[data-theme="light"] .dailyWidget{background:linear-gradient(135deg,rgba(15,157,99,.09),rgba(14,116,144,.05)),#fff;}
+html[data-theme="light"] .aiCard{background:#fff;}
+html[data-theme="light"] .aiMsg.ai{background:#e6f3f8;}
+html[data-theme="light"] .aiMsg.user{background:#e8eefb;}
+html[data-theme="light"] .modalBox,html[data-theme="light"] .loginBox,html[data-theme="light"] .instructionBox{background:#fff;}
+html[data-theme="light"] #login{background:#eef3f9;}
+html[data-theme="light"] .modal{background:rgba(20,30,50,.5);}
+html[data-theme="light"] #photoViewer{background:rgba(0,0,0,.88);}
+html[data-theme="light"] .mockScreen,html[data-theme="light"] pre.ocrPre{background:#f0f5fa;}
+html[data-theme="light"] .progress{background:#e3ecf6;}
+.cmpDelta{font-size:12px;margin-top:4px;}
+header{padding-top:env(safe-area-inset-top,0px);}
+body{padding-bottom:env(safe-area-inset-bottom,0px);}
+#netBadge{border-color:rgba(255,209,102,.5);color:var(--y);}
+</style>
+</head>
+<body>
+
+<div id="login">
+ <div class="loginBox">
+  <div class="loginLogo">
+   <div class="big">💰 FINANCIAL</div>
+   <small>STRATEGY 2026 PRO</small>
+  </div>
+  <div class="field">
+   <label>Пароль або PIN</label>
+   <input id="loginPassword" type="password" placeholder="Введіть пароль" onkeydown="if(event.key==='Enter')login()">
+  </div>
+  <button class="btn primary" style="width:100%" onclick="login()">🔐 Увійти</button>
+  <button class="btn cyan" style="width:100%;margin-top:10px" onclick="openInstructions()">📖 Інструкція</button>
+  <button id="installLoginBtn" class="btn green" style="width:100%;margin-top:10px;display:none" onclick="installApp()">📲 Встановити застосунок</button>
+  <div id="iosHint" class="small muted" style="display:none;margin-top:10px;text-align:center">iPhone/iPad: натисніть «Поділитися» → «На початковий екран»</div>
+  <div style="margin-top:20px;text-align:center;font-size:11px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;">
+   <div>© 2026 Всі права захищені</div>
+   <div style="margin-top:4px;font-weight:800;letter-spacing:.5px;background:linear-gradient(90deg,var(--c),var(--b));-webkit-background-clip:text;background-clip:text;color:transparent;">РОЗРОБИВ: НАКОНЕЧНИЙ ВОЛОДИМИР МИХАЙЛОВИЧ</div>
+  </div>
+ </div>
+</div>
+
+<!-- INSTRUCTIONS MODAL -->
+<div id="instructionModal" class="modal instructionModal" onclick="if(event.target===this)closeInstructions()">
+ <div class="modalBox instructionBox">
+  <div class="instrHeader">
+   <div>
+    <h2>📖 Інструкція користувача</h2>
+    <div class="muted small">Покроковий гід по роботі з Financial Strategy 2026 PRO</div>
+   </div>
+   <button class="btn red smallBtn" onclick="closeInstructions()">✕ Закрити</button>
+  </div>
+
+  <div class="instrSteps">
+
+   <div class="instrDivider">🚀 ПОЧАТОК РОБОТИ</div>
+
+   <div class="instrStep"><div class="instrNum">1</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">🔐</span> Вхід у програму</div>
+    <div class="instrText">На екрані входу введіть пароль і натисніть «Увійти». Стандартний пароль можна змінити пізніше у розділі «Налаштування».</div>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">2</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">📅</span> Встановіть фінансовий період</div>
+    <div class="instrText">Відкрийте «Налаштування» → картка «📊 Фінансова панель» → вкажіть дату початку та кінця періоду → натисніть «Зберегти період». Програма запам'ятовує період і після закриття чи перезапуску показує саме його. Усі розрахунки (ліміти, графіки, аналітика) базуються на цьому періоді.</div>
+    <span class="instrTag">Налаштування</span>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">3</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">🏦</span> Додайте рахунки</div>
+    <div class="instrText">У розділі «Рахунки» натисніть «+ Рахунок» і вкажіть назву (Готівка, Картка, Заощадження тощо). Рахунки потрібні, щоб коректно рахувати баланс.</div>
+    <span class="instrTag">Рахунки</span>
+   </div></div>
+
+   <div class="instrDivider">💰 ЩОДЕННА РОБОТА З ФІНАНСАМИ</div>
+
+   <div class="instrStep"><div class="instrNum">4</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">➕</span> Додайте дохід</div>
+    <div class="instrText">Розділ «Дохід»: вкажіть суму, дату, категорію та рахунок зарахування → «Зберегти дохід». Якщо потрібної категорії немає — оберіть у списку «➕ Додати свою категорію…».</div>
+    <span class="instrTag">Дохід</span>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">5</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">➖</span> Додайте витрату</div>
+    <div class="instrText">Розділ «Витрата»: вкажіть суму, дату, категорію, рахунок списання (за потреби — прив'язку до боргу) → «Зберегти витрату». Власну категорію можна додати вручну прямо у списку категорій.</div>
+    <span class="instrTag">Витрата</span>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">6</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">⚡</span> Швидкі операції</div>
+    <div class="instrText">На «Головній» є кнопки «➖ Швидка витрата» та «➕ Швидкий дохід» — зручно для одноразового швидкого запису прямо з дашборду.</div>
+    <span class="instrTag">Головна</span>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">7</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">💳</span> Скільки можна витратити сьогодні</div>
+    <div class="instrText">Блок «Можна витратити сьогодні» на Головній автоматично розраховує безпечний денний ліміт на основі балансу, витрат і кількості днів, що залишились до кінця періоду.</div>
+   </div></div>
+
+   <div class="instrDivider">📜 АНАЛІТИКА ТА ПЛАНУВАННЯ</div>
+
+   <div class="instrStep"><div class="instrNum">8</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">📜</span> Історія операцій</div>
+    <div class="instrText">Розділ «Історія» показує всі операції. Зверху є фільтри: тип, категорія, рахунок і діапазон дат. Кожен запис можна редагувати ✏️ або видалити 🗑 (із підтвердженням).</div>
+    <span class="instrTag">Історія</span>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">9</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">🎯</span> Фінансові цілі</div>
+    <div class="instrText">Розділ «Цілі»: створіть ціль (сума, дедлайн), поповнюйте її кнопкою «Поповнити» — програма покаже прогрес і скільки треба відкладати щодня.</div>
+    <span class="instrTag">Цілі</span>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">10</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">💸</span> Борги</div>
+    <div class="instrText">Розділ «Борги»: додайте борг («Я винен» або «Мені винні»), а погашення/повернення фіксуйте кнопкою «Погасити» / «Отримати» — це автоматично створює операцію.</div>
+    <span class="instrTag">Борги</span>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">11</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">📐</span> Бюджет 50/30/20, поради і графіки</div>
+    <div class="instrText">Розділ «Бюджет» показує розподіл витрат 50% потреби / 30% бажання / 20% резерв, практичні поради залежно від вашої ситуації (кольорові позначки: червоний — критично, жовтий — увага, синій — порада, зелений — все добре), а також графіки. Головні поради видно й на «Головній».</div>
+    <span class="instrTag">Бюджет</span>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">12</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">🤖</span> ШІ-помічник</div>
+    <div class="instrText">У розділі «ШІ» можна поставити питання своїми словами («Чи можу я витратити 500 грн?», «На що я витрачаю найбільше?», «Дай поради») або скористатись готовими кнопками. Аналіз відбувається локально, дані нікуди не передаються.</div>
+    <span class="instrTag">ШІ</span>
+   </div></div>
+
+   <div class="instrDivider">⚙️ НАЛАШТУВАННЯ ТА БЕЗПЕКА ДАНИХ</div>
+
+   <div class="instrStep"><div class="instrNum">13</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">☁️</span> Як налаштувати JSONBin синхронізацію (Покроково)</div>
+    <div class="instrText">
+     Хмарна синхронізація дозволяє зберігати ваші фінансові дані у хмарному сховищі JSONBin та синхронізувати їх між пристроями.
+     <br><br>
+     <b>Крок 1. Реєстрація акаунту</b>
+     <br>• Перейдіть на сайт <a href="https://jsonbin.io" target="_blank" style="color:var(--c);font-weight:bold;text-decoration:underline;">jsonbin.io</a>.
+     <br>• Натисніть <span class="mockBtn">Sign Up</span> і зареєструйтесь через Email або Google / GitHub.
+     <br><br><b>Крок 2. Master Key</b>
+     <br>• Після входу відкрийте розділ <b>API Keys</b> і натисніть <span class="mockBtn">Copy Key</span> біля <b>Master Key</b>.
+     <br><br><b>Крок 3. Створення сховища (Bin ID)</b>
+     <br>• У розділі <b>Bins</b> натисніть <span class="mockBtn">+ Create a Bin</span>, введіть <code>{}</code> і збережіть.
+     <br>• Скопіюйте <b>Bin ID</b> створеного сховища.
+     <br><br><b>Крок 4. Внесення даних у програму</b>
+     <br>• «Налаштування» → картка <b>«☁️ JSONBin синхронізація»</b>: вставте <b>Bin ID</b> та <b>Master Key</b>, за бажанням увімкніть «Автоматична синхронізація» і натисніть <span class="mockBtn">💾 Зберегти</span>.
+     <br><br><b>Крок 5. Перевірка</b>
+     <br>• Натисніть <span class="mockBtn">☁️ PUSH</span>, щоб відправити дані в хмару. На іншому пристрої вкажіть ті самі Bin ID та Master Key і натисніть <span class="mockBtn">☁️ PULL</span>.
+    </div>
+    <span class="instrTag">Налаштування → JSONBin</span>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">14</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">📂</span> Розділи можна згортати</div>
+    <div class="instrText">Натисніть на заголовок будь-якого розділу (крім Головної), щоб згорнути або розгорнути його вміст.</div>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">15</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">🏷️</span> Власні категорії</div>
+    <div class="instrText">У списках категорій витрат і доходів оберіть «➕ Додати свою категорію…» та введіть назву. Для витрат програма запитає, чи це «потреба» (для розрахунку 50/30/20). Керувати власними категоріями (видаляти невикористані) можна у «Налаштування» → «🏷️ Власні категорії».</div>
+    <span class="instrTag">Налаштування</span>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">16</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">🧾</span> Фото чека та товару</div>
+    <div class="instrText">У розділі «Витрата» оберіть «🧾 Фото чека» та/або «📦 Фото товару», а також можна працювати «✍️ Вручну». Для чека сфотографуйте його рівно і при хорошому світлі — програма сама розпізнає суму, дату, магазин і підбере категорію та впише їх у форму. Обов'язково перевірте дані й натисніть «Зберегти витрату». Фото прикріплюються до операції та видні в «Історії» (натисніть, щоб збільшити). Розпізнавання відбувається в браузері; під час першого запуску потрібен інтернет для завантаження мовного модуля. Фото зберігаються лише на цьому пристрої (у хмару JSONBin не відправляються); для перенесення використовуйте «Експорт з фото».</div>
+    <span class="instrTag">Витрата → Фото</span>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">17</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">📅</span> Порівняння періодів</div>
+    <div class="instrText">У розділі «Бюджет» видно, як змінилися доходи, витрати та категорії порівняно з попереднім періодом тієї ж тривалості (зелений — добре, червоний — погано). Якщо поточний період ще триває, порівнюється однакова кількість днів, щоб результат був чесним. Нижче є графік за останні 6 періодів.</div>
+    <span class="instrTag">Бюджет</span>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">18</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">🛒</span> Планувальник покупок</div>
+    <div class="instrText">Розділ «🛒 План»: додайте велику покупку (сума, дата, скільки вже відкладено). Програма покаже, скільки відкладати на день, тиждень і місяць, чи це реально за вашим поточним залишком, що можна скоротити, а також дату досягнення за вашою сумою відкладень. Кнопка «У цілі» перенесе покупку у фінансові цілі.</div>
+    <span class="instrTag">План</span>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">19</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">🔒</span> Безпека, тема, валюта</div>
+    <div class="instrText">«Налаштування → 🔒 Безпека»: встановіть PIN (4–6 цифр) для швидкого входу, автоблокування після бездіяльності та режим приватності (кнопка 👁 у верхньому меню ховає всі суми). Тема (темна/світла/авто) перемикається кнопкою 🌗 або в «🎨 Вигляд і валюта», там же — символ валюти. Для іконки на екрані телефону скористайтесь «Додати на головний екран» у меню браузера.</div>
+    <span class="instrTag">Налаштування</span>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">20</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">📲</span> Встановлення та робота офлайн</div>
+    <div class="instrText">Відкрийте програму за https-посиланням і натисніть «📲 Встановити» (Android/ПК) або, на iPhone, «Поділитися» → «На початковий екран». Після першого запуску програма працює без інтернету: операції, історія, цілі, бюджет і графіки доступні офлайн, дані зберігаються на пристрої. Хмарна синхронізація JSONBin потребує інтернету. Нові версії програма пропонує встановити сама.</div>
+    <span class="instrTag">PWA</span>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">20</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">📲</span> Встановлення як застосунок і робота офлайн</div>
+    <div class="instrText">Якщо програма розміщена за https-адресою, у «Налаштування → 📲 Застосунок та офлайн-режим» натисніть «Встановити застосунок» (на iPhone: Safari → «Поділитись» → «На початковий екран»). Після першого відкриття з інтернетом програма працює й без нього: усі операції, цілі й фото зберігаються на пристрої. Без інтернету не працюють лише хмарна синхронізація JSONBin та перше розпізнавання чека (мовний модуль потрібно один раз завантажити онлайн). Нові версії програма пропонує встановити сама.</div>
+    <span class="instrTag">Налаштування</span>
+   </div></div>
+
+  </div>
+
+  <div class="row" style="margin-top:18px">
+   <button class="btn red" style="width:100%" onclick="closeInstructions()">✕ Закрити та повернутися на екран входу</button>
+  </div>
+ </div>
+</div>
+
+<div id="appContent">
+<header>
+ <div class="headerInner">
+  <div class="logo">💰 FINANCIAL STRATEGY<small>2026 PRO • SMART FINANCE</small></div>
+  <nav>
+   <span id="netBadge" class="badge" style="display:none;align-self:center">⚡ Офлайн</span>
+   <button id="installBtn" class="btn cyan smallBtn" style="display:none" onclick="installApp()">📲 Встановити</button>
+   <button onclick="go('home')">Головна</button>
+   <button onclick="go('aiAssistant')">🤖 ШІ</button>
+   <button onclick="go('transactions')">Витрата</button>
+   <button onclick="go('income')">Дохід</button>
+   <button onclick="go('history')">Історія</button>
+   <button onclick="go('accounts')">Рахунки</button>
+   <button onclick="go('goals')">Цілі</button>
+   <button onclick="go('planner')">🛒 План</button>
+   <button onclick="go('debts')">Борги</button>
+   <button onclick="go('budget')">Бюджет</button>
+   <button onclick="go('settings')">Налаштування</button>
+   <button id="hideBtn" onclick="toggleHide()" title="Сховати/показати суми">👁</button>
+   <button onclick="toggleTheme()" title="Світла/темна тема">🌗</button>
+   <button onclick="logout()">Вийти</button>
+  </nav>
+ </div>
+</header>
+
+<main class="container">
+
+<!-- HOME -->
+<section id="home">
+ <div class="grid grid4">
+  <div class="kpi"><div class="label">ЗАГАЛЬНИЙ БАЛАНС</div><div class="value" id="kBalance">₴0.00</div></div>
+  <div class="kpi"><div class="label">ДОХОДИ ПЕРІОДУ</div><div class="value green" id="kIncome">₴0.00</div></div>
+  <div class="kpi"><div class="label">ВИТРАТИ ПЕРІОДУ</div><div class="value red" id="kExpense">₴0.00</div></div>
+  <div class="kpi"><div class="label">РЕЗУЛЬТАТ</div><div class="value" id="kResult">₴0.00</div></div>
+ </div>
+
+ <div class="card dailyWidget" style="margin-top:14px">
+  <div class="head">
+   <div><h2>💳 МОЖНА ВИТРАТИТИ СЬОГОДНІ</h2><div class="muted small">Розрахунок на основі поточного фінансового періоду</div></div>
+   <div class="badge" id="dailyStatus">—</div>
+  </div>
+  <div id="homePeriodEndedBanner" class="item" style="display:none;margin-bottom:14px;border-color:rgba(255,209,102,.4);background:rgba(255,209,102,.08)">
+   <div class="itemTitle" style="color:var(--y)">⚠️ Фінансовий період завершився</div>
+   <div class="small muted" style="margin-bottom:10px">Розрахунки денного ліміту призупинені. Розпочніть новий період, щоб продовжити планування.</div>
+   <button class="btn yellow smallBtn" onclick="startNewPeriod()">🔄 Розпочати новий період</button>
+  </div>
+  <div class="dailyAmount" id="dailyAmount">₴0.00</div>
+  <div id="dailyText" class="muted"></div>
+  <div class="dailyGrid" style="margin-top:14px">
+   <div class="dailyMini"><span class="small muted">Ліміт/день</span><b id="dailyLimit">₴0.00</b></div>
+   <div class="dailyMini"><span class="small muted">Витрачено сьогодні</span><b id="todaySpent">₴0.00</b></div>
+   <div class="dailyMini"><span class="small muted">Запас/перевитрата</span><b id="dailyCarry">₴0.00</b></div>
+   <div class="dailyMini"><span class="small muted">Днів залишилось</span><b id="daysLeft">0</b></div>
+  </div>
+  <div style="margin-top:15px">
+   <div class="small muted" style="margin-bottom:6px">Прогрес фінансового періоду</div>
+   <div class="progress"><div id="periodProgress"></div></div>
+  </div>
+  <div class="quick" style="margin-top:15px">
+   <button class="btn green" onclick="quickAdd('expense')">➖ Швидка витрата</button>
+   <button class="btn primary" onclick="quickAdd('income')">➕ Швидкий дохід</button>
+  </div>
+ </div>
+
+ <div class="card" style="margin-top:14px">
+  <div class="head"><h3 style="margin:0">💡 Головні поради</h3><button class="btn smallBtn" onclick="go('budget')">Усі поради →</button></div>
+  <div id="homeAdvice"></div>
+ </div>
+
+ <div class="grid grid2" style="margin-top:14px">
+  <div class="card">
+   <h3>🧠 Фінансовий стан</h3>
+   <div class="kpi"><div class="label">ФІНАНСОВИЙ БАЛ</div><div class="value" id="financialScore">0/100</div><div class="muted small" id="financialScoreText"></div></div>
+   <div class="statLine"><span>Поточний баланс</span><b id="stateBalance">₴0.00</b></div>
+   <div class="statLine"><span>Доходи</span><b class="green" id="stateIncome">₴0.00</b></div>
+   <div class="statLine"><span>Витрати</span><b class="red" id="stateExpense">₴0.00</b></div>
+   <div class="statLine"><span>Борги</span><b id="stateDebt">₴0.00</b></div>
+  </div>
+  <div class="card">
+   <h3>🎯 50 / 30 / 20</h3>
+   <div class="statLine"><span>Потреби</span><b id="budgetNeeds">₴0.00</b></div>
+   <div class="statLine"><span>Бажання</span><b id="budgetWants">₴0.00</b></div>
+   <div class="statLine"><span>Резерв</span><b class="green" id="budgetReserve">₴0.00</b></div>
+   <div id="budgetSummary" class="muted small" style="margin-top:10px"></div>
+  </div>
+ </div>
+</section>
+
+<!-- AI -->
+<section id="aiAssistant">
+ <div class="card aiCard sectionToggle" onclick="toggleSection('aiAssistant')">
+  <div class="head" style="margin-bottom:0">
+   <div class="aiTitle">
+    <div class="aiIcon">🤖</div>
+    <div><h2 style="margin:0">ФІНАНСОВИЙ ШІ-ПОМІЧНИК</h2><div class="aiStatus">● Локальний ШІ-аналітик активний</div></div>
+   </div>
+   <span class="badge arrowBadge" id="aiAssistant-arrow">▶</span>
+  </div>
+ </div>
+ <div id="aiAssistant-body" class="sectionBody collapsed">
+  <div class="card aiCard">
+   <div class="head">
+    <div class="muted small">Задайте питання про свої фінанси</div>
+    <button class="btn smallBtn" onclick="clearAIChat()">Очистити</button>
+   </div>
+   <div class="quick aiQuick">
+    <button onclick="aiQuick('analysis')">📊 Повний аналіз</button>
+    <button onclick="aiQuick('advice')">💡 Поради</button>
+    <button onclick="aiQuick('compare')">📅 Порівняння</button>
+    <button onclick="aiQuick('today')">💳 Сьогодні</button>
+    <button onclick="aiQuick('expenses')">📉 Витрати</button>
+    <button onclick="aiQuick('goal')">🎯 Цілі</button>
+    <button onclick="aiQuick('debt')">💸 Борги</button>
+    <button onclick="aiQuick('forecast')">🔮 Прогноз</button>
+    <button onclick="aiQuick('budget')">📐 50/30/20</button>
+   </div>
+   <div id="aiMessages" class="aiMessages"></div>
+   <div class="aiInputRow">
+    <input id="aiInput" placeholder="Наприклад: Чи можу я витратити 500 грн?" onkeydown="if(event.key==='Enter')sendAIMessage()">
+    <button class="btn cyan" onclick="sendAIMessage()">Надіслати</button>
+   </div>
+   <div class="aiHint">ШІ аналізує тільки дані цієї фінансової системи. Дані не відправляються в зовнішній AI-сервіс.</div>
+  </div>
+ </div>
+</section>
+
+<!-- HISTORY -->
+<section id="history">
+ <div class="card sectionToggle" onclick="toggleSection('history')">
+  <div class="head" style="margin-bottom:0">
+   <div><h2 style="margin:0">📜 Історія операцій</h2><div class="muted small">Усі доходи та витрати</div></div>
+   <span class="badge arrowBadge" id="history-arrow">▶</span>
+  </div>
+ </div>
+ <div id="history-body" class="sectionBody collapsed">
+  <div class="card">
+   <div class="head">
+    <h2 style="margin:0">Фільтри</h2>
+    <button class="btn red smallBtn" onclick="clearTx()">Очистити операції</button>
+   </div>
+   <div class="grid grid4">
+    <div class="field" style="margin:0"><label>Тип</label>
+     <select id="histFilterType" onchange="renderHistory()"><option value="">Усі</option><option value="income">Дохід</option><option value="expense">Витрата</option></select>
+    </div>
+    <div class="field" style="margin:0"><label>Категорія</label>
+     <select id="histFilterCategory" onchange="renderHistory()"><option value="">Усі категорії</option></select>
+    </div>
+    <div class="field" style="margin:0"><label>Рахунок</label>
+     <select id="histFilterAccount" onchange="renderHistory()"><option value="">Усі рахунки</option></select>
+    </div>
+    <div class="field" style="margin:0"><label>Дата з / по</label>
+     <div class="row"><input type="date" id="histFilterFrom" onchange="renderHistory()"><input type="date" id="histFilterTo" onchange="renderHistory()"></div>
+    </div>
+   </div>
+   <div class="row" style="margin-top:12px;justify-content:space-between;align-items:center;">
+    <button class="btn smallBtn" onclick="resetHistFilters()">↺ Скинути фільтри</button>
+    <div class="kpi" style="padding:10px 16px;margin:0;min-width:220px;text-align:right;">
+     <div class="label" id="histFilteredLabel" style="margin-bottom:3px">СУМА ЗА ФІЛЬТРОМ</div>
+     <div class="value" id="histFilteredTotal" style="font-size:20px">₴0.00</div>
+    </div>
+   </div>
+  </div>
+  <div class="card" style="margin-top:14px"><div id="historyList"></div></div>
+ </div>
+</section>
+
+<!-- EXPENSE -->
+<section id="transactions">
+ <div class="card sectionToggle" onclick="toggleSection('transactions')">
+  <div class="head" style="margin-bottom:0">
+   <div><h2 style="margin:0">➖ Додати витрату</h2><div class="muted small">Нова витратна операція</div></div>
+   <span class="badge arrowBadge" id="transactions-arrow">▶</span>
+  </div>
+ </div>
+ <div id="transactions-body" class="sectionBody collapsed">
+  <div class="card">
+   <div class="field">
+    <label>Спосіб внесення (можна поєднувати)</label>
+    <div class="modeChips">
+     <button type="button" class="chip active" id="chipManual" onclick="setMode('manual')">✍️ Вручну</button>
+     <button type="button" class="chip" id="chipReceipt" onclick="setMode('receipt')">🧾 Фото чека</button>
+     <button type="button" class="chip" id="chipProduct" onclick="setMode('product')">📦 Фото товару</button>
+    </div>
+    <div class="small muted">«Фото чека» — дані (сума, дата, категорія, магазин) розпізнаються та вписуються автоматично. Фото прикріплюється до операції в Історії.</div>
+   </div>
+
+   <div id="panelReceipt" class="photoPanel" style="display:none">
+    <div class="itemTitle">🧾 Фото чека</div>
+    <div class="row">
+     <button type="button" class="btn cyan smallBtn" onclick="document.getElementById('receiptCam').click()">📷 Сфотографувати</button>
+     <button type="button" class="btn smallBtn" onclick="document.getElementById('receiptGal').click()">🖼 З галереї</button>
+     <button type="button" class="btn smallBtn" onclick="runOCR()">🔍 Розпізнати ще раз</button>
+    </div>
+    <input id="receiptCam" type="file" accept="image/*" capture="environment" style="display:none" onchange="onReceiptFile(this)">
+    <input id="receiptGal" type="file" accept="image/*" style="display:none" onchange="onReceiptFile(this)">
+    <div id="receiptPreview" class="thumbs" style="margin-top:10px"></div>
+    <div class="progress" style="margin-top:10px"><div id="ocrBar"></div></div>
+    <div id="ocrStatus" class="small muted" style="margin-top:6px"></div>
+    <div id="ocrSummary" style="margin-top:6px"></div>
+    <details style="margin-top:8px"><summary class="small muted" style="cursor:pointer">Розпізнаний текст</summary><pre id="ocrText" class="ocrPre"></pre></details>
+   </div>
+
+   <div id="panelProduct" class="photoPanel" style="display:none">
+    <div class="itemTitle">📦 Фото товару</div>
+    <div class="row">
+     <button type="button" class="btn cyan smallBtn" onclick="document.getElementById('productCam').click()">📷 Сфотографувати</button>
+     <button type="button" class="btn smallBtn" onclick="document.getElementById('productGal').click()">🖼 З галереї</button>
+    </div>
+    <input id="productCam" type="file" accept="image/*" capture="environment" style="display:none" onchange="onProductFiles(this)">
+    <input id="productGal" type="file" accept="image/*" multiple style="display:none" onchange="onProductFiles(this)">
+    <div id="productPreview" class="thumbs" style="margin-top:10px"></div>
+   </div>
+
+   <div class="grid grid3">
+    <div class="field"><label>Сума</label><input id="expenseAmount" type="number" step="0.01" min="0"></div>
+    <div class="field"><label>Дата</label><input id="expenseDate" type="date"></div>
+    <div class="field"><label>Категорія</label>
+     <select id="expenseCategory" onfocus="this.dataset.prev=this.value" onchange="onCatChange(this,'expense')"></select>
+    </div>
+   </div>
+   <div class="grid grid3">
+    <div class="field"><label>Рахунок</label><select id="expenseAccount"></select></div>
+    <div class="field"><label>Борг</label><select id="expenseDebt"><option value="">Без боргу</option></select></div>
+    <div class="field"><label>Коментар</label><input id="expenseMemo" placeholder="Наприклад: продукти"></div>
+   </div>
+   <button class="btn red" onclick="saveTransaction('expense')">➖ Зберегти витрату</button>
+  </div>
+ </div>
+</section>
+
+<!-- INCOME -->
+<section id="income">
+ <div class="card sectionToggle" onclick="toggleSection('income')">
+  <div class="head" style="margin-bottom:0">
+   <div><h2 style="margin:0">➕ Додати дохід</h2><div class="muted small">Нова дохідна операція</div></div>
+   <span class="badge arrowBadge" id="income-arrow">▶</span>
+  </div>
+ </div>
+ <div id="income-body" class="sectionBody collapsed">
+  <div class="card">
+   <div class="grid grid3">
+    <div class="field"><label>Сума</label><input id="incomeAmount" type="number" step="0.01" min="0"></div>
+    <div class="field"><label>Дата</label><input id="incomeDate" type="date"></div>
+    <div class="field"><label>Категорія</label>
+     <select id="incomeCategory" onfocus="this.dataset.prev=this.value" onchange="onCatChange(this,'income')"></select>
+    </div>
+   </div>
+   <div class="grid grid2">
+    <div class="field"><label>Рахунок</label><select id="incomeAccount"></select></div>
+    <div class="field"><label>Коментар</label><input id="incomeMemo" placeholder="Наприклад: зарплата"></div>
+   </div>
+   <button class="btn green" onclick="saveTransaction('income')">➕ Зберегти дохід</button>
+  </div>
+ </div>
+</section>
+
+<!-- ACCOUNTS -->
+<section id="accounts">
+ <div class="card sectionToggle" onclick="toggleSection('accounts')">
+  <div class="head" style="margin-bottom:0">
+   <div><h2 style="margin:0">🏦 Рахунки</h2><div class="muted small">Готівка, картки та інші рахунки</div></div>
+   <span class="badge arrowBadge" id="accounts-arrow">▶</span>
+  </div>
+ </div>
+ <div id="accounts-body" class="sectionBody collapsed">
+  <div class="card">
+   <div class="head"><div></div><button class="btn primary" onclick="addAccount()">+ Рахунок</button></div>
+   <div id="accountsList"></div>
+  </div>
+ </div>
+</section>
+
+<!-- GOALS -->
+<section id="goals">
+ <div class="card sectionToggle" onclick="toggleSection('goals')">
+  <div class="head" style="margin-bottom:0">
+   <div><h2 style="margin:0">🎯 Фінансові цілі</h2><div class="muted small">Накопичення та контроль прогресу</div></div>
+   <span class="badge arrowBadge" id="goals-arrow">▶</span>
+  </div>
+ </div>
+ <div id="goals-body" class="sectionBody collapsed">
+  <div class="card">
+   <div class="head"><div></div><button class="btn primary" onclick="addGoal()">+ Ціль</button></div>
+   <div id="goalsList"></div>
+  </div>
+ </div>
+</section>
+
+<!-- PLANNER -->
+<section id="planner">
+ <div class="card sectionToggle" onclick="toggleSection('planner')">
+  <div class="head" style="margin-bottom:0">
+   <div><h2 style="margin:0">🛒 Планувальник покупок</h2><div class="muted small">Чи реально накопичити, скільки відкладати і що скоротити</div></div>
+   <span class="badge arrowBadge" id="planner-arrow">▶</span>
+  </div>
+ </div>
+ <div id="planner-body" class="sectionBody collapsed">
+  <div class="card">
+   <div class="head"><div class="muted small">Оцінка спирається на ваш середній вільний залишок (доходи мінус витрати) у поточному періоді. «Відкладено» тут — це облік, а не списання з рахунків.</div><button class="btn primary" onclick="addPlan()">+ Покупка</button></div>
+   <div id="plansList"></div>
+  </div>
+ </div>
+</section>
+
+<!-- DEBTS -->
+<section id="debts">
+ <div class="card sectionToggle" onclick="toggleSection('debts')">
+  <div class="head" style="margin-bottom:0">
+   <div><h2 style="margin:0">💸 Борги</h2><div class="muted small">Контроль боргів та повернення коштів</div></div>
+   <span class="badge arrowBadge" id="debts-arrow">▶</span>
+  </div>
+ </div>
+ <div id="debts-body" class="sectionBody collapsed">
+  <div class="card">
+   <div class="head"><div></div><button class="btn primary" onclick="addDebt()">+ Борг</button></div>
+   <div id="debtsList"></div>
+  </div>
+ </div>
+</section>
+
+<!-- BUDGET -->
+<section id="budget">
+ <div class="card sectionToggle" onclick="toggleSection('budget')">
+  <div class="head" style="margin-bottom:0">
+   <div><h2 style="margin:0">📐 Бюджет та аналітика</h2><div class="muted small">Розподіл 50/30/20, поради, графіки</div></div>
+   <span class="badge arrowBadge" id="budget-arrow">▶</span>
+  </div>
+ </div>
+ <div id="budget-body" class="sectionBody collapsed">
+  <div class="grid grid2">
+   <div class="card"><h2>📐 Бюджет 50 / 30 / 20</h2><div id="budgetDetails"></div></div>
+   <div class="card"><h2>💡 Поради та рекомендації</h2><div id="recommendations"></div></div>
+  </div>
+  <div class="grid grid2" style="margin-top:14px">
+   <div class="card"><h3>📈 Доходи / витрати / баланс</h3><div class="chartBox"><canvas id="trendChart"></canvas></div></div>
+   <div class="card"><h3>🍩 Структура витрат</h3><div class="chartBox"><canvas id="categoryChart"></canvas></div></div>
+  </div>
+  <div class="card" style="margin-top:14px"><h3>📅 Порівняння з попереднім періодом</h3><div id="compareBox"></div></div>
+  <div class="card" style="margin-top:14px"><h3>📊 Динаміка за останні періоди</h3><div class="chartBox"><canvas id="periodsChart"></canvas></div></div>
+ </div>
+</section>
+
+<!-- SETTINGS -->
+<section id="settings">
+ <div class="card sectionToggle" onclick="toggleSection('settings')">
+  <div class="head" style="margin-bottom:0">
+   <div><h2 style="margin:0">⚙️ Налаштування</h2><div class="muted small">Параметри, синхронізація, резервна копія</div></div>
+   <span class="badge arrowBadge" id="settings-arrow">▶</span>
+  </div>
+ </div>
+ <div id="settings-body" class="sectionBody collapsed">
+  <div class="card">
+   <div class="head">
+    <div><h2>📊 Фінансова панель</h2><div class="muted small">Керування фінансовим періодом</div></div>
+    <div class="badge" id="periodStatus">Період не встановлено</div>
+   </div>
+   <div class="periodBox">
+    <div class="field" style="margin:0"><label>Початок фінансового періоду</label><input type="date" id="periodStart"></div>
+    <div class="field" style="margin:0"><label>Кінець фінансового періоду</label><input type="date" id="periodEnd"></div>
+    <button class="btn green" onclick="savePeriod()">💾 Зберегти період</button>
+   </div>
+   <div id="periodInfo" class="small muted" style="margin-top:10px"></div>
+   <div id="periodEndedNotice" class="item" style="display:none;margin-top:12px;border-color:rgba(255,209,102,.4);background:rgba(255,209,102,.08)">
+    <div class="itemTitle" style="color:var(--y)">⚠️ Фінансовий період завершився</div>
+    <div class="small muted">Розрахунки денного ліміту, графіки та бюджет 50/30/20 заморожені до старту нового періоду.</div>
+   </div>
+   <div class="row" style="margin-top:12px">
+    <button class="btn cyan" onclick="startNewPeriod()">🔄 Новий період (продовжити на ту саму тривалість)</button>
+   </div>
+  </div>
+  <div class="grid grid2" style="margin-top:14px">
+   <div class="card">
+    <h2>⚙️ Загальні</h2>
+    <div class="field"><label>Частка щоденних витрат, %</label><input id="spendShare" type="number" min="0" max="100"></div>
+    <div class="field"><label>Річний відсоток</label><input id="annualPercent" type="number" step="0.1"></div>
+    <div class="field"><label>Назва цілі за замовчуванням</label><input id="targetName"></div>
+    <div class="field"><label>Сума цілі за замовчуванням</label><input id="targetAmt" type="number" step="0.01"></div>
+    <div class="field"><label>Новий пароль</label><input id="newPassword" type="password" placeholder="Залиште порожнім без зміни"></div>
+    <button class="btn green" onclick="saveSettings()">💾 Зберегти налаштування</button>
+   </div>
+   <div class="card">
+    <h2>☁️ JSONBin синхронізація</h2>
+    <div class="field"><label>Bin ID</label><input id="binId" placeholder="Ваш JSONBin ID"></div>
+    <div class="field"><label>Master Key</label><input id="binKey" type="password" placeholder="Ваш JSONBin Master Key"></div>
+    <div class="field"><label><input id="autoSync" type="checkbox" style="width:auto"> Автоматична синхронізація</label></div>
+    <div class="field"><label>Інтервал синхронізації, хв</label><input id="syncInterval" type="number" min="1"></div>
+    <div class="row">
+     <button class="btn primary" onclick="saveSettings()">💾 Зберегти</button>
+     <button class="btn green" onclick="pushCloud()">☁️ PUSH</button>
+     <button class="btn cyan" onclick="pullCloud()">☁️ PULL</button>
+    </div>
+    <div id="syncStatus" class="small muted" style="margin-top:12px">Синхронізація не налаштована</div>
+   </div>
+  </div>
+  <div class="grid grid2" style="margin-top:14px">
+   <div class="card">
+    <h2>🎨 Вигляд і валюта</h2>
+    <div class="field"><label>Тема</label>
+     <select id="themeSel" onchange="setTheme(this.value)"><option value="dark">Темна</option><option value="light">Світла</option><option value="auto">Авто (як у системі)</option></select>
+    </div>
+    <div class="field"><label>Символ валюти</label>
+     <select id="currencySel" onchange="setCurrency(this.value)"><option value="₴">₴ (гривня)</option><option value="$">$ (долар)</option><option value="€">€ (євро)</option><option value="zł">zł (злотий)</option><option value="£">£ (фунт)</option></select>
+    </div>
+    <div class="small muted">Валюта змінює лише символ, суми автоматично не конвертуються.</div>
+   </div>
+   <div class="card">
+    <h2>🔒 Безпека</h2>
+    <div class="field"><label>Новий PIN (4–6 цифр)</label><input id="pinNew" type="password" inputmode="numeric" maxlength="6" placeholder="••••"></div>
+    <div class="field"><label>Повторіть PIN</label><input id="pinConfirm" type="password" inputmode="numeric" maxlength="6" placeholder="••••"></div>
+    <div class="row" style="margin-bottom:12px">
+     <button class="btn green" onclick="setPin()">🔐 Встановити PIN</button>
+     <button class="btn red" onclick="removePin()">Видалити PIN</button>
+    </div>
+    <div id="pinStatus" class="small muted" style="margin-bottom:12px"></div>
+    <div class="field"><label>Автоблокування після бездіяльності</label>
+     <select id="autoLockSel" onchange="setAutoLock(this.value)"><option value="0">Вимкнено</option><option value="1">1 хв</option><option value="2">2 хв</option><option value="5">5 хв</option><option value="10">10 хв</option><option value="15">15 хв</option></select>
+    </div>
+    <div class="field"><label><input id="hideChk" type="checkbox" style="width:auto" onchange="setHide(this.checked)"> Режим приватності (ховати суми)</label></div>
+    <div class="small muted">PIN і автоблокування захищають від випадкового перегляду на екрані, але це не шифрування даних.</div>
+   </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+   <h2>📲 Застосунок та офлайн-режим</h2>
+   <div id="pwaStatus" class="small muted" style="margin-bottom:12px;line-height:1.7"></div>
+   <div class="row">
+    <button id="installBtn" class="btn green" onclick="installApp()">📲 Встановити застосунок</button>
+    <button class="btn" onclick="checkUpdate()">🔄 Перевірити оновлення</button>
+    <button class="btn red" onclick="clearAppCache()">🧹 Очистити кеш</button>
+   </div>
+   <div class="small muted" style="margin-top:10px">Очищення кешу не видаляє ваші операції та фото — лише збережені файли програми.</div>
+  </div>
+  <div class="card" style="margin-top:14px">
+   <h2>🏷️ Власні категорії</h2>
+   <div class="muted small" style="margin-bottom:10px">Додавайте нові категорії прямо у списку категорій («➕ Додати свою категорію…»). Тут їх можна видалити, якщо вони не використовуються в операціях.</div>
+   <div id="catManager"></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+   <h2>💾 Резервна копія</h2>
+   <div class="row">
+    <button class="btn green" onclick="exportBackup(false)">⬇️ Експорт JSON</button>
+    <button class="btn green" onclick="exportBackup(true)">⬇️ Експорт з фото</button>
+    <button class="btn primary" onclick="document.getElementById('importFile').click()">⬆️ Імпорт JSON</button>
+    <input id="importFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
+    <button class="btn red" onclick="clearAll()">🗑️ Очистити всю базу</button>
+   </div>
+  </div>
+ </div>
+</section>
+
+</main>
+
+<footer>
+ <div class="footLine1">Financial Strategy 2026 PRO • локальне зберігання даних • ШІ-аналітик</div>
+ <div class="footLine1" style="margin-top:10px">© 2026 Всі права захищені</div>
+ <div class="footLine2">РОЗРОБИВ: НАКОНЕЧНИЙ ВОЛОДИМИР МИХАЙЛОВИЧ</div>
+</footer>
+</div>
+
+<div id="offlineBar" style="display:none;position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:4000;padding:10px 14px;border-radius:12px;background:#2b2411;border:1px solid rgba(255,209,102,.5);color:#ffd166;font-size:12px;text-align:center">📴 Немає інтернету — програма працює офлайн. Усі дані зберігаються на пристрої; хмарна синхронізація та перше розпізнавання чеків недоступні.</div>
+<div id="updateBar" style="display:none;position:fixed;left:10px;right:10px;bottom:calc(60px + env(safe-area-inset-bottom,0px));z-index:4001;padding:10px 14px;border-radius:12px;background:#0d2a3a;border:1px solid rgba(70,224,255,.5);color:#46e0ff;font-size:13px;text-align:center">🔄 Доступна нова версія програми. <button class="btn cyan smallBtn" onclick="applyUpdate()">Оновити</button></div>
+
+<div id="photoViewer" class="modal" onclick="closePhoto()"><img id="photoViewerImg" alt=""></div>
+
+<div id="modal" class="modal" onclick="if(event.target===this)closeModal()">
+ <div class="modalBox" id="modalContent"></div>
+</div>
+
+<script>
+/* =========================================================
+   STATE
+========================================================= */
+const KEY="fin26_state_v13";
+const KEY_PERIOD="fin26_period_v1";      // окрема резервна копія періоду
+const KEY_MIG="fin26_migrated_v1";       // прапорець: старі ключі вже перенесені
+
+const DEF_EXP=["Харчування","Інтернет","Комуналка","Транспорт","Послуги","Подарок","Техніка","Одяг","Інше","Погашення боргу"];
+const DEF_INC=["Зарплата","Соціальна УБД","Борг повернули","Інше"];
+const DEF_NEEDS=["Харчування","Інтернет","Комуналка","Транспорт","Послуги"];
+const NEW_CAT="__new__";
+
+const DEFAULT={
+ password:"1234",
+ transactions:[],
+ accounts:[],
+ goals:[],
+ goalContrib:[],
+ debts:[],
+ plans:[],
+ cats:{expense:[],income:[],needs:[]},   // тільки ВЛАСНІ категорії користувача
+ settings:{
+  annualPercent:15,
+  targetName:"Дорога ДОДОМУ!",
+  targetAmt:50000,
+  spendShare:50,
+  periodStart:"",
+  periodEnd:"",
+  periodUpdated:0,
+  theme:"dark",
+  currency:"₴",
+  hideAmounts:false,
+  autoLock:0,
+  pinHash:"",
+  binId:"",
+  binKey:"",
+  autoSync:false,
+  syncInterval:5
+ },
+ sync:{dirty:false,lastPush:0,lastPull:0,revision:0}
+};
+
+let S=null;
+let trendChart=null;
+let categoryChart=null;
+let autoTimer=null;
+
+/* =========================================================
+   HELPERS
+========================================================= */
+function clone(x){return JSON.parse(JSON.stringify(x));}
+function uid(){return Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,9);}
+function cur(){return (S&&S.settings&&S.settings.currency)||"₴";}
+function money(n){
+ if(S&&S.settings&&S.settings.hideAmounts)return "•••• "+cur();
+ return Number(n||0).toLocaleString("uk-UA",{minimumFractionDigits:2,maximumFractionDigits:2})+" "+cur();
+}
+function fmtDate(d){
+ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+function today(){return fmtDate(new Date());}
+function dateObj(x){
+ if(!x)return null;
+ const d=new Date(x+"T00:00:00");
+ return isNaN(d)?null:d;
+}
+function days(a,b){
+ const A=dateObj(a);const B=dateObj(b);
+ if(!A||!B)return 0;
+ return Math.round((B-A)/86400000)+1;
+}
+function fd(x){
+ const d=dateObj(x);
+ if(!d)return "—";
+ return d.toLocaleDateString("uk-UA");
+}
+function esc(x){
+ return String(x??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+function clamp(n,a,b){return Math.max(a,Math.min(b,n));}
+function amt(t){return Math.abs(Number(t.amount||t.amt||0));}
+function persist(){
+ try{
+  localStorage.setItem(KEY,JSON.stringify(S));
+  if(S.settings.periodStart&&S.settings.periodEnd){
+   localStorage.setItem(KEY_PERIOD,JSON.stringify({start:S.settings.periodStart,end:S.settings.periodEnd,ts:S.settings.periodUpdated||0}));
+  }
+ }catch(e){}
+}
+function markDirty(){S.sync.dirty=true;S.sync.revision++;persist();}
+
+/* =========================================================
+   LOAD / MIGRATION
+========================================================= */
+function normalize(o){
+ o=o&&typeof o==="object"?o:{};
+ const d=clone(DEFAULT);
+ const r={...d,...o,
+  settings:{...d.settings,...(o.settings||{})},
+  sync:{...d.sync,...(o.sync||{})},
+  cats:{...d.cats,...(o.cats||{})}
+ };
+ ["transactions","accounts","goals","goalContrib","debts","plans"].forEach(k=>{if(!Array.isArray(r[k]))r[k]=[];});
+ ["expense","income","needs"].forEach(k=>{if(!Array.isArray(r.cats[k]))r.cats[k]=[];});
+ return r;
+}
+
+function loadState(){
+ const raw=localStorage.getItem(KEY);
+ S=normalize(null);
+ if(raw){
+  try{S=normalize(JSON.parse(raw));}catch(e){S=normalize(null);}
+ }else if(!localStorage.getItem(KEY_MIG)){
+  // Перенос зі старих версій — ТІЛЬКИ один раз і тільки якщо нових даних ще немає
+  migrateOldStorage();
+ }
+ try{localStorage.setItem(KEY_MIG,"1");}catch(e){}
+ restorePeriod();
+ ensureDefaults();
+ persist();
+}
+
+function restorePeriod(){
+ try{
+  const p=JSON.parse(localStorage.getItem(KEY_PERIOD)||"null");
+  if(p&&p.start&&p.end&&(p.ts||0)>(S.settings.periodUpdated||0)){
+   S.settings.periodStart=p.start;
+   S.settings.periodEnd=p.end;
+   S.settings.periodUpdated=p.ts||0;
+  }
+ }catch(e){}
+}
+
+function migrateOldStorage(){
+ try{
+  const old=localStorage.getItem("fin26_db");
+  if(old){const arr=JSON.parse(old);if(Array.isArray(arr))S.transactions=arr;}
+  [["fin26_accounts","accounts"],["fin26_goals","goals"],["fin26_goal_contrib","goalContrib"],["fin26_debts","debts"],["fin26_plans","plans"]].forEach(([key,target])=>{
+   const x=localStorage.getItem(key);
+   if(x){try{const arr=JSON.parse(x);if(Array.isArray(arr))S[target]=arr;}catch(e){}}
+  });
+  const st=localStorage.getItem("fin26_settings");
+  if(st){try{S.settings={...S.settings,...JSON.parse(st)};}catch(e){}}
+ }catch(e){}
+}
+
+function ensureDefaults(){
+ if(!S.accounts.length)S.accounts.push({id:uid(),name:"Готівка",active:true});
+ if(!S.settings.periodStart)S.settings.periodStart=today();
+ if(!S.settings.periodEnd){
+  const d=dateObj(today());
+  d.setDate(d.getDate()+29);
+  S.settings.periodEnd=fmtDate(d);
+ }
+ if(!S.password)S.password="1234";
+}
+
+/* =========================================================
+   LOGIN
+========================================================= */
+let loginFails=0,lockUntil=0;
+async function hashPin(p){
+ const str="fin26|"+p;
+ try{
+  if(window.crypto&&crypto.subtle){
+   const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(str));
+   return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");
+  }
+ }catch(e){}
+ let h=5381;
+ for(let i=0;i<str.length;i++)h=((h<<5)+h+str.charCodeAt(i))|0;
+ return "d"+(h>>>0);
+}
+
+async function login(){
+ if(Date.now()<lockUntil){
+  alert(`Забагато невдалих спроб. Зачекайте ${Math.ceil((lockUntil-Date.now())/1000)} с.`);
+  return;
+ }
+ const v=document.getElementById("loginPassword").value;
+ let ok=v===S.password;
+ if(!ok&&S.settings.pinHash&&/^\d{4,6}$/.test(v)){
+  ok=(await hashPin(v))===S.settings.pinHash;
+ }
+ if(ok){
+  loginFails=0;
+  document.getElementById("login").style.display="none";
+  document.getElementById("appContent").style.display="block";
+  refresh(true);
+  initAI();
+  resetIdle();
+  if(location.hash){const hid=location.hash.slice(1);if(document.getElementById(hid))setTimeout(()=>go(hid),250);}
+ }else{
+  loginFails++;
+  if(loginFails>=5){
+   loginFails=0;lockUntil=Date.now()+30000;
+   alert("Забагато невдалих спроб. Вхід заблоковано на 30 секунд.");
+  }else{
+   alert("Неправильний пароль або PIN");
+  }
+ }
+}
+
+function logout(){
+ clearTimeout(idleTimer);
+ closeModal();closePhoto();closeInstructions();
+ document.getElementById("appContent").style.display="none";
+ document.getElementById("login").style.display="flex";
+ document.getElementById("loginPassword").value="";
+}
+
+function openInstructions(){document.getElementById("instructionModal").style.display="flex";}
+function closeInstructions(){document.getElementById("instructionModal").style.display="none";}
+
+/* =========================================================
+   COLLAPSIBLE SECTIONS
+========================================================= */
+function toggleSection(id){
+ const body=document.getElementById(id+"-body");
+ const arrow=document.getElementById(id+"-arrow");
+ if(!body)return;
+ if(body.classList.contains("collapsed")){
+  body.classList.remove("collapsed");
+  if(arrow){arrow.textContent="▼";arrow.classList.add("open");}
+  if(id==="budget")setTimeout(()=>{updateCharts();updateCompare();},60);
+ }else{
+  body.classList.add("collapsed");
+  if(arrow){arrow.textContent="▶";arrow.classList.remove("open");}
+ }
+}
+
+/* =========================================================
+   PERIOD
+========================================================= */
+function setPeriod(start,end){
+ S.settings.periodStart=start;
+ S.settings.periodEnd=end;
+ S.settings.periodUpdated=Date.now();
+}
+
+function savePeriod(){
+ const start=document.getElementById("periodStart").value;
+ const end=document.getElementById("periodEnd").value;
+ if(!start||!end){alert("Вкажіть обидві дати");return;}
+ if(start>end){alert("Дата початку не може бути пізніше дати завершення");return;}
+ setPeriod(start,end);
+ markDirty();
+ refresh(true);
+ alert("Фінансовий період збережено");
+}
+
+function startNewPeriod(){
+ const start=S.settings.periodStart;
+ const end=S.settings.periodEnd;
+ if(!start||!end){alert("Спочатку встановіть фінансовий період.");return;}
+ const duration=days(start,end);
+ if(duration<=0){alert("Некоректний поточний період.");return;}
+
+ const newStartObj=new Date(dateObj(end));
+ newStartObj.setDate(newStartObj.getDate()+1);
+ const newEndObj=new Date(newStartObj);
+ newEndObj.setDate(newEndObj.getDate()+duration-1);
+ const newStart=fmtDate(newStartObj);
+ const newEnd=fmtDate(newEndObj);
+
+ if(!confirm(`Розпочати новий фінансовий період?\n\n${fd(newStart)} — ${fd(newEnd)} (${duration} днів)\n\nПопередній період залишиться в історії операцій без змін.`))return;
+
+ setPeriod(newStart,newEnd);
+ markDirty();
+ refresh(true);
+ alert("Новий фінансовий період розпочато!");
+}
+
+function periodTx(){
+ const start=S.settings.periodStart;
+ const end=S.settings.periodEnd;
+ if(!start||!end)return [];
+ return S.transactions.filter(t=>t.date>=start&&t.date<=end&&t.type!=="transfer");
+}
+
+/* =========================================================
+   CATEGORIES (власні категорії)
+========================================================= */
+function needsList(){return DEF_NEEDS.concat(S.cats.needs);}
+
+function cats(type){
+ const def=type==="expense"?DEF_EXP:DEF_INC;
+ return def.concat(S.cats[type].filter(c=>!def.includes(c)));
+}
+
+function catOptions(type,selected,quick){
+ let list=cats(type);
+ if(quick&&type==="expense")list=list.filter(c=>c!=="Погашення боргу");
+ if(selected&&!list.includes(selected))list=list.concat(selected);
+ return list.map(c=>`<option value="${esc(c)}"${c===selected?" selected":""}>${esc(c)}</option>`).join("")
+  +`<option value="${NEW_CAT}">➕ Додати свою категорію…</option>`;
+}
+
+function populateCats(){
+ [["expenseCategory","expense"],["incomeCategory","income"]].forEach(([id,type])=>{
+  const el=document.getElementById(id);
+  if(!el)return;
+  const cur=el.value&&el.value!==NEW_CAT?el.value:"";
+  el.innerHTML=catOptions(type,cur);
+  if(cur)el.value=cur;
+ });
+}
+
+function onCatChange(el,type){
+ if(el.value!==NEW_CAT)return;
+ const prev=el.dataset.prev||"";
+ const quick=el.id==="quickCategory";
+ const name=(prompt("Назва нової категорії:")||"").trim();
+ if(!name){
+  el.innerHTML=catOptions(type,prev,quick);
+  if(prev)el.value=prev;
+  return;
+ }
+ const found=cats(type).find(c=>c.toLowerCase()===name.toLowerCase());
+ if(found){
+  el.innerHTML=catOptions(type,found,quick);
+  el.value=found;
+  return;
+ }
+ S.cats[type].push(name);
+ if(type==="expense"&&confirm(`«${name}» — це ПОТРЕБА (обов'язкова витрата)?\n\nOK — потреба\nСкасувати — бажання\n\nЦе впливає на розрахунок 50/30/20.`)){
+  S.cats.needs.push(name);
+ }
+ markDirty();
+ el.innerHTML=catOptions(type,name,quick);
+ el.value=name;
+ el.dataset.prev=name;
+ renderCatManager();
+ updateBudget();
+}
+
+function deleteCat(type,name){
+ const used=S.transactions.some(t=>t.type===type&&(t.category||"Інше")===name);
+ if(used){alert("Ця категорія використовується в операціях і не може бути видалена.");return;}
+ if(!confirm(`Видалити категорію «${name}»?`))return;
+ S.cats[type]=S.cats[type].filter(c=>c!==name);
+ S.cats.needs=S.cats.needs.filter(c=>c!==name);
+ markDirty();
+ refresh();
+}
+
+function toggleNeed(name){
+ if(S.cats.needs.includes(name))S.cats.needs=S.cats.needs.filter(c=>c!==name);
+ else S.cats.needs.push(name);
+ markDirty();
+ refresh();
+}
+
+function renderCatManager(){
+ const el=document.getElementById("catManager");
+ if(!el)return;
+ const ex=S.cats.expense,inc=S.cats.income;
+ if(!ex.length&&!inc.length){el.innerHTML='<div class="empty">Власних категорій ще немає</div>';return;}
+ const line=(type,c)=>{
+  const need=S.cats.needs.includes(c);
+  return `<div class="item"><div class="row" style="justify-content:space-between">
+   <div><b>${esc(c)}</b> <span class="badge">${type==="expense"?(need?"Витрата • потреба":"Витрата • бажання"):"Дохід"}</span></div>
+   <div class="row">
+    ${type==="expense"?`<button class="btn smallBtn" onclick="toggleNeed(${esc(JSON.stringify(c))})">${need?"→ бажання":"→ потреба"}</button>`:""}
+    <button class="btn red smallBtn" onclick="deleteCat('${type}',${esc(JSON.stringify(c))})">🗑</button>
+   </div></div></div>`;
+ };
+ el.innerHTML=ex.map(c=>line("expense",c)).join("")+inc.map(c=>line("income",c)).join("");
+}
+
+/* =========================================================
+   ANALYTICS
+========================================================= */
+function analytics(){
+ const tx=periodTx();
+ let income=0,expense=0,needs=0,wants=0;
+ const cs={};
+ const nl=needsList();
+ tx.forEach(t=>{
+  const amount=amt(t);
+  if(t.type==="income")income+=amount;
+  else if(t.type==="expense"){
+   expense+=amount;
+   const cat=t.category||"Інше";
+   cs[cat]=(cs[cat]||0)+amount;
+   if(nl.includes(cat))needs+=amount;else wants+=amount;
+  }
+ });
+ const list=Object.entries(cs).sort((a,b)=>b[1]-a[1]);
+ return{list,income,expense,result:income-expense,needs,wants,cats:cs};
+}
+
+/* =========================================================
+   ACCOUNTS
+========================================================= */
+function account(id){return S.accounts.find(a=>a.id===id);}
+
+function accountBalance(id){
+ let sum=0;
+ S.transactions.forEach(t=>{
+  const amount=amt(t);
+  if(t.type==="transfer"){
+   if(t.fromAccountId===id)sum-=amount;
+   if(t.toAccountId===id)sum+=amount;
+   return;
+  }
+  if(t.accountId!==id)return;
+  if(t.type==="income")sum+=amount;
+  if(t.type==="expense")sum-=amount;
+ });
+ return sum;
+}
+function totalBalance(){return S.accounts.reduce((sum,a)=>sum+accountBalance(a.id),0);}
+function totalBalanceUntil(dateStr){
+ let sum=0;
+ S.transactions.forEach(t=>{
+  if(t.type==="transfer"||t.date>dateStr)return;
+  if(t.type==="income")sum+=amt(t);
+  if(t.type==="expense")sum-=amt(t);
+ });
+ return sum;
+}
+
+function addAccount(){
+ const name=prompt("Назва нового рахунку:");
+ if(!name)return;
+ S.accounts.push({id:uid(),name:name.trim(),active:true});
+ markDirty();refresh();
+}
+function renameAccount(id){
+ const a=account(id);if(!a)return;
+ const name=prompt("Нова назва:",a.name);
+ if(!name)return;
+ a.name=name.trim();
+ markDirty();refresh();
+}
+function toggleAccount(id){
+ const a=account(id);if(!a)return;
+ a.active=!a.active;
+ markDirty();refresh();
+}
+function deleteAccount(id){
+ if(S.accounts.length<=1){alert("Не можна видалити останній рахунок");return;}
+ if(S.transactions.some(t=>t.accountId===id)){alert("Цей рахунок використовується в операціях і не може бути видалений.");return;}
+ if(!confirm("Видалити цей рахунок?"))return;
+ S.accounts=S.accounts.filter(a=>a.id!==id);
+ markDirty();refresh();
+}
+function renderAccounts(){
+ const el=document.getElementById("accountsList");
+ if(!S.accounts.length){el.innerHTML='<div class="empty">Рахунків немає</div>';return;}
+ el.innerHTML=S.accounts.map(a=>{
+  const bal=accountBalance(a.id);
+  return `
+   <div class="item">
+    <div class="itemTitle">${esc(a.name)} <span class="badge">${a.active?"Активний":"Вимкнений"}</span></div>
+    <div class="statLine"><span>Баланс</span><b class="${bal>=0?"green":"red"}">${money(bal)}</b></div>
+    <div class="row" style="margin-top:9px">
+     <button class="btn smallBtn" onclick="renameAccount('${a.id}')">✏️ Перейменувати</button>
+     <button class="btn smallBtn" onclick="toggleAccount('${a.id}')">${a.active?"⏸ Вимкнути":"▶ Увімкнути"}</button>
+     <button class="btn red smallBtn" onclick="deleteAccount('${a.id}')">🗑 Видалити</button>
+    </div>
+   </div>`;
+ }).join("");
+}
+
+/* =========================================================
+   SELECTORS
+========================================================= */
+function populateSelectors(){
+ const active=S.accounts.filter(a=>a.active);
+ const accountOptions=active.map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join("");
+ ["expenseAccount","incomeAccount"].forEach(id=>{
+  const el=document.getElementById(id);
+  if(!el)return;
+  const cur=el.value;
+  el.innerHTML=accountOptions;
+  if(cur&&active.some(a=>a.id===cur))el.value=cur;
+ });
+ const debtEl=document.getElementById("expenseDebt");
+ const curDebt=debtEl.value;
+ debtEl.innerHTML=`<option value="">Без боргу</option>`+
+  S.debts.filter(d=>Number(d.total||0)>Number(debtPaid(d)||0))
+   .map(d=>`<option value="${d.id}">${esc(d.name)} — ${money(debtRemaining(d))}</option>`).join("");
+ if(curDebt)debtEl.value=curDebt;
+}
+
+/* =========================================================
+   TRANSACTIONS
+========================================================= */
+async function saveTransaction(type){
+ const prefix=type==="expense"?"expense":"income";
+ const amount=Number(document.getElementById(prefix+"Amount").value);
+ const date=document.getElementById(prefix+"Date").value;
+ const category=document.getElementById(prefix+"Category").value;
+ const accountId=document.getElementById(prefix+"Account").value;
+ const memo=document.getElementById(prefix+"Memo").value;
+
+ if(!amount||amount<=0){alert("Введіть правильну суму");return;}
+ if(!date){alert("Вкажіть дату");return;}
+ if(!category||category===NEW_CAT){alert("Виберіть категорію");return;}
+ if(!accountId){alert("Створіть або виберіть рахунок");return;}
+
+ const t={id:uid(),type,amount:Math.abs(amount),amt:type==="expense"?-Math.abs(amount):Math.abs(amount),date,category,accountId,memo,group:type};
+ if(type==="expense"){
+  const debtEl=document.getElementById("expenseDebt");
+  if(debtEl.value)t.debtId=debtEl.value;
+  const all=[];
+  if(pendingReceipt)all.push(pendingReceipt);
+  pendingProduct.forEach(p=>all.push(p));
+  if(all.length){
+   const ph=[];
+   try{
+    for(const p of all){
+     await photoPut({id:p.id,kind:p.kind,data:p.data,thumb:p.thumb,ts:Date.now()});
+     ph.push({id:p.id,kind:p.kind});
+    }
+   }catch(e){alert("Не вдалося зберегти фото на пристрої. Витрата буде збережена без фото.");}
+   if(ph.length)t.photos=ph;
+  }
+ }
+ S.transactions.push(t);
+ markDirty();
+ document.getElementById(prefix+"Amount").value="";
+ document.getElementById(prefix+"Memo").value="";
+ if(type==="expense")clearPending();
+ refresh();
+ alert(type==="expense"?"Витрату збережено":"Дохід збережено");
+}
+
+function editTx(id){
+ const t=S.transactions.find(x=>x.id===id);
+ if(!t)return;
+ document.getElementById("modal").style.display="flex";
+ const photoBlock=t.type==="expense"?`
+  <div class="field"><label>Фото</label>
+   <div id="editPhotos" class="thumbs"></div>
+   <div class="row" style="margin-top:8px">
+    <button class="btn smallBtn" onclick="editAddPhoto('${id}','receipt')">🧾 + Чек</button>
+    <button class="btn smallBtn" onclick="editAddPhoto('${id}','product')">📦 + Товар</button>
+   </div>
+   <input id="editPhotoInput" type="file" accept="image/*" style="display:none" onchange="handleEditPhoto(this)">
+  </div>`:"";
+ document.getElementById("modalContent").innerHTML=`
+  <h2>✏️ Редагування операції</h2>
+  <div class="field"><label>Сума</label><input id="editAmount" type="number" step="0.01" value="${amt(t)}"></div>
+  <div class="field"><label>Дата</label><input id="editDate" type="date" value="${t.date}"></div>
+  <div class="field"><label>Категорія</label><select id="editCategory" onfocus="this.dataset.prev=this.value" onchange="onCatChange(this,'${t.type}')">${catOptions(t.type,t.category||"Інше")}</select></div>
+  <div class="field"><label>Коментар</label><input id="editMemo" value="${esc(t.memo||"")}"></div>
+  ${photoBlock}
+  <div class="row">
+   <button class="btn green" onclick="saveEditTx('${id}')">💾 Зберегти</button>
+   <button class="btn" onclick="closeModal()">Скасувати</button>
+  </div>`;
+ if(t.type==="expense")renderEditPhotos(id);
+}
+
+function saveEditTx(id){
+ const t=S.transactions.find(x=>x.id===id);
+ if(!t)return;
+ const amount=Number(document.getElementById("editAmount").value);
+ if(!amount||amount<=0){alert("Неправильна сума");return;}
+ if(!confirm("Зберегти зміни цієї операції?"))return;
+ const cat=document.getElementById("editCategory").value;
+ t.amount=Math.abs(amount);
+ t.amt=t.type==="expense"?-Math.abs(amount):Math.abs(amount);
+ t.date=document.getElementById("editDate").value;
+ t.category=(cat&&cat!==NEW_CAT)?cat:"Інше";
+ t.memo=document.getElementById("editMemo").value.trim();
+ markDirty();closeModal();refresh();
+}
+
+function deleteTx(id){
+ if(!confirm("Видалити цю операцію?"))return;
+ const t=S.transactions.find(x=>x.id===id);
+ if(t&&t.photos)t.photos.forEach(p=>photoDel(p.id).catch(()=>{}));
+ S.transactions=S.transactions.filter(t=>t.id!==id);
+ markDirty();refresh();
+}
+function clearTx(){
+ if(!confirm("Очистити всі операції (разом з фото)?"))return;
+ S.transactions=[];
+ photoClear().catch(()=>{});
+ markDirty();refresh();
+}
+
+/* ------- History filters ------- */
+function populateHistFilters(){
+ const catSel=document.getElementById("histFilterCategory");
+ const accSel=document.getElementById("histFilterAccount");
+ if(!catSel||!accSel)return;
+ const curCat=catSel.value,curAcc=accSel.value;
+ const cs=[...new Set(S.transactions.map(t=>t.category||"Інше"))].sort();
+ catSel.innerHTML=`<option value="">Усі категорії</option>`+cs.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
+ catSel.value=cs.includes(curCat)?curCat:"";
+ accSel.innerHTML=`<option value="">Усі рахунки</option>`+S.accounts.map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join("");
+ accSel.value=S.accounts.some(a=>a.id===curAcc)?curAcc:"";
+}
+function resetHistFilters(){
+ ["histFilterType","histFilterCategory","histFilterAccount","histFilterFrom","histFilterTo"].forEach(id=>{
+  const el=document.getElementById(id);if(el)el.value="";
+ });
+ renderHistory();
+}
+
+function renderHistory(){
+ populateHistFilters();
+ setTimeout(()=>hydrateThumbs(document.getElementById("historyList")),0);
+ const el=document.getElementById("historyList");
+ const typeF=document.getElementById("histFilterType")?.value||"";
+ const catF=document.getElementById("histFilterCategory")?.value||"";
+ const accF=document.getElementById("histFilterAccount")?.value||"";
+ const fromF=document.getElementById("histFilterFrom")?.value||"";
+ const toF=document.getElementById("histFilterTo")?.value||"";
+
+ let arr=S.transactions.filter(t=>t.type==="income"||t.type==="expense");
+ if(typeF)arr=arr.filter(t=>t.type===typeF);
+ if(catF)arr=arr.filter(t=>(t.category||"Інше")===catF);
+ if(accF)arr=arr.filter(t=>t.accountId===accF);
+ if(fromF)arr=arr.filter(t=>t.date>=fromF);
+ if(toF)arr=arr.filter(t=>t.date<=toF);
+
+ let totalSum=0;
+ if(typeF)totalSum=arr.reduce((s,t)=>s+amt(t),0);
+ else totalSum=arr.reduce((s,t)=>s+(t.type==="income"?amt(t):-amt(t)),0);
+
+ const labelEl=document.getElementById("histFilteredLabel");
+ const totalEl=document.getElementById("histFilteredTotal");
+ if(labelEl&&totalEl){
+  totalEl.textContent=money(totalSum);
+  if(typeF==="expense"){labelEl.textContent="СУМА ВИТРАТ";totalEl.className="value red";}
+  else if(typeF==="income"){labelEl.textContent="СУМА ДОХОДІВ";totalEl.className="value green";}
+  else{labelEl.textContent="РАЗОМ (БАЛАНС)";totalEl.className="value "+(totalSum>=0?"green":"red");}
+ }
+
+ if(!arr.length){el.innerHTML='<div class="empty">Операцій не знайдено</div>';return;}
+ arr=[...arr].sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+
+ el.innerHTML=arr.map(t=>{
+  const amount=amt(t);
+  const income=t.type==="income";
+  const acc=account(t.accountId);
+  return `
+   <div class="item">
+    <div class="row" style="justify-content:space-between">
+     <div>
+      <div class="itemTitle">${income?"➕":"➖"} ${esc(t.category||"Інше")}</div>
+      <div class="small muted">${fd(t.date)} • ${esc(acc?.name||"Рахунок")}</div>
+      ${t.memo?`<div class="small muted" style="margin-top:5px">${esc(t.memo)}</div>`:""}
+      ${(t.photos&&t.photos.length)?`<div class="thumbs" style="margin-top:8px">${t.photos.map(p=>`<div class="thumbWrap"><img class="thumb" data-pid="${p.id}" alt="" onclick="openPhoto('${p.id}')"><span class="kindTag">${p.kind==="receipt"?"🧾":"📦"}</span></div>`).join("")}</div>`:""}
+     </div>
+     <div style="text-align:right">
+      <b class="${income?"green":"red"}">${income?"+":"-"}${money(amount)}</b>
+      <div class="row" style="justify-content:flex-end;margin-top:7px">
+       <button class="btn smallBtn" onclick="editTx('${t.id}')">✏️</button>
+       <button class="btn red smallBtn" onclick="deleteTx('${t.id}')">🗑</button>
+      </div>
+     </div>
+    </div>
+   </div>`;
+ }).join("");
+}
+
+/* =========================================================
+   QUICK ADD
+========================================================= */
+function quickAdd(type){
+ document.getElementById("modal").style.display="flex";
+ const accountOptions=S.accounts.filter(a=>a.active).map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join("");
+ document.getElementById("modalContent").innerHTML=`
+  <h2>${type==="expense"?"➖ Швидка витрата":"➕ Швидкий дохід"}</h2>
+  <div class="field"><label>Сума</label><input id="quickAmount" type="number" step="0.01" min="0"></div>
+  <div class="field"><label>Дата</label><input id="quickDate" type="date" value="${today()}"></div>
+  <div class="field"><label>Категорія</label><select id="quickCategory" onfocus="this.dataset.prev=this.value" onchange="onCatChange(this,'${type}')">${catOptions(type,"",true)}</select></div>
+  <div class="field"><label>Рахунок</label><select id="quickAccount">${accountOptions}</select></div>
+  <div class="field"><label>Коментар</label><input id="quickMemo"></div>
+  <div class="row">
+   <button class="btn ${type==="expense"?"red":"green"}" onclick="saveQuick('${type}')">💾 Зберегти</button>
+   <button class="btn" onclick="closeModal()">Скасувати</button>
+  </div>`;
+}
+
+function saveQuick(type){
+ const amount=Number(document.getElementById("quickAmount").value);
+ if(!amount||amount<=0){alert("Введіть суму");return;}
+ const category=document.getElementById("quickCategory").value;
+ if(!category||category===NEW_CAT){alert("Виберіть категорію");return;}
+ S.transactions.push({
+  id:uid(),type,amount:Math.abs(amount),
+  amt:type==="expense"?-Math.abs(amount):Math.abs(amount),
+  date:document.getElementById("quickDate").value||today(),
+  category,
+  accountId:document.getElementById("quickAccount").value,
+  memo:document.getElementById("quickMemo").value,
+  group:type
+ });
+ markDirty();closeModal();refresh();
+}
+
+/* =========================================================
+   GOALS
+========================================================= */
+function goalPaid(id){return S.goalContrib.filter(x=>x.goalId===id).reduce((s,x)=>s+Number(x.amount||0),0);}
+function goalCurrent(g){return Number(g.currentAmt||0)+goalPaid(g.id);}
+function goalRemaining(g){return Math.max(0,Number(g.targetAmt||0)-goalCurrent(g));}
+
+function addGoal(){
+ document.getElementById("modal").style.display="flex";
+ document.getElementById("modalContent").innerHTML=`
+  <h2>🎯 Нова ціль</h2>
+  <div class="field"><label>Назва</label><input id="goalName" value="${esc(S.settings.targetName)}"></div>
+  <div class="field"><label>Сума цілі</label><input id="goalAmount" type="number" step="0.01" value="${S.settings.targetAmt}"></div>
+  <div class="field"><label>Початково накопичено</label><input id="goalCurrent" type="number" step="0.01" value="0"></div>
+  <div class="field"><label>Дедлайн</label><input id="goalDeadline" type="date"></div>
+  <div class="field"><label>Пріоритет</label>
+   <select id="goalPriority"><option value="high">Високий</option><option value="medium" selected>Середній</option><option value="low">Низький</option></select>
+  </div>
+  <div class="field"><label>Примітка</label><textarea id="goalNotes"></textarea></div>
+  <div class="row">
+   <button class="btn green" onclick="saveGoal()">💾 Створити</button>
+   <button class="btn" onclick="closeModal()">Скасувати</button>
+  </div>`;
+}
+
+function saveGoal(){
+ const name=document.getElementById("goalName").value.trim();
+ const amount=Number(document.getElementById("goalAmount").value);
+ if(!name||!amount||amount<=0){alert("Заповніть назву та суму");return;}
+ S.goals.push({
+  id:uid(),name,targetAmt:amount,
+  currentAmt:Number(document.getElementById("goalCurrent").value)||0,
+  deadline:document.getElementById("goalDeadline").value,
+  priority:document.getElementById("goalPriority").value,
+  accountId:S.accounts[0]?.id||"",
+  notes:document.getElementById("goalNotes").value,
+  active:true
+ });
+ markDirty();closeModal();refresh();
+}
+
+function contributeGoal(id){
+ const g=S.goals.find(x=>x.id===id);if(!g)return;
+ document.getElementById("modal").style.display="flex";
+ document.getElementById("modalContent").innerHTML=`
+  <h2>💰 Поповнення цілі</h2>
+  <div class="muted" style="margin-bottom:12px">${esc(g.name)}</div>
+  <div class="field"><label>Сума</label><input id="contributeAmount" type="number" step="0.01"></div>
+  <div class="row">
+   <button class="btn green" onclick="saveContribution('${id}')">💾 Додати</button>
+   <button class="btn" onclick="closeModal()">Скасувати</button>
+  </div>`;
+}
+function saveContribution(id){
+ const amount=Number(document.getElementById("contributeAmount").value);
+ if(!amount||amount<=0){alert("Введіть правильну суму");return;}
+ S.goalContrib.push({id:uid(),goalId:id,amount,date:today()});
+ markDirty();closeModal();refresh();
+}
+
+function editGoal(id){
+ const g=S.goals.find(x=>x.id===id);if(!g)return;
+ document.getElementById("modal").style.display="flex";
+ document.getElementById("modalContent").innerHTML=`
+  <h2>✏️ Редагування цілі</h2>
+  <div class="field"><label>Назва</label><input id="egName" value="${esc(g.name)}"></div>
+  <div class="field"><label>Сума</label><input id="egAmount" type="number" step="0.01" value="${g.targetAmt}"></div>
+  <div class="field"><label>Дедлайн</label><input id="egDeadline" type="date" value="${g.deadline||""}"></div>
+  <div class="row">
+   <button class="btn green" onclick="saveEditGoal('${id}')">💾 Зберегти</button>
+   <button class="btn" onclick="closeModal()">Скасувати</button>
+  </div>`;
+}
+function saveEditGoal(id){
+ const g=S.goals.find(x=>x.id===id);if(!g)return;
+ if(!confirm("Зберегти зміни цієї цілі?"))return;
+ g.name=document.getElementById("egName").value.trim();
+ g.targetAmt=Number(document.getElementById("egAmount").value);
+ g.deadline=document.getElementById("egDeadline").value;
+ markDirty();closeModal();refresh();
+}
+function completeGoal(id){
+ const g=S.goals.find(x=>x.id===id);if(!g)return;
+ if(!confirm("Позначити ціль як завершену?"))return;
+ g.active=false;
+ markDirty();refresh();
+}
+function deleteGoal(id){
+ if(!confirm("Видалити ціль?"))return;
+ S.goals=S.goals.filter(g=>g.id!==id);
+ S.goalContrib=S.goalContrib.filter(x=>x.goalId!==id);
+ markDirty();refresh();
+}
+
+function goalDailyNeed(g){
+ if(!g.deadline)return 0;
+ const left=days(today(),g.deadline);
+ return left>0?goalRemaining(g)/left:0;
+}
+
+function renderGoals(){
+ const el=document.getElementById("goalsList");
+ const goals=S.goals.filter(g=>g.active!==false);
+ if(!goals.length){el.innerHTML='<div class="empty">Активних цілей немає</div>';return;}
+ el.innerHTML=goals.map(g=>{
+  const current=goalCurrent(g),remaining=goalRemaining(g),target=Number(g.targetAmt||0);
+  const pct=target>0?clamp(current/target*100,0,100):0;
+  const dailyNeed=goalDailyNeed(g);
+  return `
+   <div class="item">
+    <div class="head">
+     <div>
+      <div class="itemTitle">🎯 ${esc(g.name)}</div>
+      <div class="small muted">${g.deadline?"Дедлайн: "+fd(g.deadline):"Без дедлайну"}</div>
+     </div>
+     <span class="badge">${pct.toFixed(0)}%</span>
+    </div>
+    <div class="statLine"><span>Накопичено</span><b class="green">${money(current)}</b></div>
+    <div class="statLine"><span>Ціль</span><b>${money(target)}</b></div>
+    <div class="statLine"><span>Залишилось</span><b class="yellow">${money(remaining)}</b></div>
+    ${g.deadline&&remaining>0?`<div class="small muted" style="margin-top:8px">Потрібно приблизно: <b>${money(dailyNeed)}/день</b></div>`:""}
+    <div class="progress" style="margin-top:10px"><div style="width:${pct}%"></div></div>
+    <div class="row" style="margin-top:10px">
+     <button class="btn green smallBtn" onclick="contributeGoal('${g.id}')">Поповнити</button>
+     <button class="btn smallBtn" onclick="editGoal('${g.id}')">✏️</button>
+     <button class="btn smallBtn" onclick="completeGoal('${g.id}')">✓ Завершити</button>
+     <button class="btn red smallBtn" onclick="deleteGoal('${g.id}')">🗑</button>
+    </div>
+   </div>`;
+ }).join("");
+}
+
+/* =========================================================
+   DEBTS
+========================================================= */
+function debtPaid(d){return S.transactions.filter(t=>t.debtId===d.id).reduce((s,t)=>s+amt(t),0);}
+function debtRemaining(d){return Math.max(0,Number(d.total||0)-debtPaid(d));}
+
+function addDebt(){
+ document.getElementById("modal").style.display="flex";
+ document.getElementById("modalContent").innerHTML=`
+  <h2>💸 Новий борг</h2>
+  <div class="field"><label>Назва</label><input id="debtName"></div>
+  <div class="field"><label>Тип</label>
+   <select id="debtType"><option value="i_owe">Я винен</option><option value="owed_to_me">Мені винні</option></select>
+  </div>
+  <div class="field"><label>Сума</label><input id="debtAmount" type="number" step="0.01"></div>
+  <div class="field"><label>Дедлайн</label><input id="debtDeadline" type="date"></div>
+  <div class="field"><label>Примітка</label><textarea id="debtNotes"></textarea></div>
+  <div class="row">
+   <button class="btn green" onclick="saveDebt()">💾 Створити</button>
+   <button class="btn" onclick="closeModal()">Скасувати</button>
+  </div>`;
+}
+function saveDebt(){
+ const name=document.getElementById("debtName").value.trim();
+ const total=Number(document.getElementById("debtAmount").value);
+ if(!name||!total||total<=0){alert("Заповніть назву та суму");return;}
+ S.debts.push({id:uid(),name,type:document.getElementById("debtType").value,total,deadline:document.getElementById("debtDeadline").value,notes:document.getElementById("debtNotes").value,active:true});
+ markDirty();closeModal();refresh();
+}
+
+function debtPayment(id){
+ const d=S.debts.find(x=>x.id===id);if(!d)return;
+ document.getElementById("modal").style.display="flex";
+ const isOwe=d.type==="i_owe";
+ const accountOptions=S.accounts.filter(a=>a.active).map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join("");
+ document.getElementById("modalContent").innerHTML=`
+  <h2>${isOwe?"💸 Погашення боргу":"💰 Повернення боргу"}</h2>
+  <div class="muted" style="margin-bottom:12px">${esc(d.name)}</div>
+  <div class="statLine"><span>Залишилось</span><b>${money(debtRemaining(d))}</b></div>
+  <div class="field" style="margin-top:12px"><label>Сума</label><input id="debtPayAmount" type="number" step="0.01" max="${debtRemaining(d)}"></div>
+  <div class="field"><label>Рахунок</label><select id="debtPayAccount">${accountOptions}</select></div>
+  <div class="field"><label>Коментар</label><input id="debtPayMemo" value="${isOwe?"Погашення боргу":"Повернення боргу"}"></div>
+  <div class="row">
+   <button class="btn green" onclick="saveDebtPayment('${id}')">💾 Зберегти</button>
+   <button class="btn" onclick="closeModal()">Скасувати</button>
+  </div>`;
+}
+function saveDebtPayment(id){
+ const d=S.debts.find(x=>x.id===id);if(!d)return;
+ const amount=Number(document.getElementById("debtPayAmount").value);
+ if(!amount||amount<=0){alert("Неправильна сума");return;}
+ if(amount>debtRemaining(d)+0.001){alert("Сума більша за залишок боргу");return;}
+ const isOwe=d.type==="i_owe";
+ S.transactions.push({
+  id:uid(),type:isOwe?"expense":"income",amount,amt:isOwe?-amount:amount,date:today(),
+  category:isOwe?"Погашення боргу":"Борг повернули",
+  accountId:document.getElementById("debtPayAccount").value,
+  debtId:id,memo:document.getElementById("debtPayMemo").value,group:isOwe?"expense":"income"
+ });
+ markDirty();closeModal();refresh();
+}
+function deleteDebt(id){
+ if(!confirm("Видалити борг?"))return;
+ S.debts=S.debts.filter(d=>d.id!==id);
+ markDirty();refresh();
+}
+function renderDebts(){
+ const el=document.getElementById("debtsList");
+ if(!S.debts.length){el.innerHTML='<div class="empty">Боргів немає</div>';return;}
+ el.innerHTML=S.debts.map(d=>{
+  const remaining=debtRemaining(d),paid=debtPaid(d);
+  const pct=d.total>0?clamp(paid/d.total*100,0,100):0;
+  const isOwe=d.type==="i_owe";
+  return `
+   <div class="item">
+    <div class="head">
+     <div>
+      <div class="itemTitle">${isOwe?"🔴":"🟢"} ${esc(d.name)}</div>
+      <div class="small muted">${isOwe?"Я винен":"Мені винні"}${d.deadline?" • до "+fd(d.deadline):""}</div>
+     </div>
+     <b class="${isOwe?"red":"green"}">${money(remaining)}</b>
+    </div>
+    <div class="statLine"><span>Початкова сума</span><b>${money(d.total)}</b></div>
+    <div class="statLine"><span>Сплачено / повернуто</span><b>${money(paid)}</b></div>
+    <div class="progress" style="margin-top:10px"><div style="width:${pct}%"></div></div>
+    <div class="row" style="margin-top:10px">
+     ${remaining>0?`<button class="btn green smallBtn" onclick="debtPayment('${d.id}')">${isOwe?"💸 Погасити":"💰 Отримати"}</button>`:""}
+     <button class="btn red smallBtn" onclick="deleteDebt('${d.id}')">🗑</button>
+    </div>
+   </div>`;
+ }).join("");
+}
+
+/* =========================================================
+   DAILY SPENDING
+========================================================= */
+function spentUntilToday(){
+ const t=today();
+ return periodTx().filter(x=>x.type==="expense"&&x.date<=t).reduce((s,x)=>s+amt(x),0);
+}
+function spentToday(){
+ const t=today();
+ return periodTx().filter(x=>x.type==="expense"&&x.date===t).reduce((s,x)=>s+amt(x),0);
+}
+function periodBudgetBase(){
+ return Math.max(0,Math.max(0,totalBalance())+spentUntilToday());
+}
+
+function calculateSpend(){
+ const start=S.settings.periodStart,end=S.settings.periodEnd,t=today();
+ if(!start||!end)return{amount:0,daily:0,carry:0,spentToday:0,daysLeft:0,progress:0,text:"Фінансовий період не встановлено."};
+ const totalDays=days(start,end);
+ if(totalDays<=0)return{amount:0,daily:0,carry:0,spentToday:0,daysLeft:0,progress:0,text:"Некоректний фінансовий період."};
+
+ if(t<start){
+  const daily=periodBudgetBase()/totalDays;
+  return{amount:Math.min(daily,Math.max(0,totalBalance())),daily,carry:0,spentToday:0,daysLeft:totalDays,progress:0,text:"Фінансовий період ще не розпочався."};
+ }
+ if(t>end)return{amount:0,daily:0,carry:0,spentToday:spentToday(),daysLeft:0,progress:100,text:"Фінансовий період завершено."};
+
+ const elapsedDays=days(start,t);
+ const daysLeft=days(t,end);
+ const daily=periodBudgetBase()/totalDays;
+ const availableBeforeBalance=daily*elapsedDays-spentUntilToday();
+ const carry=availableBeforeBalance-daily;
+ const tSpent=spentToday();
+ const amount=Math.max(0,Math.min(availableBeforeBalance,Math.max(0,totalBalance())));
+ const progress=clamp(elapsedDays/totalDays*100,0,100);
+
+ let text=`Базовий денний ліміт: ${money(daily)}. Сьогодні витрачено: ${money(tSpent)}. `;
+ text+=carry>=0?`Невикористаний запас: ${money(carry)}.`:`Перевищення плану: ${money(Math.abs(carry))}.`;
+ return{amount,daily,carry,spentToday:tSpent,daysLeft,progress,text};
+}
+
+/* =========================================================
+   FINANCIAL SCORE
+========================================================= */
+function financialScore(){
+ const a=analytics();
+ let score=50;
+ if(a.result>0)score+=15;else if(a.result<0)score-=20;
+ score+=Math.min(20,Math.max(0,a.result)/Math.max(1,a.income)*20);
+ const debtOwed=S.debts.filter(d=>d.type==="i_owe").reduce((s,d)=>s+debtRemaining(d),0);
+ if(debtOwed>0)score-=Math.min(20,debtOwed/Math.max(1,totalBalance()+debtOwed)*20);
+ else score+=10;
+ return clamp(Math.round(score),0,100);
+}
+
+/* =========================================================
+   ПОРАДИ (залежно від ситуації)
+========================================================= */
+function buildAdvice(){
+ const a=analytics(),d=calculateSpend(),bal=totalBalance();
+ const start=S.settings.periodStart,end=S.settings.periodEnd,t=today();
+ const ended=!!(start&&end&&t>end);
+ const out=[];
+ const add=(l,text)=>out.push({l,text});
+ const safeDaily=d.daysLeft>0?Math.max(0,bal)/d.daysLeft:0;
+
+ if(ended)add("y","Фінансовий період завершився. Розпочніть новий (Налаштування → «Новий період»), щоб денний ліміт, графіки та бюджет знову працювали.");
+
+ if(!a.income&&!a.expense&&!ended){
+  add("b","У цьому періоді ще немає операцій. Внесіть усі доходи та витрати — без цього розрахунки та поради будуть неточними.");
+ }
+ if(a.income<=0&&a.expense>0){
+  add("r","Є витрати, але немає доходів за період. Перевірте, чи внесено зарплату та інші надходження. Якщо доходу справді немає — обмежтесь обов'язковим (їжа, комуналка, транспорт) і відкладіть решту покупок.");
+ }
+ if(bal<0){
+  add("r",`Загальний баланс від'ємний (${money(bal)}). Перевірте, чи всі доходи та початкові залишки на рахунках внесені. Якщо так — тимчасово скоротіть витрати до необхідного, відкладіть покупки «бажань» і подумайте про додатковий дохід чи перенесення платежів.`);
+ }
+ if(a.income>0&&a.expense>a.income){
+  const deficit=a.expense-a.income;
+  let txt=`Витрати перевищують доходи на ${money(deficit)}.`;
+  const topWant=a.list.find(([c])=>!needsList().includes(c));
+  if(topWant)txt+=` Найбільша «необов'язкова» категорія — «${topWant[0]}» (${money(topWant[1])}): скорочення на 30% дасть ≈${money(topWant[1]*0.3)}.`;
+  txt+=" Складіть список того, що можна відкласти до наступного періоду.";
+  add("r",txt);
+ }
+ if(!ended&&d.daysLeft>0&&d.carry<0){
+  add("y",`Ви витрачаєте швидше за план (перевищення ${money(Math.abs(d.carry))}). Щоб дотягнути до кінця періоду, тримайтесь ліміту ≈${money(safeDaily)}/день, плануйте покупки наперед і уникайте імпульсивних трат.`);
+ }
+ if(!ended&&d.daily>0&&d.spentToday>d.daily){
+  add("y",`Сьогодні витрачено більше за денний ліміт (${money(d.spentToday)} з ${money(d.daily)}). Наступні 1–2 дні витрачайте мінімум, щоб вирівняти баланс.`);
+ }
+ if(a.income>0&&a.needs>a.income*0.5){
+  add("y",`Потреби займають ${(a.needs/a.income*100).toFixed(0)}% доходу (норма ≈50%). Перегляньте тарифи на комуналку та інтернет, плануйте меню на тиждень, порівнюйте ціни в магазинах, використовуйте знижки та акції.`);
+ }
+ if(a.income>0&&a.wants>a.income*0.3){
+  add("y",`«Бажання» перевищують 30% доходу приблизно на ${money(a.wants-a.income*0.3)}. Спробуйте правило 24 годин: відкладайте незаплановану покупку на добу — часто бажання минає.`);
+ }
+ if(a.expense>0&&a.list.length){
+  const [c,s]=a.list[0];
+  if(s/a.expense>0.4&&a.list.length>1){
+   add("y",`Категорія «${c}» становить ${(s/a.expense*100).toFixed(0)}% усіх витрат. Саме тут найбільший потенціал економії — проаналізуйте окремі операції в Історії.`);
+  }
+ }
+ if(a.income>0&&a.result>0&&a.result<a.income*0.2){
+  add("b",`Резерв ${(a.result/a.income*100).toFixed(0)}% доходу, мета — 20% (${money(a.income*0.2)}). Відкладайте одразу після отримання доходу, а не «що залишиться» — наприклад, внесіть суму в фінансову ціль.`);
+ }
+ if(a.income>0&&a.result>=a.income*0.2){
+  add("g","Резерв за період формується добре (20%+ доходу). Розгляньте поповнення фінансової цілі або погашення боргів.");
+ }
+
+ const owe=S.debts.filter(x=>x.type==="i_owe"&&debtRemaining(x)>0);
+ const oweTotal=owe.reduce((s,x)=>s+debtRemaining(x),0);
+ const overdue=owe.filter(x=>x.deadline&&x.deadline<t);
+ if(overdue.length){
+  add("r",`Прострочені борги: ${overdue.map(x=>x.name).join(", ")}. Зв'яжіться з кредитором, домовтесь про новий графік і погасіть хоча б частину — це зменшує ризики та штрафи.`);
+ }
+ if(oweTotal>0&&oweTotal>Math.max(0,bal)){
+  add("y",`Ваші борги (${money(oweTotal)}) більші за поточний баланс. Складіть графік погашення: спершу боржі з найближчим дедлайном або найвищим відсотком, решту — регулярними невеликими платежами.`);
+ }else if(oweTotal>0){
+  add("b",`Залишок ваших боргів — ${money(oweTotal)}. Заплануйте регулярні платежі одразу після надходження доходу, щоб не накопичувати відсотки.`);
+ }
+ const toMe=S.debts.filter(x=>x.type==="owed_to_me").reduce((s,x)=>s+debtRemaining(x),0);
+ if(toMe>0)add("b",`Вам мають повернути ${money(toMe)}. Нагадайте про повернення та домовтесь про конкретну дату.`);
+
+ const goals=S.goals.filter(g=>g.active!==false);
+ if(!goals.length){
+  add("b","У вас немає активних фінансових цілей. Створіть ціль (резервний фонд, покупка) з дедлайном — програма покаже, скільки відкладати щодня.");
+ }else{
+  goals.forEach(g=>{
+   const rem=goalRemaining(g);
+   if(rem<=0)return;
+   if(g.deadline&&g.deadline<t){
+    add("r",`Ціль «${g.name}» прострочена (залишилось ${money(rem)}). Перенесіть дедлайн або зменшіть суму, щоб ціль лишалась реалістичною.`);
+   }else if(g.deadline){
+    const need=goalDailyNeed(g);
+    if(d.daily>0&&need>d.daily){
+     add("y",`Для цілі «${g.name}» потрібно ≈${money(need)}/день — більше за ваш денний ліміт. Перенесіть дедлайн або збільште дохід/зменшіть витрати.`);
+    }
+   }
+  });
+ }
+
+ if(!ended&&start&&t>=start&&(a.income||a.expense)&&d.spentToday===0){
+  add("b","Сьогодні ще немає записів про витрати. Якщо ви щось витрачали — внесіть, щоб денний ліміт був точним.");
+ }
+
+ const order={r:0,y:1,b:2,g:3};
+ out.sort((x,y)=>order[x.l]-order[y.l]);
+ if(!out.length)add("g","Фінансова структура виглядає контрольованою. Так тримати!");
+ else if(!out.some(x=>x.l==="r"||x.l==="y")&&!out.some(x=>x.l==="g"))out.push({l:"g",text:"Критичних проблем не виявлено."});
+ return out;
+}
+
+function renderAdviceItems(list){
+ return list.map(x=>`<div class="item adv ${x.l}">${{r:"🔴",y:"🟡",b:"🔵",g:"🟢"}[x.l]} ${esc(x.text)}</div>`).join("");
+}
+
+/* =========================================================
+   OVERVIEW
+========================================================= */
+function updateOverview(){
+ const a=analytics(),d=calculateSpend(),balance=totalBalance(),score=financialScore();
+
+ document.getElementById("kBalance").textContent=money(balance);
+ document.getElementById("kIncome").textContent=money(a.income);
+ document.getElementById("kExpense").textContent=money(a.expense);
+ document.getElementById("kResult").textContent=money(a.result);
+ document.getElementById("kResult").className="value "+(a.result>=0?"green":"red");
+
+ document.getElementById("dailyAmount").textContent=money(d.amount);
+ document.getElementById("dailyLimit").textContent=money(d.daily);
+ document.getElementById("todaySpent").textContent=money(d.spentToday);
+ document.getElementById("dailyCarry").textContent=money(d.carry);
+ document.getElementById("daysLeft").textContent=d.daysLeft;
+ document.getElementById("dailyText").textContent=d.text;
+ document.getElementById("periodProgress").style.width=d.progress+"%";
+ document.getElementById("dailyStatus").textContent=d.amount>0?"МОЖНА ВИТРАЧАТИ":"ОБЕРЕЖНО";
+
+ const debtTotal=S.debts.filter(x=>x.type==="i_owe").reduce((s,x)=>s+debtRemaining(x),0);
+ document.getElementById("stateBalance").textContent=money(balance);
+ document.getElementById("stateIncome").textContent=money(a.income);
+ document.getElementById("stateExpense").textContent=money(a.expense);
+ document.getElementById("stateDebt").textContent=money(debtTotal);
+ document.getElementById("financialScore").textContent=score+"/100";
+
+ let scoreText="";
+ if(score>=80)scoreText="Сильний фінансовий стан.";
+ else if(score>=60)scoreText="Стабільний стан, але є що покращити.";
+ else if(score>=40)scoreText="Потрібен уважніший контроль.";
+ else scoreText="Фінансове навантаження високе.";
+ document.getElementById("financialScoreText").textContent=scoreText;
+
+ const start=S.settings.periodStart,end=S.settings.periodEnd;
+ document.getElementById("periodStatus").textContent=start&&end?`${fd(start)} — ${fd(end)}`:"Період не встановлено";
+ document.getElementById("periodInfo").textContent=start&&end?`Тривалість: ${days(start,end)} днів`:"";
+
+ const ended=!!(start&&end&&today()>end);
+ document.getElementById("homePeriodEndedBanner").style.display=ended?"block":"none";
+ document.getElementById("periodEndedNotice").style.display=ended?"block":"none";
+
+ document.getElementById("homeAdvice").innerHTML=renderAdviceItems(buildAdvice().slice(0,3));
+}
+
+/* =========================================================
+   BUDGET
+========================================================= */
+function updateBudget(){
+ const a=analytics();
+ const needTarget=a.income*.5,wantTarget=a.income*.3,reserveTarget=a.income*.2;
+
+ document.getElementById("budgetNeeds").textContent=money(a.needs);
+ document.getElementById("budgetWants").textContent=money(a.wants);
+ document.getElementById("budgetReserve").textContent=money(Math.max(0,a.result));
+
+ document.getElementById("budgetDetails").innerHTML=`
+  <div class="statLine"><span>Дохід</span><b>${money(a.income)}</b></div>
+  <div class="statLine"><span>Ціль потреб 50%</span><b>${money(needTarget)}</b></div>
+  <div class="statLine"><span>Фактичні потреби</span><b>${money(a.needs)}</b></div>
+  <div class="statLine"><span>Ціль бажань 30%</span><b>${money(wantTarget)}</b></div>
+  <div class="statLine"><span>Фактичні бажання</span><b>${money(a.wants)}</b></div>
+  <div class="statLine"><span>Ціль резерву 20%</span><b>${money(reserveTarget)}</b></div>
+  <div class="statLine"><span>Фактичний результат</span><b class="${a.result>=0?"green":"red"}">${money(a.result)}</b></div>`;
+
+ document.getElementById("recommendations").innerHTML=renderAdviceItems(buildAdvice());
+ document.getElementById("budgetSummary").textContent="Орієнтир: 50% потреби • 30% бажання • 20% резерв.";
+}
+
+/* =========================================================
+   CHARTS
+========================================================= */
+function updateCharts(){
+ const start=S.settings.periodStart,end=S.settings.periodEnd;
+ if(!start||!end||typeof Chart==="undefined")return;
+ const trendCanvas=document.getElementById("trendChart");
+ const catCanvas=document.getElementById("categoryChart");
+ if(!trendCanvas||!catCanvas)return;
+
+ const labels=[],incomes=[],expenses=[],balances=[];
+ let d=dateObj(start);
+ const finish=dateObj(end);
+ while(d&&finish&&d<=finish){
+  const ds=fmtDate(d);
+  labels.push(fd(ds));
+  let inc=0,exp=0;
+  S.transactions.forEach(t=>{
+   if(t.date===ds&&t.type!=="transfer"){
+    if(t.type==="income")inc+=amt(t);
+    if(t.type==="expense")exp+=amt(t);
+   }
+  });
+  incomes.push(inc);expenses.push(exp);balances.push(totalBalanceUntil(ds));
+  d.setDate(d.getDate()+1);
+ }
+
+ if(trendChart)trendChart.destroy();
+ trendChart=new Chart(trendCanvas,{
+  type:"line",
+  data:{labels,datasets:[
+   {label:"Дохід",data:incomes,borderColor:"#36e09a",backgroundColor:"rgba(54,224,154,.1)",tension:.3,fill:true},
+   {label:"Витрата",data:expenses,borderColor:"#ff647c",backgroundColor:"rgba(255,100,124,.1)",tension:.3,fill:true},
+   {label:"Баланс",data:balances,borderColor:"#46e0ff",borderDash:[4,4],tension:.3,fill:false}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:"#8fa6bd"}}},
+   scales:{x:{ticks:{color:"#8fa6bd"},grid:{color:"rgba(32,52,75,.4)"}},y:{ticks:{color:"#8fa6bd"},grid:{color:"rgba(32,52,75,.4)"}}}}
+ });
+
+ const a=analytics();
+ const catLabels=a.list.map(x=>x[0]),catData=a.list.map(x=>x[1]);
+ if(categoryChart)categoryChart.destroy();
+ categoryChart=new Chart(catCanvas,{
+  type:"doughnut",
+  data:{
+   labels:catLabels.length?catLabels:["Немає витрат"],
+   datasets:[{data:catData.length?catData:[1],backgroundColor:["#36e09a","#ff647c","#ffd166","#5aa9ff","#46e0ff","#a78bfa","#f472b6","#fb923c","#94a3b8","#22d3ee","#84cc16","#e879f9"]}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{color:"#8fa6bd"}}}}
+ });
+}
+
+/* =========================================================
+   AI ASSISTANT
+========================================================= */
+function initAI(){
+ const box=document.getElementById("aiMessages");
+ if(!box||box.children.length>0)return;
+ appendAIMsg("ai",
+  "Привіт! Я ваш локальний фінансовий ШІ-аналітик 🤖\n\n"+
+  "Я можу проаналізувати ваш баланс, денний ліміт, витрати за категоріями, борги та цілі, а також дати практичні поради.\n"+
+  "Поставте запитання або скористайтеся кнопками швидких запитів вище."
+ );
+}
+
+function appendAIMsg(who,text){
+ const box=document.getElementById("aiMessages");
+ if(!box)return;
+ const div=document.createElement("div");
+ div.className=`aiMsg ${who}`;
+ const html=esc(text).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
+ div.innerHTML=`<div class="who">${who==="ai"?"🤖 ШІ-АНАЛІТИК":"👤 ВИ"}</div><div>${html}</div>`;
+ box.appendChild(div);
+ box.scrollTop=box.scrollHeight;
+}
+
+function clearAIChat(){
+ const box=document.getElementById("aiMessages");
+ if(box)box.innerHTML="";
+ initAI();
+}
+
+function sendAIMessage(){
+ const input=document.getElementById("aiInput");
+ const q=input.value.trim();
+ if(!q)return;
+ appendAIMsg("user",q);
+ input.value="";
+ setTimeout(()=>processAIQuery(q),300);
+}
+
+function aiQuick(type){
+ const queries={
+  analysis:"Зроби повний аналіз мого фінансового стану.",
+  advice:"Дай практичні поради щодо моєї ситуації.",
+  compare:"Порівняй цей період з попереднім.",
+  today:"Скільки я можу витратити сьогодні і який мій ліміт?",
+  expenses:"На що я витрачаю найбільше в цьому періоді?",
+  goal:"Який прогрес по моїх фінансових цілях?",
+  debt:"Що у мене з боргами?",
+  forecast:"Зроби прогноз на кінець фінансового періоду.",
+  budget:"Проаналізуй мій бюджет за правилом 50/30/20."
+ };
+ const q=queries[type]||type;
+ appendAIMsg("user",q);
+ setTimeout(()=>processAIQuery(q),300);
+}
+
+function processAIQuery(q){
+ const lower=q.toLowerCase();
+ const a=analytics(),d=calculateSpend(),bal=totalBalance(),score=financialScore();
+ let ans="";
+ const numM=lower.match(/(\d+(?:[.,]\d+)?)/);
+
+ if(numM&&(lower.includes("чи можу")||lower.includes("чи можна")||lower.includes("витрат"))&&!lower.includes("50/30/20")){
+  const sum=Number(numM[1].replace(",","."));
+  if(sum<=0){ans="Вкажіть суму більше нуля.";}
+  else if(sum<=d.amount){
+   ans=`✅ Так, **${money(sum)}** вкладаються у ваш сьогоднішній ліміт (**${money(d.amount)}**). Після цього залишиться ${money(d.amount-sum)}.`;
+  }else if(sum<=Math.max(0,bal)){
+   const extra=d.daily>0?(sum-d.amount)/d.daily:0;
+   ans=`⚠️ Фізично коштів вистачить (баланс ${money(bal)}), але сума перевищує сьогоднішній ліміт (**${money(d.amount)}**). Це «з'їсть» приблизно ${extra.toFixed(1)} дн. вашого денного ліміту. Витрата виправдана лише якщо вона справді потрібна.`;
+  }else{
+   ans=`❌ Ні, на балансі лише ${money(bal)}. Не вистачає ${money(sum-Math.max(0,bal))}.`;
+  }
+ }else if(/порад|рекоменд|виправ|що робити/.test(lower)){
+  const adv=buildAdvice();
+  ans=`💡 **ПРАКТИЧНІ ПОРАДИ**\n\n`+adv.map(x=>`${{r:"🔴",y:"🟡",b:"🔵",g:"🟢"}[x.l]} ${x.text}`).join("\n\n");
+ }else if(/порівня|попередн/.test(lower)){
+  ans=compareText();
+ }else if(lower.includes("50/30/20")||lower.includes("бюджет")){
+  ans=`📐 **АНАЛІЗ БЮДЖЕТУ 50 / 30 / 20**\n\n`+
+      `• Потреби (ціль 50% = ${money(a.income*.5)}): факт **${money(a.needs)}**\n`+
+      `• Бажання (ціль 30% = ${money(a.income*.3)}): факт **${money(a.wants)}**\n`+
+      `• Резерв (ціль 20% = ${money(a.income*.2)}): факт **${money(Math.max(0,a.result))}**`;
+ }else if(lower.includes("аналіз")){
+  ans=`📊 **ПОВНИЙ ФІНАНСОВИЙ АНАЛІЗ**\n\n`+
+      `• Загальний баланс: **${money(bal)}**\n`+
+      `• Доходи періоду: **${money(a.income)}**\n`+
+      `• Витрати періоду: **${money(a.expense)}**\n`+
+      `• Чистий результат: **${money(a.result)}**\n`+
+      `• Фінансовий бал: **${score}/100**\n\n`;
+  ans+=a.result<0
+   ?`⚠️ Витрати перевищують доходи на ${money(Math.abs(a.result))}.\n\n`
+   :`✅ Поточний результат позитивний. Вільний залишок: ${money(a.result)}.\n\n`;
+  const top=buildAdvice().slice(0,3);
+  ans+=`💡 **Головні поради:**\n`+top.map(x=>`• ${x.text}`).join("\n");
+ }else if(lower.includes("сьогодні")||lower.includes("ліміт")){
+  ans=`💳 **ДЕННИЙ ЛІМІТ НА СЬОГОДНІ**\n\n`+
+      `• Можна витратити сьогодні: **${money(d.amount)}**\n`+
+      `• Базовий ліміт на день: **${money(d.daily)}**\n`+
+      `• Витрачено сьогодні: **${money(d.spentToday)}**\n`+
+      `• Залишилось днів у періоді: **${d.daysLeft}**\n\n${d.text}`;
+ }else if(lower.includes("прогноз")){
+  if(d.daysLeft<=0){
+   ans=`🔮 Період завершено. Розпочніть новий період для отримання прогнозу.`;
+  }else{
+   const elapsed=Math.max(1,days(S.settings.periodStart,today()));
+   const avg=a.expense/elapsed;
+   const projExpense=a.expense+avg*(d.daysLeft-1);
+   const projResult=a.income-projExpense;
+   ans=`🔮 **ПРОГНОЗ НА КІНЕЦЬ ПЕРІОДУ**\n\n`+
+       `Якщо витрачати в середньому як досі (${money(avg)}/день):\n`+
+       `• Очікувані витрати: **${money(projExpense)}**\n`+
+       `• Очікуваний результат: **${money(projResult)}**\n\n`+
+       (projResult>=0?"Запас буде позитивним.":"Витрати можуть перевищити доходи — див. поради.");
+  }
+ }else if(lower.includes("ціл")){
+  const goals=S.goals.filter(g=>g.active!==false);
+  if(!goals.length){ans=`🎯 Активних фінансових цілей поки немає.`;}
+  else{
+   ans=`🎯 **ПРОГРЕС ФІНАНСОВИХ ЦІЛЕЙ**\n\n`+goals.map(g=>{
+    const cur=goalCurrent(g),rem=goalRemaining(g);
+    const pct=g.targetAmt>0?((cur/g.targetAmt)*100).toFixed(0):0;
+    return `• **${g.name}**: накопичено ${money(cur)} з ${money(g.targetAmt)} (${pct}%). Залишилось: ${money(rem)}.`;
+   }).join("\n\n");
+  }
+ }else if(lower.includes("борг")){
+  if(!S.debts.length){ans=`💸 Боргів немає.`;}
+  else{
+   const owe=S.debts.filter(x=>x.type==="i_owe").reduce((s,x)=>s+debtRemaining(x),0);
+   const toMe=S.debts.filter(x=>x.type==="owed_to_me").reduce((s,x)=>s+debtRemaining(x),0);
+   ans=`💸 **СТАН БОРГІВ**\n\n• Я винен: **${money(owe)}**\n• Мені винні: **${money(toMe)}**\n\nБаланс боргів: **${money(toMe-owe)}**.`;
+  }
+ }else if(lower.includes("витрач")||lower.includes("категорі")){
+  if(!a.list.length){ans=`📉 У цьому періоді ще немає зафіксованих витрат.`;}
+  else{
+   const top=a.list.slice(0,5).map(([c,s])=>`• ${c}: **${money(s)}**`).join("\n");
+   ans=`📉 **ТОП ВИТРАТ ЗА КАТЕГОРІЯМИ**\n\n${top}\n\nЗагалом витрачено: **${money(a.expense)}**.`;
+  }
+ }else{
+  ans=`Баланс: ${money(bal)}. Доходи: ${money(a.income)}. Витрати: ${money(a.expense)}. Денний ліміт: ${money(d.amount)}. Спробуйте запитати: «Чи можу я витратити 500 грн?», «Дай поради» або скористайтесь кнопками вище.`;
+ }
+ appendAIMsg("ai",ans);
+}
+
+/* =========================================================
+   SETTINGS & CLOUD
+========================================================= */
+function loadSettingsToForm(){
+ document.getElementById("annualPercent").value=S.settings.annualPercent||15;
+ document.getElementById("targetName").value=S.settings.targetName||"";
+ document.getElementById("targetAmt").value=S.settings.targetAmt||0;
+ document.getElementById("spendShare").value=S.settings.spendShare||50;
+ document.getElementById("periodStart").value=S.settings.periodStart||"";
+ document.getElementById("periodEnd").value=S.settings.periodEnd||"";
+ document.getElementById("binId").value=S.settings.binId||"";
+ document.getElementById("binKey").value=S.settings.binKey||"";
+ document.getElementById("autoSync").checked=!!S.settings.autoSync;
+ document.getElementById("syncInterval").value=S.settings.syncInterval||5;
+ updateSyncStatus();
+}
+
+function saveSettings(){
+ S.settings.annualPercent=Number(document.getElementById("annualPercent").value)||15;
+ S.settings.targetName=document.getElementById("targetName").value.trim();
+ S.settings.targetAmt=Number(document.getElementById("targetAmt").value)||0;
+ S.settings.spendShare=Number(document.getElementById("spendShare").value)||50;
+
+ const ps=document.getElementById("periodStart").value,pe=document.getElementById("periodEnd").value;
+ if(ps&&pe&&ps<=pe&&(ps!==S.settings.periodStart||pe!==S.settings.periodEnd))setPeriod(ps,pe);
+
+ S.settings.binId=document.getElementById("binId").value.trim();
+ S.settings.binKey=document.getElementById("binKey").value.trim();
+ S.settings.autoSync=document.getElementById("autoSync").checked;
+ S.settings.syncInterval=Number(document.getElementById("syncInterval").value)||5;
+
+ const newP=document.getElementById("newPassword").value.trim();
+ if(newP){
+  S.password=newP;
+  document.getElementById("newPassword").value="";
+  alert("Пароль успішно змінено!");
+ }
+ markDirty();
+ setupAutoSync();
+ refresh(true);
+ alert("Налаштування збережено!");
+}
+
+function updateSyncStatus(){
+ const el=document.getElementById("syncStatus");
+ if(!el)return;
+ if(!S.settings.binId||!S.settings.binKey){el.textContent="Синхронізація не налаштована";return;}
+ let txt="Налаштовано.";
+ if(S.sync.lastPush)txt+=` PUSH: ${new Date(S.sync.lastPush).toLocaleTimeString()}`;
+ if(S.sync.lastPull)txt+=` PULL: ${new Date(S.sync.lastPull).toLocaleTimeString()}`;
+ el.textContent=txt;
+}
+
+async function pushCloud(){
+ if(!S.settings.binId||!S.settings.binKey){alert("Вкажіть Bin ID та Master Key");return;}
+ if(!navigator.onLine){alert("Немає інтернету. Дані збережені на пристрої — відправте їх у хмару, коли з'явиться мережа.");return;}
+ try{
+  const res=await fetch(`https://api.jsonbin.io/v3/b/${S.settings.binId}`,{
+   method:"PUT",
+   headers:{"Content-Type":"application/json","X-Master-Key":S.settings.binKey},
+   body:JSON.stringify(S)
+  });
+  if(res.ok){
+   S.sync.dirty=false;
+   S.sync.lastPush=Date.now();
+   persist();updateSyncStatus();
+   alert("Дані успішно відправлені в хмару (PUSH)");
+  }else{
+   alert("Помилка PUSH: "+res.statusText);
+  }
+ }catch(e){alert("Помилка мережі при PUSH");}
+}
+
+async function pullCloud(){
+ if(!S.settings.binId||!S.settings.binKey){alert("Вкажіть Bin ID та Master Key");return;}
+ if(!navigator.onLine){alert("Немає інтернету. Спробуйте пізніше.");return;}
+ try{
+  const res=await fetch(`https://api.jsonbin.io/v3/b/${S.settings.binId}/latest`,{headers:{"X-Master-Key":S.settings.binKey}});
+  if(res.ok){
+   const data=await res.json();
+   if(data.record){
+    const local=S.settings;
+    const remote=normalize(data.record);
+    // Якщо локальний період новіший за хмарний — зберігаємо локальний
+    if((local.periodUpdated||0)>(remote.settings.periodUpdated||0)){
+     remote.settings.periodStart=local.periodStart;
+     remote.settings.periodEnd=local.periodEnd;
+     remote.settings.periodUpdated=local.periodUpdated;
+    }
+    // Ключі синхронізації залишаємо локальні
+    remote.settings.binId=local.binId;
+    remote.settings.binKey=local.binKey;
+    remote.settings.autoSync=local.autoSync;
+    remote.settings.syncInterval=local.syncInterval;
+    S=remote;
+    ensureDefaults();
+    S.sync.dirty=false;
+    S.sync.lastPull=Date.now();
+    persist();
+    refresh(true);
+    alert("Дані успішно завантажені з хмари (PULL)");
+   }
+  }else{
+   alert("Помилка PULL: "+res.statusText);
+  }
+ }catch(e){alert("Помилка мережі при PULL");}
+}
+
+function setupAutoSync(){
+ if(autoTimer)clearInterval(autoTimer);
+ if(S.settings.autoSync&&S.settings.binId&&S.settings.binKey){
+  const ms=Math.max(1,S.settings.syncInterval)*60000;
+  autoTimer=setInterval(()=>{if(S.sync.dirty&&navigator.onLine)pushCloud();},ms);
+ }
+}
+
+/* =========================================================
+   BACKUP / RESET
+========================================================= */
+async function exportBackup(withPhotos){
+ const data=clone(S);
+ if(withPhotos){
+  try{data._photos=(await photoAll()).map(p=>({id:p.id,kind:p.kind,data:p.data,thumb:p.thumb}));}
+  catch(e){alert("Не вдалося прочитати фото. Буде збережено без фото.");}
+ }
+ const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement("a");
+ a.href=url;
+ a.download=`fin26_backup_${today()}${withPhotos?"_with_photos":""}.json`;
+ a.click();
+ URL.revokeObjectURL(url);
+}
+
+function importBackup(ev){
+ const file=ev.target.files[0];
+ if(!file)return;
+ const reader=new FileReader();
+ reader.onload=async e=>{
+  try{
+   const obj=JSON.parse(e.target.result);
+   if(obj&&typeof obj==="object"){
+    const photos=Array.isArray(obj._photos)?obj._photos:[];
+    delete obj._photos;
+    S=normalize(obj);
+    ensureDefaults();
+    persist();
+    for(const p of photos){try{await photoPut({...p,ts:Date.now()});}catch(err){}}
+    refresh(true);
+    alert("Базу успішно імпортовано!"+(photos.length?` Фото: ${photos.length}.`:""));
+   }
+  }catch(err){alert("Помилка читання файлу JSON");}
+  ev.target.value="";
+ };
+ reader.readAsText(file);
+}
+
+function clearAll(){
+ if(!confirm("Ви впевнені? Усі дані будуть повністю видалені!"))return;
+ localStorage.removeItem(KEY);
+ localStorage.removeItem(KEY_PERIOD);
+ photoClear().catch(()=>{});
+ S=normalize(null);
+ ensureDefaults();
+ persist();
+ refresh(true);
+ alert("Базу очищено!");
+}
+
+/* =========================================================
+   ТЕМА, ВАЛЮТА, ПРИВАТНІСТЬ, БЕЗПЕКА
+========================================================= */
+function applyTheme(){
+ const t=(S&&S.settings.theme)||"dark";
+ let eff=t;
+ if(t==="auto")eff=(window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches)?"light":"dark";
+ document.documentElement.dataset.theme=eff;
+ const m=document.querySelector('meta[name="theme-color"]');
+ if(m)m.content=eff==="light"?"#eef3f9":"#07111f";
+}
+if(window.matchMedia){
+ try{matchMedia("(prefers-color-scheme: light)").addEventListener("change",()=>{if(S&&S.settings.theme==="auto")applyTheme();});}catch(e){}
+}
+function setTheme(v){S.settings.theme=v;markDirty();applyTheme();loadExtraSettings();}
+function toggleTheme(){
+ const eff=document.documentElement.dataset.theme==="light"?"dark":"light";
+ setTheme(eff);
+}
+function setCurrency(v){S.settings.currency=v;markDirty();refresh();}
+function setHide(on){S.settings.hideAmounts=!!on;persist();refresh();}
+function toggleHide(){setHide(!S.settings.hideAmounts);}
+
+function loadExtraSettings(){
+ const g=id=>document.getElementById(id);
+ if(g("themeSel"))g("themeSel").value=S.settings.theme||"dark";
+ if(g("currencySel"))g("currencySel").value=S.settings.currency||"₴";
+ if(g("autoLockSel"))g("autoLockSel").value=String(S.settings.autoLock||0);
+ if(g("hideChk"))g("hideChk").checked=!!S.settings.hideAmounts;
+ if(g("pinStatus"))g("pinStatus").textContent=S.settings.pinHash?"✅ PIN встановлено — його можна вводити замість пароля.":"PIN не встановлено.";
+ if(g("hideBtn"))g("hideBtn").textContent=S.settings.hideAmounts?"🙈":"👁";
+}
+
+async function setPin(){
+ const a=document.getElementById("pinNew").value.trim();
+ const b=document.getElementById("pinConfirm").value.trim();
+ if(!/^\d{4,6}$/.test(a)){alert("PIN має містити 4–6 цифр");return;}
+ if(a!==b){alert("PIN-коди не збігаються");return;}
+ S.settings.pinHash=await hashPin(a);
+ document.getElementById("pinNew").value="";
+ document.getElementById("pinConfirm").value="";
+ markDirty();loadExtraSettings();
+ alert("PIN встановлено. Тепер для входу можна вводити PIN замість пароля.");
+}
+function removePin(){
+ if(!S.settings.pinHash){alert("PIN не встановлено");return;}
+ if(!confirm("Видалити PIN?"))return;
+ S.settings.pinHash="";
+ markDirty();loadExtraSettings();
+}
+
+let idleTimer=null,hiddenAt=0;
+function appVisible(){return document.getElementById("appContent").style.display==="block";}
+function resetIdle(){
+ clearTimeout(idleTimer);
+ const m=Number(S&&S.settings.autoLock)||0;
+ if(!m||!appVisible())return;
+ idleTimer=setTimeout(()=>{if(appVisible())logout();},m*60000);
+}
+function setAutoLock(v){S.settings.autoLock=Number(v)||0;markDirty();resetIdle();}
+["click","keydown","touchstart","scroll","mousemove"].forEach(ev=>window.addEventListener(ev,resetIdle,{passive:true}));
+document.addEventListener("visibilitychange",()=>{
+ if(document.hidden){hiddenAt=Date.now();return;}
+ const m=Number(S&&S.settings.autoLock)||0;
+ if(m&&hiddenAt&&appVisible()&&Date.now()-hiddenAt>m*60000)logout();
+ hiddenAt=0;resetIdle();
+});
+
+let deferredPrompt=null;
+function isStandalone(){return (window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone===true;}
+function showInstall(on){
+ ["installBtn","installLoginBtn"].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display=on?"":"none";});
+}
+async function installApp(){
+ if(!deferredPrompt){alert("Встановлення доступне через меню браузера: «Встановити застосунок» / «Додати на головний екран».");return;}
+ deferredPrompt.prompt();
+ try{await deferredPrompt.userChoice;}catch(e){}
+ deferredPrompt=null;showInstall(false);
+}
+function updateNet(){
+ const b=document.getElementById("netBadge");
+ if(b)b.style.display=navigator.onLine?"none":"inline-block";
+}
+function offerUpdate(w){
+ if(confirm("Доступна нова версія програми. Оновити зараз?"))w.postMessage({type:"SKIP_WAITING"});
+}
+function setupPWA(){
+ window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;showInstall(true);});
+ window.addEventListener("appinstalled",()=>{deferredPrompt=null;showInstall(false);});
+ const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)&&!isStandalone();
+ const h=document.getElementById("iosHint");
+ if(h&&ios)h.style.display="block";
+ updateNet();
+ window.addEventListener("online",updateNet);
+ window.addEventListener("offline",updateNet);
+ const secure=location.protocol==="https:"||location.hostname==="localhost"||location.hostname==="127.0.0.1";
+ if("serviceWorker" in navigator&&secure){
+  const hadController=!!navigator.serviceWorker.controller;
+  let reloading=false;
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{
+   if(!hadController||reloading)return;
+   reloading=true;location.reload();
+  });
+  navigator.serviceWorker.register("./sw.js").then(reg=>{
+   if(reg.waiting&&navigator.serviceWorker.controller)offerUpdate(reg.waiting);
+   reg.addEventListener("updatefound",()=>{
+    const w=reg.installing;
+    if(!w)return;
+    w.addEventListener("statechange",()=>{
+     if(w.state==="installed"&&navigator.serviceWorker.controller)offerUpdate(w);
+    });
+   });
+  }).catch(()=>{});
+ }
+}
+
+/* =========================================================
+   ПОРІВНЯННЯ ПЕРІОДІВ
+========================================================= */
+function addDays(ds,n){const d=dateObj(ds);d.setDate(d.getDate()+n);return fmtDate(d);}
+
+function rangeStats(start,end){
+ let income=0,expense=0;const cs={};
+ S.transactions.forEach(t=>{
+  if(t.date<start||t.date>end||t.type==="transfer")return;
+  const a=amt(t);
+  if(t.type==="income")income+=a;
+  else if(t.type==="expense"){expense+=a;const c=t.category||"Інше";cs[c]=(cs[c]||0)+a;}
+ });
+ return{income,expense,result:income-expense,cats:cs};
+}
+
+function comparePeriods(){
+ const st=S.settings.periodStart,en=S.settings.periodEnd;
+ const dur=days(st,en);
+ if(dur<=0)return null;
+ const t=today();
+ let span=dur,partial=false;
+ if(t>=st&&t<en){span=days(st,t);partial=true;}
+ const prevStart=addDays(st,-dur);
+ return{
+  dur,span,partial,prevStart,
+  prevEnd:addDays(prevStart,span-1),
+  cur:rangeStats(st,addDays(st,span-1)),
+  prev:rangeStats(prevStart,addDays(prevStart,span-1))
+ };
+}
+
+function fmtDelta(a,b){
+ const d=a-b;
+ const p=b>0?`, ${d>=0?"+":""}${(d/b*100).toFixed(0)}%`:"";
+ return `${d>=0?"+":"−"}${money(Math.abs(d))}${p}`;
+}
+function dHtml(cu,pr,upGood){
+ if(!cu&&!pr)return '<span class="muted">—</span>';
+ const d=cu-pr;
+ if(Math.abs(d)<0.005)return '<span class="muted">• без змін</span>';
+ const good=upGood?d>0:d<0;
+ const pct=pr>0?` ${d>0?"+":""}${(d/pr*100).toFixed(0)}%`:" нове";
+ return `<span class="${good?"green":"red"}">${d>0?"▲":"▼"}${pct}</span>`;
+}
+
+function compareText(){
+ const c=comparePeriods();
+ if(!c)return "Фінансовий період не встановлено.";
+ if(!c.prev.income&&!c.prev.expense)return "📅 У попередньому періоді немає операцій, тому порівняти поки нема з чим.";
+ const {cur:a,prev:b}=c;
+ let t=`📅 **ПОРІВНЯННЯ З ПОПЕРЕДНІМ ПЕРІОДОМ**\n${c.partial?`(перші ${c.span} дн. кожного періоду)\n`:""}\n`+
+  `• Доходи: ${money(b.income)} → **${money(a.income)}** (${fmtDelta(a.income,b.income)})\n`+
+  `• Витрати: ${money(b.expense)} → **${money(a.expense)}** (${fmtDelta(a.expense,b.expense)})\n`+
+  `• Результат: ${money(b.result)} → **${money(a.result)}** (${fmtDelta(a.result,b.result)})`;
+ const diffs=[...new Set([...Object.keys(a.cats),...Object.keys(b.cats)])].map(k=>[k,(a.cats[k]||0)-(b.cats[k]||0)]).sort((x,y)=>y[1]-x[1]);
+ if(diffs.length&&diffs[0][1]>0)t+=`\n\n⚠️ Найбільше зросла категорія «${diffs[0][0]}»: ${fmtDelta(a.cats[diffs[0][0]]||0,b.cats[diffs[0][0]]||0)}.`;
+ const last=diffs[diffs.length-1];
+ if(last&&last[1]<0)t+=`\n✅ Найбільше вдалося скоротити «${last[0]}»: ${fmtDelta(a.cats[last[0]]||0,b.cats[last[0]]||0)}.`;
+ return t;
+}
+
+let periodsChart=null;
+function updateCompare(){
+ const box=document.getElementById("compareBox");
+ if(!box)return;
+ const c=comparePeriods();
+ if(!c){box.innerHTML='<div class="empty">Період не встановлено</div>';return;}
+ const {cur:a,prev:b}=c;
+ const note=`<div class="small muted">Поточний: ${fd(S.settings.periodStart)} — ${fd(addDays(S.settings.periodStart,c.span-1))} • Попередній: ${fd(c.prevStart)} — ${fd(c.prevEnd)}${c.partial?` • Порівнюються перші ${c.span} дн. кожного періоду`:""}</div>`;
+ if(!b.income&&!b.expense){
+  box.innerHTML=note+'<div class="empty">У попередньому періоді немає операцій. Порівняння з\'явиться, коли будуть дані за попередній період.</div>';
+ }else{
+  const kpi=(label,cu,pr,upGood,cls)=>`<div class="kpi"><div class="label">${label}</div><div class="value ${cls}" style="font-size:20px">${money(cu)}</div><div class="cmpDelta muted">було ${money(pr)} • ${dHtml(cu,pr,upGood)}</div></div>`;
+  const keys=[...new Set([...Object.keys(a.cats),...Object.keys(b.cats)])]
+   .sort((x,y)=>Math.max(a.cats[y]||0,b.cats[y]||0)-Math.max(a.cats[x]||0,b.cats[x]||0)).slice(0,10);
+  const rows=keys.map(k=>`<tr><td>${esc(k)}</td><td>${money(b.cats[k]||0)}</td><td>${money(a.cats[k]||0)}</td><td>${dHtml(a.cats[k]||0,b.cats[k]||0,false)}</td></tr>`).join("");
+  const diffs=keys.map(k=>[k,(a.cats[k]||0)-(b.cats[k]||0)]).sort((x,y)=>y[1]-x[1]);
+  const ins=[];
+  if(diffs.length&&diffs[0][1]>0)ins.push({l:"y",text:`Найбільше зросла категорія «${diffs[0][0]}» (${fmtDelta(a.cats[diffs[0][0]]||0,b.cats[diffs[0][0]]||0)}). Перегляньте окремі операції в Історії та вирішіть, що було зайвим.`});
+  const last=diffs[diffs.length-1];
+  if(last&&last[1]<0)ins.push({l:"g",text:`Гарний результат: у категорії «${last[0]}» витрати зменшилися (${fmtDelta(a.cats[last[0]]||0,b.cats[last[0]]||0)}).`});
+  if(b.expense>0&&a.expense>b.expense*1.15)ins.push({l:"r",text:`Загальні витрати зросли більш ніж на 15% порівняно з попереднім періодом. Поставте собі ліміт на категорії, що зросли найбільше.`});
+  if(a.result>b.result&&a.result>0)ins.push({l:"g",text:"Ваш залишок (результат) кращий, ніж у попередньому періоді. Відкладіть різницю у фінансову ціль."});
+  box.innerHTML=note+`<div class="grid grid3" style="margin:10px 0">${kpi("ДОХОДИ",a.income,b.income,true,"green")}${kpi("ВИТРАТИ",a.expense,b.expense,false,"red")}${kpi("РЕЗУЛЬТАТ",a.result,b.result,true,a.result>=0?"green":"red")}</div>`+
+   (rows?`<table><thead><tr><th>Категорія</th><th>Було</th><th>Стало</th><th>Зміна</th></tr></thead><tbody>${rows}</tbody></table>`:"")+
+   `<div style="margin-top:12px">${renderAdviceItems(ins)}</div>`;
+ }
+
+ const canvas=document.getElementById("periodsChart");
+ if(!canvas||typeof Chart==="undefined")return;
+ const st=S.settings.periodStart,dur=c.dur;
+ const labels=[],inc=[],exp=[];
+ for(let i=5;i>=0;i--){
+  const ps=addDays(st,-dur*i),pe=addDays(ps,dur-1);
+  const r=rangeStats(ps,pe);
+  labels.push(fd(ps).slice(0,5)+"–"+fd(pe).slice(0,5));
+  inc.push(r.income);exp.push(r.expense);
+ }
+ if(periodsChart)periodsChart.destroy();
+ periodsChart=new Chart(canvas,{
+  type:"bar",
+  data:{labels,datasets:[
+   {label:"Дохід",data:inc,backgroundColor:"rgba(54,224,154,.65)"},
+   {label:"Витрата",data:exp,backgroundColor:"rgba(255,100,124,.65)"}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:"#8fa6bd"}}},
+   scales:{x:{ticks:{color:"#8fa6bd"},grid:{color:"rgba(32,52,75,.4)"}},y:{ticks:{color:"#8fa6bd"},grid:{color:"rgba(32,52,75,.4)"}}}}
+ });
+}
+
+/* =========================================================
+   ПЛАНУВАЛЬНИК ПОКУПОК
+========================================================= */
+function planFree(){
+ const a=analytics();
+ const st=S.settings.periodStart,en=S.settings.periodEnd,t=today();
+ const el=t<st?0:Math.min(days(st,en),days(st,t));
+ return{perDay:el>0?a.result/el:0,el,a};
+}
+
+function addPlan(){
+ document.getElementById("modal").style.display="flex";
+ document.getElementById("modalContent").innerHTML=`
+  <h2>🛒 Нова покупка</h2>
+  <div class="field"><label>Що купуємо</label><input id="planName" placeholder="Наприклад: ноутбук"></div>
+  <div class="field"><label>Ціна</label><input id="planPrice" type="number" step="0.01" min="0"></div>
+  <div class="field"><label>Вже відкладено</label><input id="planSaved" type="number" step="0.01" min="0" value="0"></div>
+  <div class="field"><label>Бажана дата покупки</label><input id="planDeadline" type="date"></div>
+  <div class="row">
+   <button class="btn green" onclick="savePlan()">💾 Створити</button>
+   <button class="btn" onclick="closeModal()">Скасувати</button>
+  </div>`;
+}
+function savePlan(){
+ const name=document.getElementById("planName").value.trim();
+ const price=Number(document.getElementById("planPrice").value);
+ if(!name||!price||price<=0){alert("Вкажіть назву та ціну");return;}
+ S.plans.push({id:uid(),name,price,saved:Number(document.getElementById("planSaved").value)||0,deadline:document.getElementById("planDeadline").value,created:today()});
+ markDirty();closeModal();refresh();
+}
+function planAdd(id){
+ const p=S.plans.find(x=>x.id===id);if(!p)return;
+ document.getElementById("modal").style.display="flex";
+ document.getElementById("modalContent").innerHTML=`
+  <h2>💰 Відкласти на «${esc(p.name)}»</h2>
+  <div class="field"><label>Сума</label><input id="planAddAmount" type="number" step="0.01" min="0"></div>
+  <div class="row">
+   <button class="btn green" onclick="savePlanAdd('${id}')">💾 Додати</button>
+   <button class="btn" onclick="closeModal()">Скасувати</button>
+  </div>`;
+}
+function savePlanAdd(id){
+ const p=S.plans.find(x=>x.id===id);if(!p)return;
+ const v=Number(document.getElementById("planAddAmount").value);
+ if(!v||v<=0){alert("Введіть суму");return;}
+ p.saved=(Number(p.saved)||0)+v;
+ markDirty();closeModal();refresh();
+}
+function planToGoal(id){
+ const p=S.plans.find(x=>x.id===id);if(!p)return;
+ if(!confirm(`Перенести «${p.name}» у фінансові цілі? Покупка зникне з планувальника.`))return;
+ S.goals.push({id:uid(),name:p.name,targetAmt:p.price,currentAmt:Number(p.saved)||0,deadline:p.deadline||"",priority:"medium",accountId:S.accounts[0]?.id||"",notes:"З планувальника покупок",active:true});
+ S.plans=S.plans.filter(x=>x.id!==id);
+ markDirty();refresh();
+}
+function deletePlan(id){
+ if(!confirm("Видалити покупку з планувальника?"))return;
+ S.plans=S.plans.filter(x=>x.id!==id);
+ markDirty();refresh();
+}
+function planRate(id,v){
+ const p=S.plans.find(x=>x.id===id),out=document.getElementById("planRate_"+id);
+ if(!p||!out)return;
+ const r=Number(v);
+ if(!r||r<=0){out.textContent="";return;}
+ const rem=Math.max(0,p.price-(Number(p.saved)||0));
+ const d=Math.ceil(rem/r);
+ out.textContent=`≈ ${d} дн. → ${fd(addDays(today(),d))}`;
+}
+
+function renderPlans(){
+ const el=document.getElementById("plansList");
+ if(!el)return;
+ if(!S.plans.length){el.innerHTML='<div class="empty">Покупок у плані немає. Додайте першу — наприклад, техніку чи відпустку.</div>';return;}
+ const f=planFree();
+ const wants=f.a.list.filter(([c])=>!needsList().includes(c)).slice(0,3);
+ el.innerHTML=S.plans.map(p=>{
+  const saved=Number(p.saved)||0,rem=Math.max(0,p.price-saved);
+  const pct=p.price>0?clamp(saved/p.price*100,0,100):0;
+  const left=p.deadline?days(today(),p.deadline):0;
+  const need=left>0?rem/left:0;
+  let body="",verdict="";
+  if(rem<=0){
+   verdict='<div class="item adv g">🎉 Потрібну суму накопичено! Можна купувати або перенести покупку в цілі.</div>';
+  }else if(!p.deadline){
+   verdict='<div class="item adv b">🔵 Вкажіть бажану дату покупки — тоді програма порахує, скільки відкладати щодня.</div>';
+  }else if(left<=0){
+   verdict='<div class="item adv r">🔴 Дата покупки минула, а накопичено не всю суму. Перенесіть дату або зменште ціну.</div>';
+  }else{
+   body=`<div class="statLine"><span>Відкладати</span><b>${money(need)}/день • ${money(need*7)}/тиж • ${money(need*30)}/міс</b></div>`;
+   if(f.el<=0){
+    verdict='<div class="item adv b">🔵 Період ще не розпочався — оцінка реалістичності з\'явиться після перших операцій.</div>';
+   }else if(f.perDay<=0){
+    verdict=`<div class="item adv r">🔴 Зараз ваші витрати не менші за доходи, тож вільних коштів немає. Щоб устигнути, потрібно звільнити щонайменше ${money(need)}/день — скоротіть витрати або збільште дохід.</div>`;
+   }else if(need<=f.perDay*0.5){
+    verdict=`<div class="item adv g">🟢 Реально: потрібно ≈${(need/f.perDay*100).toFixed(0)}% вашого середнього вільного залишку (${money(f.perDay)}/день).</div>`;
+   }else if(need<=f.perDay){
+    verdict=`<div class="item adv y">🟡 Напружено: потрібно ≈${(need/f.perDay*100).toFixed(0)}% вільного залишку (${money(f.perDay)}/день), запасу майже немає.</div>`;
+   }else{
+    const needDays=Math.ceil(rem/f.perDay);
+    verdict=`<div class="item adv r">🔴 За поточного темпу (${money(f.perDay)}/день) не встигнете. Потрібно додатково ≈${money(need-f.perDay)}/день, або перенесіть покупку приблизно на ${fd(addDays(today(),needDays))}.</div>`;
+   }
+   if(need>f.perDay&&wants.length&&f.el>0){
+    verdict+=`<div class="item adv b">🔵 Де скоротити (−20%): ${wants.map(([c,sm])=>`${esc(c)} ≈${money(sm*0.2/f.el)}/день`).join("; ")}.</div>`;
+   }
+  }
+  return `
+   <div class="item">
+    <div class="head">
+     <div><div class="itemTitle">🛒 ${esc(p.name)}</div><div class="small muted">${p.deadline?"Дата: "+fd(p.deadline)+(left>0?` • ${left} дн.`:""):"Без дати"}</div></div>
+     <span class="badge">${pct.toFixed(0)}%</span>
+    </div>
+    <div class="statLine"><span>Ціна</span><b>${money(p.price)}</b></div>
+    <div class="statLine"><span>Відкладено</span><b class="green">${money(saved)}</b></div>
+    <div class="statLine"><span>Залишилось</span><b class="yellow">${money(rem)}</b></div>
+    ${body}
+    <div class="progress" style="margin:10px 0"><div style="width:${pct}%"></div></div>
+    ${verdict}
+    ${rem>0?`<div class="row" style="margin:10px 0"><div style="flex:1;min-width:160px"><label>Якщо відкладати на день:</label><input type="number" min="0" step="0.01" placeholder="сума" oninput="planRate('${p.id}',this.value)"></div><div id="planRate_${p.id}" class="small cyan" style="flex:1;min-width:140px"></div></div>`:""}
+    <div class="row" style="margin-top:8px">
+     <button class="btn green smallBtn" onclick="planAdd('${p.id}')">💰 Відкласти</button>
+     <button class="btn smallBtn" onclick="planToGoal('${p.id}')">🎯 У цілі</button>
+     <button class="btn red smallBtn" onclick="deletePlan('${p.id}')">🗑</button>
+    </div>
+   </div>`;
+ }).join("");
+}
+
+/* =========================================================
+   ФОТО (IndexedDB) + РОЗПІЗНАВАННЯ ЧЕКА (OCR)
+========================================================= */
+let _db=null;
+function idb(){
+ if(_db)return Promise.resolve(_db);
+ return new Promise((res,rej)=>{
+  if(!window.indexedDB){rej(new Error("no idb"));return;}
+  const r=indexedDB.open("fin26_photos",1);
+  r.onupgradeneeded=()=>r.result.createObjectStore("photos",{keyPath:"id"});
+  r.onsuccess=()=>{_db=r.result;res(_db);};
+  r.onerror=()=>rej(r.error);
+ });
+}
+function idbOp(mode,fn){
+ return idb().then(db=>new Promise((res,rej)=>{
+  const tx=db.transaction("photos",mode);
+  const rq=fn(tx.objectStore("photos"));
+  tx.oncomplete=()=>res(rq?rq.result:undefined);
+  tx.onerror=()=>rej(tx.error);
+  tx.onabort=()=>rej(tx.error);
+ }));
+}
+function photoPut(p){return idbOp("readwrite",s=>s.put(p));}
+function photoGet(id){return idbOp("readonly",s=>s.get(id));}
+function photoDel(id){return idbOp("readwrite",s=>s.delete(id));}
+function photoClear(){return idbOp("readwrite",s=>s.clear());}
+function photoAll(){return idbOp("readonly",s=>s.getAll());}
+
+function hydrateThumbs(root){
+ (root||document).querySelectorAll("img[data-pid]:not([data-ok])").forEach(async im=>{
+  im.dataset.ok="1";
+  try{const p=await photoGet(im.dataset.pid);if(p)im.src=p.thumb||p.data;}catch(e){}
+ });
+}
+async function openPhoto(id){
+ try{const p=await photoGet(id);if(p)openPhotoData(p.data);else alert("Фото не знайдено на цьому пристрої");}
+ catch(e){alert("Не вдалося відкрити фото");}
+}
+function openPhotoData(src){
+ document.getElementById("photoViewerImg").src=src;
+ document.getElementById("photoViewer").style.display="flex";
+}
+function closePhoto(){
+ document.getElementById("photoViewer").style.display="none";
+ document.getElementById("photoViewerImg").src="";
+}
+
+/* ---- зображення ---- */
+function loadImage(file){
+ return new Promise((res,rej)=>{
+  const url=URL.createObjectURL(file);
+  const im=new Image();
+  im.onload=()=>{URL.revokeObjectURL(url);res(im);};
+  im.onerror=()=>{URL.revokeObjectURL(url);rej(new Error("img"));};
+  im.src=url;
+ });
+}
+function scaleImg(im,max){
+ const r=Math.min(1,max/Math.max(im.width,im.height));
+ const c=document.createElement("canvas");
+ c.width=Math.max(1,Math.round(im.width*r));
+ c.height=Math.max(1,Math.round(im.height*r));
+ c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+ return c;
+}
+async function prepImage(file,kind){
+ const im=await loadImage(file);
+ return{
+  im,
+  photo:{id:uid(),kind,data:scaleImg(im,1280).toDataURL("image/jpeg",0.7),thumb:scaleImg(im,240).toDataURL("image/jpeg",0.6)}
+ };
+}
+function ocrCanvas(im){
+ const c=scaleImg(im,2000);
+ const ctx=c.getContext("2d");
+ const d=ctx.getImageData(0,0,c.width,c.height);
+ const a=d.data;
+ for(let i=0;i<a.length;i+=4){
+  const g=0.299*a[i]+0.587*a[i+1]+0.114*a[i+2];
+  const v=clamp((g-128)*1.35+128,0,255);
+  a[i]=a[i+1]=a[i+2]=v;
+ }
+ ctx.putImageData(d,0,0);
+ return c;
+}
+
+/* ---- режими внесення ---- */
+let pendingReceipt=null,pendingProduct=[],ocrSource=null,ocrBusy=false,editCtx=null;
+
+function setMode(m){
+ const r=document.getElementById("panelReceipt"),p=document.getElementById("panelProduct");
+ if(m==="manual"){r.style.display="none";p.style.display="none";}
+ else if(m==="receipt")r.style.display=r.style.display==="none"?"block":"none";
+ else p.style.display=p.style.display==="none"?"block":"none";
+ const ro=r.style.display!=="none",po=p.style.display!=="none";
+ document.getElementById("chipReceipt").classList.toggle("active",ro);
+ document.getElementById("chipProduct").classList.toggle("active",po);
+ document.getElementById("chipManual").classList.toggle("active",!ro&&!po);
+}
+
+function renderPending(){
+ const r=document.getElementById("receiptPreview"),p=document.getElementById("productPreview");
+ if(r)r.innerHTML=pendingReceipt?`<div class="thumbWrap"><img class="thumb" src="${pendingReceipt.thumb}" alt="" onclick="openPhotoData(pendingReceipt.data)"><span class="kindTag">🧾</span><button type="button" class="thumbX" onclick="removePending('receipt')">✕</button></div>`:"";
+ if(p)p.innerHTML=pendingProduct.map((x,i)=>`<div class="thumbWrap"><img class="thumb" src="${x.thumb}" alt="" onclick="openPhotoData(pendingProduct[${i}].data)"><span class="kindTag">📦</span><button type="button" class="thumbX" onclick="removePending('product',${i})">✕</button></div>`).join("");
+}
+function resetOcrUI(){
+ ["ocrStatus","ocrSummary"].forEach(id=>{const e=document.getElementById(id);if(e)e.innerHTML="";});
+ const t=document.getElementById("ocrText");if(t)t.textContent="";
+ const b=document.getElementById("ocrBar");if(b)b.style.width="0%";
+}
+function removePending(kind,i){
+ if(kind==="receipt"){pendingReceipt=null;ocrSource=null;resetOcrUI();}
+ else pendingProduct.splice(i,1);
+ renderPending();
+}
+function clearPending(){
+ pendingReceipt=null;pendingProduct=[];ocrSource=null;
+ renderPending();resetOcrUI();
+}
+
+async function onReceiptFile(input){
+ const file=input.files&&input.files[0];
+ input.value="";
+ if(!file)return;
+ try{
+  const r=await prepImage(file,"receipt");
+  pendingReceipt=r.photo;
+  ocrSource=r.im;
+  renderPending();
+  runOCR();
+ }catch(e){alert("Не вдалося прочитати зображення");}
+}
+async function onProductFiles(input){
+ const files=[...(input.files||[])];
+ input.value="";
+ for(const f of files){
+  try{const r=await prepImage(f,"product");pendingProduct.push(r.photo);}
+  catch(e){alert("Не вдалося прочитати одне із зображень");}
+ }
+ renderPending();
+}
+
+/* ---- OCR ---- */
+function loadTesseract(){
+ return new Promise((res,rej)=>{
+  if(window.Tesseract){res();return;}
+  const s=document.createElement("script");
+  s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+  s.onload=()=>res();
+  s.onerror=()=>rej(new Error("load"));
+  document.head.appendChild(s);
+ });
+}
+
+async function runOCR(){
+ const st=document.getElementById("ocrStatus"),bar=document.getElementById("ocrBar");
+ if(!ocrSource){st.textContent="Спочатку додайте фото чека.";return;}
+ if(ocrBusy)return;
+ ocrBusy=true;
+ bar.style.width="3%";
+ st.textContent="⏳ Завантаження модуля розпізнавання…";
+ try{
+  await loadTesseract();
+  const res=await Tesseract.recognize(ocrCanvas(ocrSource),"ukr+eng",{
+   logger:m=>{
+    if(m.status==="recognizing text"){
+     const p=Math.round((m.progress||0)*100);
+     bar.style.width=Math.max(5,p)+"%";
+     st.textContent=`🔎 Розпізнавання… ${p}%`;
+    }else{
+     st.textContent="⏳ Підготовка ("+m.status+")…";
+    }
+   }
+  });
+  const text=(res&&res.data&&res.data.text)||"";
+  document.getElementById("ocrText").textContent=text;
+  bar.style.width="100%";
+  if(!text.trim()){st.textContent="⚠️ Текст не знайдено. Спробуйте сфотографувати чек рівніше та при кращому світлі.";}
+  else{
+   st.textContent="✅ Розпізнано. Перевірте дані у формі та натисніть «Зберегти витрату».";
+   applyReceipt(parseReceipt(text));
+  }
+ }catch(e){
+  bar.style.width="0%";
+  st.textContent="⚠️ Автоматичне розпізнавання недоступне (для першого запуску потрібен інтернет). Заповніть дані вручну — фото все одно буде прикріплене.";
+ }
+ ocrBusy=false;
+}
+
+const CAT_KW={
+ "Харчування":["атб","сільпо","silpo","novus","новус","ашан","auchan","varus","варус","фора","метро","еко маркет","продукт","маркет","хліб","молоко","кафе","ресторан","піцц","піца","mcdonald","макдональдс","kfc","пекарня","їдальня","булочн","м'ясо","овочі","фрукти","кава"],
+ "Транспорт":["wog","окко","okko","socar","брсм","shell","азс","пальне","бензин","дизель","а-95","а95","uber","bolt","квиток","проїзд","таксі","укрзалізниця","паркув"],
+ "Комуналка":["газ","електроенерг","світло","водопостач","водоканал","теплоенерг","жкг","комунал","обленерго","вивіз сміття"],
+ "Інтернет":["київстар","kyivstar","vodafone","водафон","lifecell","лайфсел","інтернет","укртелеком","воля"],
+ "Одяг":["одяг","взуття","zara","lc waikiki","h&m","reserved","sinsay","intertop","інтертоп","футболк","куртк","штани"],
+ "Техніка":["фокстрот","розетка","comfy","комфі","moyo","мойо","цитрус","електроніка","техніка","смартфон","навушник","кабель"],
+ "Подарок":["подарунок","подарок","квіти","іграшк"],
+ "Послуги":["перукар","барбер","салон","шиномонтаж","ремонт","послуга","хімчистка","пральня","нова пошта","укрпошта","делівері"]
+};
+function esRx(x){return x.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");}
+
+function guessCategory(text,firstLines){
+ const low=text.toLowerCase(),head=firstLines.toLowerCase();
+ const scores={};
+ const test=(kw,src)=>new RegExp("(^|[^\\p{L}\\d])"+esRx(kw)+(kw.length<=4?"(?![\\p{L}])":""),"u").test(src);
+ Object.entries(CAT_KW).forEach(([cat,kws])=>{
+  kws.forEach(kw=>{
+   if(test(kw,low))scores[cat]=(scores[cat]||0)+1;
+   if(test(kw,head))scores[cat]=(scores[cat]||0)+2;
+  });
+ });
+ cats("expense").forEach(c=>{
+  if(c==="Погашення боргу"||c==="Інше"||CAT_KW[c])return;
+  if(low.includes(c.toLowerCase()))scores[c]=(scores[c]||0)+3;
+ });
+ let best="",bs=0;
+ Object.entries(scores).forEach(([c,v])=>{if(v>bs&&cats("expense").includes(c)){best=c;bs=v;}});
+ return best;
+}
+
+function parseReceipt(text){
+ const lines=text.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+ const clean=x=>x.replace(/(\d)[ \u00a0](?=\d{3}(?:[.,]\d{2})?(?!\d))/g,"$1");
+ const nums=x=>[...clean(x).matchAll(/(\d+)[.,](\d{2})(?!\d)/g)].map(m=>parseFloat(m[1]+"."+m[2]));
+ const skip=/пдв|ндс|знижк|решта|здача|готівк|отримано|бонус|bonus/i;
+
+ let amount=0;
+ const tiers=[/до сплат|до оплат|к оплате|to pay/i,/разом|всього|итого|итог|сума|сумма|total/i];
+ for(const rx of tiers){
+  let best=0;
+  lines.forEach((l,i)=>{
+   if(!rx.test(l)||skip.test(l))return;
+   let n=nums(l);
+   if(!n.length&&lines[i+1])n=nums(lines[i+1]);
+   if(n.length)best=Math.max(best,Math.max(...n));
+  });
+  if(best){amount=best;break;}
+ }
+ if(!amount){
+  const all=[];
+  lines.forEach(l=>{if(!skip.test(l))all.push(...nums(l));});
+  if(all.length)amount=Math.max(...all);
+ }
+
+ const build=(y,mo,d)=>{
+  y=+y;mo=+mo;d=+d;
+  if(y<100)y+=2000;
+  if(y<2000||y>2100||mo<1||mo>12||d<1||d>31)return "";
+  const ds=`${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+  return ds>fmtDate(new Date(Date.now()+86400000))?"":ds;
+ };
+ let date="";
+ const m2=text.match(/\b(20\d{2})[.\/-](\d{2})[.\/-](\d{2})\b/);
+ const m1=text.match(/\b(\d{2})[.\/-](\d{2})[.\/-](\d{4}|\d{2})\b/);
+ if(m2)date=build(m2[1],m2[2],m2[3]);
+ if(!date&&m1)date=build(m1[3],m1[2],m1[1]);
+
+ let memo="";
+ for(const l of lines.slice(0,8)){
+  const letters=(l.match(/\p{L}/gu)||[]).length;
+  if(letters>=3&&letters>=l.length*0.5&&!/чек|фіскал|каса|касир|кассир|ідент|тел/i.test(l)){
+   memo=l.replace(/[^\p{L}\d\s"'«».&\-]/gu,"").trim().slice(0,50);
+   break;
+  }
+ }
+ const category=guessCategory(text,lines.slice(0,3).join(" "));
+ return{amount,date,category,memo};
+}
+
+function applyReceipt(p){
+ const found=[],miss=[];
+ if(p.amount){document.getElementById("expenseAmount").value=p.amount.toFixed(2);found.push("💰 "+money(p.amount));}else miss.push("суму");
+ if(p.date){document.getElementById("expenseDate").value=p.date;found.push("📅 "+fd(p.date));}else miss.push("дату");
+ const sel=document.getElementById("expenseCategory");
+ if(p.category){sel.value=p.category;found.push("🏷️ "+p.category);}else miss.push("категорію");
+ if(p.memo){document.getElementById("expenseMemo").value=p.memo;found.push("🏪 "+p.memo);}
+ document.getElementById("ocrSummary").innerHTML=
+  found.map(x=>`<span class="badge">${esc(x)}</span>`).join("")+
+  (miss.length?`<div class="small yellow" style="margin-top:6px">Не вдалося визначити: ${miss.join(", ")}. Заповніть вручну.</div>`:"");
+}
+
+/* ---- фото в редагуванні операції ---- */
+function renderEditPhotos(id){
+ const t=S.transactions.find(x=>x.id===id);
+ const el=document.getElementById("editPhotos");
+ if(!t||!el)return;
+ const ph=t.photos||[];
+ el.innerHTML=ph.length?ph.map(p=>`<div class="thumbWrap"><img class="thumb" data-pid="${p.id}" alt="" onclick="openPhoto('${p.id}')"><span class="kindTag">${p.kind==="receipt"?"🧾":"📦"}</span><button type="button" class="thumbX" onclick="removeTxPhoto('${id}','${p.id}')">✕</button></div>`).join(""):'<span class="small muted">Фото немає</span>';
+ hydrateThumbs(el);
+}
+async function removeTxPhoto(txId,pid){
+ const t=S.transactions.find(x=>x.id===txId);
+ if(!t||!confirm("Видалити це фото?"))return;
+ try{await photoDel(pid);}catch(e){}
+ t.photos=(t.photos||[]).filter(p=>p.id!==pid);
+ markDirty();
+ renderEditPhotos(txId);
+ renderHistory();
+}
+function editAddPhoto(id,kind){
+ editCtx={id,kind};
+ document.getElementById("editPhotoInput").click();
+}
+async function handleEditPhoto(input){
+ const file=input.files&&input.files[0];
+ input.value="";
+ if(!file||!editCtx)return;
+ const t=S.transactions.find(x=>x.id===editCtx.id);
+ if(!t)return;
+ try{
+  const r=await prepImage(file,editCtx.kind);
+  await photoPut({...r.photo,ts:Date.now()});
+  t.photos=(t.photos||[]).concat({id:r.photo.id,kind:r.photo.kind});
+  markDirty();
+  renderEditPhotos(editCtx.id);
+  renderHistory();
+ }catch(e){alert("Не вдалося додати фото");}
+}
+
+/* =========================================================
+   NAVIGATION / MODAL / REFRESH
+========================================================= */
+function go(id){
+ const el=document.getElementById(id);
+ if(el){
+  const body=document.getElementById(id+"-body");
+  if(body&&body.classList.contains("collapsed"))toggleSection(id);
+  el.scrollIntoView({behavior:"smooth"});
+ }
+}
+function closeModal(){document.getElementById("modal").style.display="none";}
+
+// refresh(true) — додатково перезаповнює форму налаштувань з збережених даних.
+// Звичайний refresh() НЕ чіпає незбережені зміни у полях налаштувань.
+function refresh(syncForm){
+ if(!S)return;
+ populateSelectors();
+ populateCats();
+ renderAccounts();
+ renderHistory();
+ renderGoals();
+ renderPlans();
+ renderDebts();
+ renderCatManager();
+ updateOverview();
+ updateBudget();
+ updateCharts();
+ updateCompare();
+ loadExtraSettings();
+ if(syncForm)loadSettingsToForm();
+}
+
+/* =========================================================
+   INIT
+========================================================= */
+window.addEventListener("DOMContentLoaded",()=>{
+ loadState();
+ applyTheme();
+ setupPWA();
+ const e=document.getElementById("expenseDate"),i=document.getElementById("incomeDate");
+ if(e&&!e.value)e.value=today();
+ if(i&&!i.value)i.value=today();
+ populateCats();
+ setupAutoSync();
+});
+</script>
+</body>
+</html>
