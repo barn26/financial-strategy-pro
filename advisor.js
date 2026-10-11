@@ -245,13 +245,13 @@ function bio(){
    alert("Готово! На екрані входу з'явилась кнопка «Увійти за відбитком».");
   }catch(e){alert("Не вдалося увімкнути відбиток. Перевірте, що на пристрої налаштовано відбиток пальця, а застосунок відкрито за https.");}
  }
- async function loginBio(){
+ async function loginBio(silent){
   try{
    await navigator.credentials.get({publicKey:{challenge:rnd(32),allowCredentials:[{type:"public-key",id:s2b(localStorage.getItem(KEY)),transports:["internal"]}],userVerification:"required",timeout:60000}});
    G("loginPassword").value=S.password;
    login();
    G("loginPassword").value="";
-  }catch(e){alert("Відбиток не підтверджено. Введіть пароль або PIN.");}
+  }catch(e){if(silent!==true)alert("Відбиток не підтверджено. Введіть пароль або PIN.");}
  }
  function disable(){if(!confirm("Вимкнути вхід за відбитком?"))return;try{localStorage.removeItem(KEY);}catch(e){}ui();}
  var lbtn=document.querySelector("#login .loginBox button.btn.primary");
@@ -260,6 +260,8 @@ function bio(){
  if(ps)ps.insertAdjacentHTML("afterend",'<div class="field"><div id="bioStatus" class="small muted" style="margin-bottom:8px"></div><div class="row"><button class="btn green" onclick="advBioEnable()">🖐 Увімкнути вхід за відбитком</button><button class="btn red" onclick="advBioDisable()">Вимкнути</button></div><div class="small muted" style="margin-top:6px">Діє лише на цьому пристрої. Як і PIN, захищає від випадкового перегляду, але не шифрує дані.</div></div>');
  window.advBioEnable=enable;window.advBioLogin=loginBio;window.advBioDisable=disable;
  ui();
+ /* автоматично пропонувати відбиток під час запуску застосунку */
+ if(has())setTimeout(function(){var l=G("login");if(l&&l.style.display!=="none")loginBio(true);},600);
 }
 
 build();
