@@ -164,7 +164,7 @@ function render(){
  var h=G("homeAdvice");
  if(h){
   var c=h.closest(".card"),el=G("advHome");
-  if(c&&!el){el=document.createElement("div");el.id="advHome";el.className="card";el.style.marginTop="14px";c.parentNode.insertBefore(el,c);}
+  if(c&&!el){el=document.createElement("div");el.id="advHome";el.className="card";el.style.marginBottom="14px";c.parentNode.insertBefore(el,c);}
   if(el)el.innerHTML='<div class="head"><h3 style="margin:0">🧭 Радник</h3><button class="btn smallBtn" onclick="go(\'advisor\')">Відкрити →</button></div>'+
    '<div class="statLine"><span>❄️ Заморожено</span><b class="cyan">'+money(fr)+'</b></div><div class="statLine"><span>Доступно</span><b class="green">'+money(av)+'</b></div>'+
    '<div style="margin-top:10px">'+(function(t){return adv(t[0],t[1]);})(tips()[0])+"</div>";
@@ -218,7 +218,7 @@ window.calculateSpend=function(){ /* заморожені кошти не вхо
  window.totalBalance=function(){return _tb()-f;};
  try{return _cs.apply(this,arguments);}finally{window.totalBalance=_tb;}
 };
-window.refresh=function(){var r=_rf.apply(this,arguments);try{render();}catch(e){}return r;};
+window.refresh=function(){var r=_rf.apply(this,arguments);try{render();}catch(e){}try{calRender();}catch(e){}return r;};
 function onIncome(n){if(S.transactions.length>n){var t=S.transactions[S.transactions.length-1];if(t&&t.type==="income")setTimeout(function(){modal(t);},60);}}
 window.saveTransaction=async function(type){var n=S.transactions.length;var r=await _st.apply(this,arguments);if(type==="income")onIncome(n);return r;};
 window.saveQuick=function(type){var n=S.transactions.length;var r=_sq.apply(this,arguments);if(type==="income")onIncome(n);return r;};
@@ -385,7 +385,109 @@ function chatBuild(){
 }
 window.advAsk=ask;
 
+/* ---------- «Головна»: ліміт завжди видно, решта згортається ---------- */
+function grp(id,title,sub,nodes){
+ var w=document.createElement("div");w.id=id;w.style.marginTop="14px";
+ w.innerHTML='<div class="card sectionToggle" onclick="toggleSection(\''+id+'\')"><div class="head" style="margin-bottom:0"><div><h2 style="margin:0">'+title+'</h2><div class="muted small">'+sub+'</div></div><span class="badge arrowBadge" id="'+id+'-arrow">▶</span></div></div><div id="'+id+'-body" class="sectionBody collapsed"></div>';
+ var body=w.querySelector(".sectionBody");
+ nodes.forEach(function(n){if(n){n.style.marginTop="0";body.appendChild(n);}});
+ return w;
+}
+function homeLayout(){
+ var home=G("home");if(!home||G("hFin"))return;
+ var kpi=home.querySelector(":scope > .grid.grid4"),widget=home.querySelector(".dailyWidget");
+ var quick=widget&&widget.querySelector(".quick"),dg=widget&&widget.querySelector(".dailyGrid");
+ var pr=G("periodProgress"),prw=pr&&pr.parentNode&&pr.parentNode.parentNode;
+ var advC=G("homeAdvice")&&G("homeAdvice").closest(".card");
+ var st=home.querySelector(":scope > .grid.grid2");
+ if(!kpi||!widget||!advC||!st||!quick||!dg||!prw)return;
+ var g1=grp("hFin","💼 Фінансовий радник","Баланс, доходи, витрати, ліміт і прогрес періоду",[kpi,quick,dg,prw]);
+ var g2=grp("hAdv","🧭 Радник і поради","Підказки радника та головні поради",[advC]);
+ var g3=grp("hState","🧠 Фінансовий стан та 50/30/20","Фінансовий бал і розподіл бюджету",[st]);
+ [quick,dg,prw].forEach(function(n){n.style.marginTop="14px";});
+ widget.style.marginTop="0";
+ home.appendChild(g1);home.appendChild(g2);home.appendChild(g3);
+ home.insertBefore(widget,home.firstChild);
+}
+
+/* ---------- календар доходів і витрат ---------- */
+var MON=["Січень","Лютий","Березень","Квітень","Травень","Червень","Липень","Серпень","Вересень","Жовтень","Листопад","Грудень"];
+var calY=0,calM=0,calSel="";
+function pad2(n){return String(n).padStart(2,"0");}
+function shortMoney(n){
+ if(S.settings.hideAmounts)return"••";
+ n=Math.round(n);
+ if(n>=10000)return Math.round(n/1000)+"к";
+ if(n>=1000)return(n/1000).toFixed(1).replace(".",",")+"к";
+ return String(n);
+}
+function calBuild(){
+ if(G("calendar")||!G("history"))return;
+ var st=document.createElement("style");
+ st.textContent=".calGrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.calDow{text-align:center;font-size:11px;color:var(--muted);padding:4px 0}.calDay{min-height:56px;border:1px solid var(--line);border-radius:9px;padding:3px 4px;font-size:10px;line-height:1.35;cursor:pointer;background:rgba(7,17,31,.3);overflow:hidden}.calDay.off{border:0;background:none;cursor:default}.calDay.today{border-color:var(--c)}.calDay.over{border-color:var(--r)}.calDay.sel{box-shadow:0 0 0 2px var(--b)}.calN{font-weight:800;font-size:11px;color:var(--muted)}.calI{color:var(--g);font-weight:700}.calE{color:var(--r);font-weight:700}";
+ document.head.appendChild(st);
+ var t=today();calY=+t.slice(0,4);calM=+t.slice(5,7)-1;calSel=t;
+ var sec=document.createElement("section");sec.id="calendar";
+ sec.innerHTML='<div class="card sectionToggle" onclick="toggleSection(\'calendar\')"><div class="head" style="margin-bottom:0"><div><h2 style="margin:0">📅 Календар</h2><div class="muted small">Доходи й витрати по днях</div></div><span class="badge arrowBadge" id="calendar-arrow">▶</span></div></div>'+
+  '<div id="calendar-body" class="sectionBody collapsed"><div class="card"><div id="calBox"></div></div></div>';
+ G("history").insertAdjacentElement("afterend",sec);
+ var nav=document.querySelector("nav"),hb=nav&&nav.querySelector('button[onclick="go(\'history\')"]');
+ var b=document.createElement("button");b.textContent="📅 Календар";b.setAttribute("onclick","go('calendar')");
+ if(hb)hb.insertAdjacentElement("afterend",b);else if(nav)nav.appendChild(b);
+}
+function calRender(){
+ var el=G("calBox");
+ if(!el||typeof S==="undefined"||!S)return;
+ var key=calY+"-"+pad2(calM+1);
+ var dim=new Date(calY,calM+1,0).getDate(),off=(new Date(calY,calM,1).getDay()+6)%7;
+ var agg={},ti=0,te=0,maxE=0;
+ S.transactions.forEach(function(t){
+  if((t.type!=="income"&&t.type!=="expense")||String(t.date).slice(0,7)!==key)return;
+  var o=agg[t.date]||(agg[t.date]={i:0,e:0});
+  if(t.type==="income"){o.i+=amt(t);ti+=amt(t);}else{o.e+=amt(t);te+=amt(t);}
+ });
+ Object.keys(agg).forEach(function(k){if(agg[k].e>maxE)maxE=agg[k].e;});
+ var lim=0;try{lim=calculateSpend().daily;}catch(e){}
+ var tdy=today(),h="";
+ ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"].forEach(function(d){h+='<div class="calDow">'+d+"</div>";});
+ for(var i=0;i<off;i++)h+='<div class="calDay off"></div>';
+ for(var d=1;d<=dim;d++){
+  var ds=key+"-"+pad2(d),o=agg[ds],cls="calDay",bg="";
+  if(ds===tdy)cls+=" today";
+  if(ds===calSel)cls+=" sel";
+  if(o&&o.e>0){
+   bg="background:rgba(255,100,124,"+(0.08+0.32*o.e/maxE).toFixed(2)+");";
+   if(lim>0&&o.e>lim)cls+=" over";
+  }else if(o&&o.i>0)bg="background:rgba(54,224,154,.14);";
+  h+='<div class="'+cls+'" style="'+bg+'" onclick="advCalSel(\''+ds+'\')"><div class="calN">'+d+"</div>"+
+   (o&&o.i?'<div class="calI">+'+shortMoney(o.i)+"</div>":"")+(o&&o.e?'<div class="calE">−'+shortMoney(o.e)+"</div>":"")+"</div>";
+ }
+ var det="";
+ if(calSel&&calSel.slice(0,7)===key){
+  var ops=S.transactions.filter(function(t){return t.date===calSel&&(t.type==="income"||t.type==="expense");});
+  det='<h3 style="margin:16px 0 10px">📋 '+fd(calSel)+"</h3>"+(ops.length?ops.map(function(t){
+   var inc=t.type==="income",ac=account(t.accountId);
+   return '<div class="item"><div class="row" style="justify-content:space-between"><div><div class="itemTitle">'+(inc?"➕":"➖")+" "+esc(t.category||"Інше")+'</div><div class="small muted">'+esc(ac?ac.name:"")+(t.memo?" • "+esc(t.memo):"")+'</div></div><div style="text-align:right"><b class="'+(inc?"green":"red")+'">'+(inc?"+":"−")+money(amt(t))+'</b><div style="margin-top:6px"><button class="btn smallBtn" onclick="editTx(\''+t.id+'\')">✏️</button></div></div></div></div>';
+  }).join(""):'<div class="empty">У цей день операцій немає</div>');
+ }else det='<div class="small muted" style="margin-top:12px">Торкніться дня, щоб побачити операції.</div>';
+ var kp=function(l,v,c){return '<div class="kpi" style="padding:10px"><div class="label" style="margin-bottom:4px">'+l+'</div><div class="value '+c+'" style="font-size:15px">'+money(v)+"</div></div>";};
+ el.innerHTML=
+  '<div class="head"><button class="btn smallBtn" onclick="advCalMove(-1)">◀</button><h3 style="margin:0">'+MON[calM]+" "+calY+'</h3><button class="btn smallBtn" onclick="advCalMove(1)">▶</button></div>'+
+  '<div class="row" style="justify-content:center;margin-bottom:12px"><button class="btn cyan smallBtn" onclick="advCalMove(0)">Сьогодні</button></div>'+
+  '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">'+kp("ДОХОДИ",ti,"green")+kp("ВИТРАТИ",te,"red")+kp("РЕЗУЛЬТАТ",ti-te,ti-te>=0?"green":"red")+"</div>"+
+  '<div class="calGrid">'+h+"</div>"+
+  '<div class="small muted" style="margin-top:10px">🟢 дохід • 🔴 витрата (темніше = більша сума) • червона рамка — понад поточний денний ліміт • блакитна — сьогодні</div>'+det;
+}
+window.advCalSel=function(ds){calSel=ds;calRender();};
+window.advCalMove=function(n){
+ if(n===0){var t=today();calY=+t.slice(0,4);calM=+t.slice(5,7)-1;calSel=t;}
+ else{calM+=n;if(calM<0){calM=11;calY--;}if(calM>11){calM=0;calY++;}calSel="";}
+ calRender();
+};
+
 build();
+try{homeLayout();}catch(e){}
+try{calBuild();}catch(e){}
 try{chatBuild();}catch(e){}
 try{bio();}catch(e){}
 })();
