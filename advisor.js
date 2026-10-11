@@ -224,5 +224,44 @@ window.saveTransaction=async function(type){var n=S.transactions.length;var r=aw
 window.saveQuick=function(type){var n=S.transactions.length;var r=_sq.apply(this,arguments);if(type==="income")onIncome(n);return r;};
 window.advDoFreeze=doFreeze;window.advRelease=release;window.advSavePct=savePct;window.advManual=function(){modal(null);};
 
+/* ---------- вхід за відбитком пальця (WebAuthn) ---------- */
+function bio(){
+ var KEY="fin26_bio_cred";
+ if(!window.PublicKeyCredential||!navigator.credentials)return;
+ var exists=Array.prototype.some.call(document.querySelectorAll("button,label,h2,h3,.small,.muted"),function(e){return /відбит/i.test(e.textContent);});
+ if(exists)return; /* у цій версії застосунку вхід за відбитком уже є */
+ function b2s(b){var a=new Uint8Array(b),s="";for(var i=0;i<a.length;i++)s+=String.fromCharCode(a[i]);return btoa(s);}
+ function s2b(s){var t=atob(s),a=new Uint8Array(t.length);for(var i=0;i<t.length;i++)a[i]=t.charCodeAt(i);return a;}
+ function rnd(n){return crypto.getRandomValues(new Uint8Array(n));}
+ function has(){try{return !!localStorage.getItem(KEY);}catch(e){return false;}}
+ function ui(){
+  var lb=G("bioLoginBtn");if(lb)lb.style.display=has()?"":"none";
+  var st=G("bioStatus");if(st)st.textContent=has()?"✅ Вхід за відбитком увімкнено на цьому пристрої.":"Вхід за відбитком вимкнено.";
+ }
+ async function enable(){
+  try{
+   var c=await navigator.credentials.create({publicKey:{challenge:rnd(32),rp:{name:"Financial Strategy"},user:{id:rnd(16),name:"user",displayName:"Користувач"},pubKeyCredParams:[{type:"public-key",alg:-7},{type:"public-key",alg:-257}],authenticatorSelection:{authenticatorAttachment:"platform",userVerification:"required"},timeout:60000}});
+   localStorage.setItem(KEY,b2s(c.rawId));ui();
+   alert("Готово! На екрані входу з'явилась кнопка «Увійти за відбитком».");
+  }catch(e){alert("Не вдалося увімкнути відбиток. Перевірте, що на пристрої налаштовано відбиток пальця, а застосунок відкрито за https.");}
+ }
+ async function loginBio(){
+  try{
+   await navigator.credentials.get({publicKey:{challenge:rnd(32),allowCredentials:[{type:"public-key",id:s2b(localStorage.getItem(KEY)),transports:["internal"]}],userVerification:"required",timeout:60000}});
+   G("loginPassword").value=S.password;
+   login();
+   G("loginPassword").value="";
+  }catch(e){alert("Відбиток не підтверджено. Введіть пароль або PIN.");}
+ }
+ function disable(){if(!confirm("Вимкнути вхід за відбитком?"))return;try{localStorage.removeItem(KEY);}catch(e){}ui();}
+ var lbtn=document.querySelector("#login .loginBox button.btn.primary");
+ if(lbtn)lbtn.insertAdjacentHTML("afterend",'<button id="bioLoginBtn" class="btn green" style="width:100%;margin-top:10px;display:none" onclick="advBioLogin()">🖐 Увійти за відбитком</button>');
+ var ps=G("pinStatus");
+ if(ps)ps.insertAdjacentHTML("afterend",'<div class="field"><div id="bioStatus" class="small muted" style="margin-bottom:8px"></div><div class="row"><button class="btn green" onclick="advBioEnable()">🖐 Увімкнути вхід за відбитком</button><button class="btn red" onclick="advBioDisable()">Вимкнути</button></div><div class="small muted" style="margin-top:6px">Діє лише на цьому пристрої. Як і PIN, захищає від випадкового перегляду, але не шифрує дані.</div></div>');
+ window.advBioEnable=enable;window.advBioLogin=loginBio;window.advBioDisable=disable;
+ ui();
+}
+
 build();
+try{bio();}catch(e){}
 })();
