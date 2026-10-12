@@ -513,4 +513,98 @@ try{homeLayout();}catch(e){}try{renameAI();}catch(e){}
 try{calBuild();}catch(e){}
 try{chatBuild();}catch(e){}
 try{bio();}catch(e){}
+/* ---------- закріплені шапки розділів: багаторівнева навігація ---------- */
+(function stickySectionHeaders(){
+  var STYLE_ID='fin26-sticky-section-style';
+  if(document.getElementById(STYLE_ID)) return;
+  var style=document.createElement('style');
+  style.id=STYLE_ID;
+  style.textContent=
+    'nav.fin26StickyNav{position:sticky!important;top:0!important;z-index:1200!important;}'+
+    '.sectionToggle.fin26StickyHeader{position:sticky;z-index:1100;isolation:isolate;'+
+      'background:var(--panel, #0b1727);box-shadow:0 5px 12px rgba(0,0,0,.22);'+
+      'touch-action:pan-y;cursor:pointer;transition:box-shadow .18s ease,opacity .18s ease;}'+
+    '.sectionToggle.fin26StickyHeader:after{content:"";position:absolute;left:8px;right:8px;bottom:-3px;height:5px;'+
+      'border-radius:8px;background:linear-gradient(90deg,transparent,var(--c, #36d9ff),transparent);opacity:.22;pointer-events:none;}'+
+    '.sectionToggle.fin26StickyHeader.fin26Unpinned{position:relative!important;top:auto!important;z-index:auto!important;box-shadow:none;}'+
+    '.sectionToggle.fin26StickyHeader.fin26LongPressing{box-shadow:0 0 0 2px var(--c, #36d9ff),0 0 18px rgba(54,217,255,.28);}'+
+    '.sectionBody:not(.collapsed){overflow:visible!important;}'+
+    '.sectionBody:not(.collapsed)>.card{overflow:visible;}';
+  document.head.appendChild(style);
+
+  var nav=document.querySelector('nav');
+  if(nav) nav.classList.add('fin26StickyNav');
+  var pressTimer=null,pressTarget=null,longFired=false,startX=0,startY=0;
+  var PRESS_MS=620;
+
+  function getDepth(el){
+    var depth=0,p=el.parentElement;
+    while(p){if(p.classList&&p.classList.contains('sectionBody'))depth++;p=p.parentElement;}
+    return depth;
+  }
+  function update(){
+    var n=document.querySelector('nav');
+    var navH=n?Math.ceil(n.getBoundingClientRect().height):0;
+    document.querySelectorAll('.sectionToggle').forEach(function(el){
+      if(!el.querySelector('.arrowBadge')) return;
+      el.classList.add('fin26StickyHeader');
+      var depth=getDepth(el);
+      /* Кожен наступний рівень трохи накладається на попередній, економлячи висоту. */
+      var top=navH+depth*46;
+      el.style.top=top+'px';
+      el.style.zIndex=String(1100+depth);
+      if(!el.hasAttribute('data-fin26-pinned'))el.setAttribute('data-fin26-pinned','1');
+      el.classList.toggle('fin26Unpinned',el.getAttribute('data-fin26-pinned')==='0');
+    });
+  }
+  function cancelPress(){
+    if(pressTimer)clearTimeout(pressTimer);
+    pressTimer=null;
+    if(pressTarget)pressTarget.classList.remove('fin26LongPressing');
+    pressTarget=null;
+  }
+  function togglePin(el){
+    var pin=el.getAttribute('data-fin26-pinned')!=='0';
+    el.setAttribute('data-fin26-pinned',pin?'0':'1');
+    el.classList.toggle('fin26Unpinned',pin);
+    var h=el.querySelector('h2');
+    var title=h?h.textContent.trim():'Розділ';
+    el.setAttribute('aria-label',title+(pin?' — закріплення вимкнено':' — закріплено'));
+    var note=el.querySelector('.fin26PinHint');
+    if(!note){note=document.createElement('span');note.className='fin26PinHint';note.style.cssText='font-size:10px;opacity:.72;margin-left:6px;white-space:nowrap;';var head=el.querySelector('.head');if(head)head.appendChild(note);}
+    if(note){note.textContent=pin?'↕ Вільно':'📌 Закріплено';setTimeout(function(){if(note&&note.parentNode)note.textContent='';},1400);}
+  }
+  document.addEventListener('pointerdown',function(e){
+    var el=e.target.closest&&e.target.closest('.sectionToggle.fin26StickyHeader');
+    if(!el||e.button!==undefined&&e.button!==0)return;
+    cancelPress();pressTarget=el;longFired=false;startX=e.clientX||0;startY=e.clientY||0;
+    pressTarget.classList.add('fin26LongPressing');
+    pressTimer=setTimeout(function(){
+      if(!pressTarget)return;
+      longFired=true;togglePin(pressTarget);pressTarget.classList.remove('fin26LongPressing');
+      /* Позначка прибирає звичайний клік, щоб довге натискання не згортало розділ. */
+      pressTarget.setAttribute('data-fin26-suppress-click','1');
+      setTimeout(function(){if(pressTarget)pressTarget.removeAttribute('data-fin26-suppress-click');},450);
+    },PRESS_MS);
+  },{passive:true});
+  document.addEventListener('pointermove',function(e){
+    if(!pressTarget)return;
+    if(Math.abs((e.clientX||0)-startX)>12||Math.abs((e.clientY||0)-startY)>12)cancelPress();
+  },{passive:true});
+  ['pointerup','pointercancel','pointerleave'].forEach(function(type){document.addEventListener(type,cancelPress,{passive:true});});
+  document.addEventListener('click',function(e){
+    var el=e.target.closest&&e.target.closest('.sectionToggle.fin26StickyHeader');
+    if(el&&el.getAttribute('data-fin26-suppress-click')==='1'){
+      e.preventDefault();e.stopPropagation();el.removeAttribute('data-fin26-suppress-click');
+    }
+  },true);
+  update();
+  if(window.MutationObserver){
+    var mo=new MutationObserver(function(){update();});
+    mo.observe(document.body,{childList:true,subtree:true});
+  }
+  window.addEventListener('resize',update,{passive:true});
+  window.addEventListener('orientationchange',function(){setTimeout(update,180);},{passive:true});
+})();
+
 })();
