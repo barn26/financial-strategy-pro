@@ -401,7 +401,7 @@ function homeLayout(){
  var advC=G("homeAdvice")&&G("homeAdvice").closest(".card");
  var st=home.querySelector(":scope > .grid.grid2");
  if(!kpi||!widget||!advC||!st||!quick||!dg||!prw)return;
- var g1=grp("hFin","💼 Фінансовий радник","Баланс, доходи, витрати, ліміт і прогрес періоду",[kpi,quick,dg,prw]);
+ var g1=grp("hFin","💼 Огляд періоду","Баланс, доходи, витрати, ліміт і прогрес періоду",[kpi,quick,dg,prw]);
  var g2=grp("hAdv","🧭 Радник і поради","Підказки радника та головні поради",[advC]);
  var g3=grp("hState","🧠 Фінансовий стан та 50/30/20","Фінансовий бал і розподіл бюджету",[st]);
  [quick,dg,prw].forEach(function(n){n.style.marginTop="14px";});
