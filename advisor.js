@@ -480,9 +480,13 @@ function homeLayout(){
   grp("advGPlan","🪜 План дій крок за кроком","Етапи та заморожені кошти",[plan]),
   grp("advGInv","📈 Куди вкласти: перевірені інструменти (Україна)","Депозит, ОВДП та офіційні джерела",[P.invest]),
   recCard?grp("advGRec","💡 Поради та рекомендації","Поради за вашою ситуацією",[recCard]):null,
-  grp("advGSet","⚙️ Налаштування радника","Відсоток відкладання",[P.settings]),
-  grp("advGTransfer","↔️ Переказ між рахунками","Переміщення коштів без зміни доходів і витрат",[P.transfer])
+  grp("advGSet","⚙️ Налаштування радника","Відсоток відкладання",[P.settings])
  ].forEach(function(g){if(g)body.appendChild(g);});
+ /* Переказ — підкатегорія розділу «Рахунки», а не розділу радника. */
+ var accountsBody=G("accounts-body");
+ if(accountsBody && P.transfer && !G("advGTransfer")){
+  accountsBody.appendChild(grp("advGTransfer","↔️ Переказ між рахунками","Переміщення коштів між рахунками без зміни доходів і витрат",[P.transfer]));
+ }
  home.appendChild(g1);home.appendChild(g2);home.appendChild(g3);
  home.insertBefore(widget,home.firstChild);
 }
