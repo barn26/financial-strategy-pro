@@ -588,6 +588,8 @@ try{bio();}catch(e){}
   var style=document.createElement('style');
   style.id=STYLE_ID;
   style.textContent=
+    'header{z-index:1300!important;}'+
+    'section{scroll-margin-top:calc(var(--fin-hdr,90px) + 8px)!important;}'+
     'nav.fin26StickyNav{position:sticky!important;top:0!important;z-index:1200!important;}'+
     '.sectionToggle.fin26StickyHeader{position:sticky;z-index:1100;isolation:isolate;'+
       'background:var(--panel, #0b1727);box-shadow:0 5px 12px rgba(0,0,0,.22);'+
@@ -611,8 +613,9 @@ try{bio();}catch(e){}
     return depth;
   }
   function update(){
-    var n=document.querySelector('nav');
+    var n=document.querySelector('header')||document.querySelector('nav');
     var navH=n?Math.ceil(n.getBoundingClientRect().height):0;
+    document.documentElement.style.setProperty('--fin-hdr',navH+'px');
     document.querySelectorAll('.sectionToggle').forEach(function(el){
       if(!el.querySelector('.arrowBadge')) return;
       el.classList.add('fin26StickyHeader');
@@ -672,7 +675,742 @@ try{bio();}catch(e){}
     mo.observe(document.body,{childList:true,subtree:true});
   }
   window.addEventListener('resize',update,{passive:true});
+  if(window.ResizeObserver){var hdEl=document.querySelector('header');if(hdEl)try{new ResizeObserver(function(){update();}).observe(hdEl);}catch(e){}}
   window.addEventListener('orientationchange',function(){setTimeout(update,180);},{passive:true});
 })();
 
+})();
+
+/* =========================================================
+   🚦 ЛІМІТИ КАТЕГОРІЙ для Financial Strategy 2026 PRO
+   Вбудовано в advisor.js (окремий limits.js не потрібен).
+   Працює з будь-якою версією index.html. Дані — у S.limits
+   (синхронізуються через JSONBin разом з рештою даних).
+========================================================= */
+(function(){
+"use strict";
+if(window.__finLimits)return; /* захист від подвійного підключення */
+window.__finLimits=1;
+var G=function(id){return document.getElementById(id);};
+var built=false,toastTimer=null;
+
+/* ---------- дані ---------- */
+function lims(){
+ if(!S.limits||typeof S.limits!=="object"||Array.isArray(S.limits))S.limits={};
+ return S.limits;
+}
+function warnPct(){var v=Number(S.settings.limWarn);return(v>=10&&v<=99)?v:80;}
+function pad(n){return String(n).padStart(2,"0");}
+function ymd(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
+function A(t){return Math.abs(Number(t.amount||t.amt||0));}
+
+/* Період ліміту: фінансовий період із налаштувань, а якщо його немає — поточний календарний місяць */
+function range(){
+ var s=S.settings.periodStart,e=S.settings.periodEnd;
+ if(s&&e&&s<=e)return{s:s,e:e,custom:true};
+ var n=new Date();
+ return{s:ymd(new Date(n.getFullYear(),n.getMonth(),1)),e:ymd(new Date(n.getFullYear(),n.getMonth()+1,0)),custom:false};
+}
+function spentMap(r){
+ var m={};
+ S.transactions.forEach(function(t){
+  if(t.type!=="expense"||!t.date||t.date<r.s||t.date>r.e)return;
+  var c=t.category||"Інше";
+  m[c]=(m[c]||0)+A(t);
+ });
+ return m;
+}
+function level(spent,limit){
+ if(!(limit>0))return 0;
+ var p=spent/limit*100;
+ return p>=100?2:(p>=warnPct()?1:0);
+}
+function colorOf(l){return l===2?"var(--r)":(l===1?"var(--y)":"var(--g)");}
+function rnd2(x){return Math.round(x*100)/100;}
+
+/* ---------- сповіщення ---------- */
+function toast(msg,lv){
+ var t=G("limToast");
+ if(!t){
+  t=document.createElement("div");t.id="limToast";
+  t.style.cssText="position:fixed;left:12px;right:12px;bottom:18px;z-index:99999;padding:13px 15px;border-radius:12px;font-weight:700;font-size:14px;line-height:1.4;box-shadow:0 8px 28px rgba(0,0,0,.5);display:none;cursor:pointer;color:#fff;max-width:520px;margin:0 auto";
+  t.onclick=function(){t.style.display="none";};
+  document.body.appendChild(t);
+ }
+ t.style.background=lv===2?"#c0344d":"#b58105";
+ t.textContent=msg;t.style.display="block";
+ clearTimeout(toastTimer);
+ toastTimer=setTimeout(function(){t.style.display="none";},7000);
+}
+
+/* ---------- побудова розділу ---------- */
+function ensure(){
+ if(built||!S)return;
+ var anchor=G("budget"),before=null;
+ if(!anchor){before=G("settings");if(!before)return;}
+ if(G("limits")){built=true;return;}
+ var sec=document.createElement("section");sec.id="limits";
+ sec.innerHTML=
+  '<div class="card sectionToggle" onclick="toggleSection(\'limits\')"><div class="head" style="margin-bottom:0"><div><h2 style="margin:0">🚦 Ліміти категорій</h2><div class="muted small" id="limSub">Контроль витрат по категоріях</div></div><span class="badge arrowBadge" id="limits-arrow">▶</span></div></div>'+
+  '<div id="limits-body" class="sectionBody collapsed">'+
+   '<div class="card"><div id="limSummary"></div></div>'+
+   '<div id="limList"></div>'+
+   '<div class="card"><h2 style="margin-top:0">➕ Встановити ліміт</h2>'+
+    '<div class="grid grid2">'+
+     '<div class="field"><label>Категорія</label><select id="limCat"></select></div>'+
+     '<div class="field"><label>Ліміт на період (<span id="limCur"></span>)</label><input id="limAmt" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Наприклад 5000"></div>'+
+    '</div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+     '<button class="btn green" onclick="limSave()">💾 Зберегти ліміт</button>'+
+     '<button class="btn cyan" onclick="limSuggest()">✨ Запропонувати за моїми витратами</button>'+
+    '</div>'+
+    '<div class="field" style="margin-top:14px;margin-bottom:6px"><label>Попереджати, коли використано (%)</label><input id="limWarn" type="number" min="10" max="99" step="1" inputmode="numeric" onchange="limWarnSave()"></div>'+
+    '<div class="muted small">Ліміт діє на поточний фінансовий період, а якщо його не задано — на календарний місяць. Попередження з’являється одразу після запису витрати.</div>'+
+   '</div>'+
+  '</div>';
+ if(anchor)anchor.insertAdjacentElement("afterend",sec);else before.parentNode.insertBefore(sec,before);
+ var nav=document.querySelector("nav");
+ if(nav&&!nav.querySelector('button[onclick="go(\'limits\')"]')){
+  var b=document.createElement("button");b.textContent="🚦 Ліміти";b.setAttribute("onclick","go('limits')");
+  var ref=nav.querySelector('button[onclick="go(\'goals\')"]');
+  if(ref)ref.insertAdjacentElement("afterend",b);else nav.appendChild(b);
+ }
+ built=true;
+}
+
+function fillSelect(){
+ var sel=G("limCat");if(!sel)return;
+ var list;try{list=cats("expense");}catch(e){list=[];}
+ var key=list.join("|");
+ if(sel.dataset.k===key)return;
+ var cur=sel.value;
+ sel.innerHTML=list.map(function(c){return'<option value="'+esc(c)+'">'+esc(c)+'</option>';}).join("");
+ if(cur&&list.indexOf(cur)>=0)sel.value=cur;
+ sel.dataset.k=key;
+}
+
+/* ---------- відображення ---------- */
+function render(){
+ if(!S||!built)return;
+ fillSelect();
+ var cs=G("limCur");if(cs)cs.textContent=cur();
+ var w=G("limWarn");if(w&&document.activeElement!==w)w.value=warnPct();
+
+ var r=range(),sp=spentMap(r),L=lims();
+ var names=Object.keys(L).filter(function(c){return Number(L[c])>0;});
+ var t0=today();
+ var total=Math.max(1,days(r.s,r.e));
+ var el=t0<r.s?0:days(r.s,t0>r.e?r.e:t0);
+ var left=(t0>r.e)?0:Math.max(0,days(t0<r.s?r.s:t0,r.e));
+
+ var rows=names.map(function(c){
+  var lim=Number(L[c]),s=sp[c]||0;
+  return{c:c,lim:lim,s:s,p:s/lim*100,lv:level(s,lim)};
+ }).sort(function(a,b){return b.p-a.p;});
+
+ var over=rows.filter(function(x){return x.lv===2;}).length;
+ var near=rows.filter(function(x){return x.lv===1;}).length;
+ var sub=G("limSub");
+ if(sub)sub.textContent=rows.length?("Перевищено: "+over+" · Близько до ліміту: "+near+" · Усього: "+rows.length):"Контроль витрат по категоріях";
+
+ var sum=G("limSummary");
+ if(sum){
+  var head='<div class="muted small" style="margin-bottom:6px">Період: '+fd(r.s)+' — '+fd(r.e)+(r.custom?'':' (календарний місяць)')+(left>0?' · залишилось днів: '+left:'')+'</div>';
+  if(!rows.length){
+   sum.innerHTML=head+'<div>Ліміти ще не встановлені. Оберіть категорію нижче й вкажіть суму — або натисніть «✨ Запропонувати за моїми витратами».</div>';
+  }else{
+   var tl=0,ts=0;rows.forEach(function(x){tl+=x.lim;ts+=x.s;});
+   var tp=tl>0?ts/tl*100:0;
+   sum.innerHTML=head+
+    '<div style="display:flex;justify-content:space-between;gap:8px;font-weight:800"><span>Разом по лімітах</span><span>'+money(ts)+' / '+money(tl)+'</span></div>'+
+    '<div class="progress" style="margin:8px 0"><div style="width:'+Math.min(100,tp)+'%;background:'+colorOf(level(ts,tl))+'"></div></div>'+
+    '<div class="small muted">'+(over?'🚨 Перевищено лімітів: '+over+'. ':'')+(near?'⚠️ Наближаються до ліміту: '+near+'. ':'')+(!over&&!near?'✅ Усе в межах лімітів.':'')+'</div>';
+  }
+ }
+
+ var list=G("limList");if(!list)return;
+ list.innerHTML=rows.map(function(x){
+  var rest=x.lim-x.s,enc=encodeURIComponent(x.c);
+  var line=rest>=0?('Залишилось: <b>'+money(rest)+'</b>'):('Перевищено на <b style="color:var(--r)">'+money(-rest)+'</b>');
+  var pace="";
+  if(x.lv<2&&el>0&&x.s>0){
+   var daily=x.s/el,proj=daily*total;
+   if(proj>x.lim){
+    var dl=Math.max(0,Math.floor((x.lim-x.s)/daily));
+    pace='<div class="small" style="margin-top:4px;color:var(--y)">⚠️ При такому темпі за період вийде ≈ '+money(proj)+' — ліміт закінчиться приблизно через '+dl+' дн.</div>';
+   }else{
+    pace='<div class="small muted" style="margin-top:4px">Прогноз до кінця періоду: ≈ '+money(proj)+'</div>';
+   }
+  }
+  var perDay="";
+  if(x.lv<2&&left>0&&rest>0)perDay='<div class="small muted" style="margin-top:2px">Щоб вкластись: ≈ '+money(rest/left)+' на день</div>';
+  return'<div class="card" style="margin-bottom:8px;padding:12px">'+
+   '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px">'+
+    '<div style="font-weight:800">'+(x.lv===2?'🚨 ':(x.lv===1?'⚠️ ':'✅ '))+esc(x.c)+'</div>'+
+    '<div style="white-space:nowrap">'+
+     '<button class="btn smallBtn" onclick="limEdit(decodeURIComponent(\''+enc+'\'))">✏️</button> '+
+     '<button class="btn red smallBtn" onclick="limDel(decodeURIComponent(\''+enc+'\'))">🗑</button>'+
+    '</div>'+
+   '</div>'+
+   '<div class="small" style="margin:6px 0 6px;display:flex;justify-content:space-between;gap:8px"><span>'+money(x.s)+' з '+money(x.lim)+'</span><span style="font-weight:800;color:'+colorOf(x.lv)+'">'+Math.round(x.p)+'%</span></div>'+
+   '<div class="progress"><div style="width:'+Math.min(100,x.p)+'%;background:'+colorOf(x.lv)+'"></div></div>'+
+   '<div class="small" style="margin-top:6px">'+line+'</div>'+pace+perDay+
+  '</div>';
+ }).join("");
+}
+
+/* ---------- дії ---------- */
+window.limSave=function(){
+ var c=G("limCat").value,v=Number(String(G("limAmt").value).replace(",","."));
+ if(!c){alert("Виберіть категорію");return;}
+ if(!v||v<=0){alert("Введіть суму ліміту більше нуля");return;}
+ lims()[c]=rnd2(v);
+ G("limAmt").value="";
+ markDirty();refresh();
+};
+window.limEdit=function(c){
+ var L=lims();if(!(c in L))return;
+ var v=prompt("Новий ліміт для «"+c+"» ("+cur()+"):",L[c]);
+ if(v===null)return;
+ v=Number(String(v).replace(",","."));
+ if(!v||v<=0){alert("Введіть суму більше нуля");return;}
+ L[c]=rnd2(v);markDirty();refresh();
+};
+window.limDel=function(c){
+ if(!confirm("Видалити ліміт для «"+c+"»?"))return;
+ delete lims()[c];markDirty();refresh();
+};
+window.limWarnSave=function(){
+ var v=Number(G("limWarn").value);
+ if(!v||v<10||v>99){alert("Вкажіть від 10 до 99 %");G("limWarn").value=warnPct();return;}
+ S.settings.limWarn=Math.round(v);markDirty();refresh();
+};
+window.limSuggest=function(){
+ var r=range(),len=Math.max(1,days(r.s,r.e));
+ var now=new Date(),t0=ymd(now);
+ var from=new Date(now.getFullYear(),now.getMonth(),now.getDate()-90),f0=ymd(from);
+ var first=null,sums={};
+ S.transactions.forEach(function(t){
+  if(t.type!=="expense"||!t.date||t.date<f0||t.date>t0)return;
+  if(first===null||t.date<first)first=t.date;
+  var c=t.category||"Інше";
+  if(c==="Погашення боргу")return;
+  sums[c]=(sums[c]||0)+A(t);
+ });
+ if(first===null){alert("Поки немає витрат за останні 90 днів, щоб запропонувати ліміти.");return;}
+ var span=Math.max(1,days(first,t0));
+ if(span<14&&!confirm("Даних лише за "+span+" дн. — пропозиція буде неточною. Продовжити?"))return;
+ var L=lims(),add=[];
+ Object.keys(sums).forEach(function(c){
+  if(Number(L[c])>0)return;
+  var x=sums[c]/span*len;
+  var v=x<200?Math.ceil(x/10)*10:Math.ceil(x/50)*50;
+  if(v>0)add.push([c,v]);
+ });
+ if(!add.length){alert("Для всіх категорій із витратами ліміти вже встановлені.");return;}
+ add.sort(function(a,b){return b[1]-a[1];});
+ var txt=add.map(function(a){return"• "+a[0]+": "+a[1]+" "+cur();}).join("\n");
+ if(!confirm("Запропоновані ліміти на період ("+len+" дн.) за середніми витратами:\n\n"+txt+"\n\nВстановити їх? Потім можна змінити кожен окремо."))return;
+ add.forEach(function(a){L[a[0]]=a[1];});
+ markDirty();refresh();
+};
+
+/* ---------- підключення до застосунку ---------- */
+var _rf=window.refresh,_st=window.saveTransaction,_sq=window.saveQuick;
+
+function snap(){var r=range();return{n:S.transactions.length,sp:spentMap(r)};}
+function afterSave(b){
+ try{
+  if(!S||S.transactions.length<=b.n)return;
+  var t=S.transactions[S.transactions.length-1];
+  if(!t||t.type!=="expense")return;
+  var c=t.category,lim=Number(lims()[c]);
+  if(!(lim>0))return;
+  var r=range();
+  if(!t.date||t.date<r.s||t.date>r.e)return;
+  var was=b.sp[c]||0,now=spentMap(r)[c]||0;
+  var l0=level(was,lim),l1=level(now,lim);
+  if(l1<=l0)return;
+  if(l1===2)toast("🚨 «"+c+"»: ліміт перевищено — "+money(now)+" із "+money(lim)+" (понад ліміт на "+money(now-lim)+")",2);
+  else toast("⚠️ «"+c+"»: використано "+Math.round(now/lim*100)+"% ліміту, залишилось "+money(lim-now),1);
+ }catch(e){}
+}
+
+window.__limSnap=snap;window.__limAfter=afterSave; /* для швидкого запису */
+if(typeof _rf==="function"){
+ window.refresh=function(){
+  var r=_rf.apply(this,arguments);
+  try{ensure();render();}catch(e){}
+  return r;
+ };
+}
+if(typeof _st==="function"){
+ window.saveTransaction=async function(type){
+  var b=null;try{if(S)b=snap();}catch(e){}
+  var r=await _st.apply(this,arguments);
+  if(b&&type==="expense")afterSave(b);
+  return r;
+ };
+}
+if(typeof _sq==="function"){
+ window.saveQuick=function(type){
+  var b=null;try{if(S)b=snap();}catch(e){}
+  var r=_sq.apply(this,arguments);
+  if(b&&type==="expense")afterSave(b);
+  return r;
+ };
+}
+
+/* Підстраховка: якщо refresh() ще не викликався до завершення завантаження */
+window.addEventListener("load",function(){
+ setTimeout(function(){try{ensure();render();}catch(e){}},500);
+});
+})();
+
+/* =========================================================
+   ⚡ ШВИДКИЙ ЗАПИС · 📊 ПІДСУМОК ТИЖНЯ · 🔍 ДУБЛІ ОПЕРАЦІЙ
+   Вбудовано в advisor.js (окремі файли не потрібні).
+   • «кава 85», «вчора таксі 140», «+5000 зарплата», «12.10 продукти 320»
+   • підсумок за тиждень + порівняння з попереднім
+   • попередження про схожу (дубльовану) операцію + пошук дублів в історії
+========================================================= */
+(function(){
+"use strict";
+if(window.__finQuick)return;
+window.__finQuick=1;
+var G=function(id){return document.getElementById(id);};
+function pad(n){return String(n).padStart(2,"0");}
+function ymd(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
+function A(t){return Math.abs(Number(t.amount||t.amt||0));}
+function rnd2(x){return Math.round(x*100)/100;}
+function addDays(d,n){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);}
+function mondayOf(d){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-((x.getDay()+6)%7));return x;}
+function cap(s){s=String(s||"");return s.charAt(0).toUpperCase()+s.slice(1);}
+function wordsOf(s){return String(s||"").toLowerCase().split(/[\s,.;:!?()]+/).filter(Boolean);}
+function stem(w){return w.slice(0,Math.max(3,Math.min(5,w.length-1)));}
+
+/* ---------- 1. РОЗБІР РЯДКА ---------- */
+function parse(raw){
+ var s=String(raw||"").trim().replace(/\s+/g," ");
+ if(!s)return null;
+ var type="expense";
+ if(s.charAt(0)==="+"){type="income";s=s.slice(1).trim();}
+ var tokens=s.split(" "),now=new Date(),date=ymd(now);
+ var numRe=/^(\d+(?:[.,]\d+)?)(к|k|тис|грн|₴)?$/i;
+ var dateIdx=-1,shift=null,dd=null;
+ tokens.forEach(function(tk,i){
+  var l=tk.toLowerCase();
+  if(l==="сьогодні"&&dateIdx<0){dateIdx=i;shift=0;}
+  else if(l==="вчора"&&dateIdx<0){dateIdx=i;shift=-1;}
+  else if(l==="позавчора"&&dateIdx<0){dateIdx=i;shift=-2;}
+ });
+ if(dateIdx<0){
+  tokens.forEach(function(tk,i){
+   if(dateIdx>=0)return;
+   var m=tk.match(/^(\d{1,2})[.\/](\d{1,2})(?:[.\/](\d{2,4}))?$/);
+   if(!m)return;
+   var d=+m[1],mo=+m[2];
+   if(d<1||d>31||mo<1||mo>12)return;
+   var others=tokens.filter(function(x,j){return j!==i&&numRe.test(x);});
+   if(!others.length)return;
+   dateIdx=i;dd={d:d,m:mo,y:m[3]?(+m[3]<100?2000+(+m[3]):+m[3]):null};
+  });
+ }
+ if(shift!==null)date=ymd(addDays(now,shift));
+ else if(dd){
+  var y=dd.y||now.getFullYear(),dt=new Date(y,dd.m-1,dd.d);
+  if(!dd.y&&dt>now)dt=new Date(y-1,dd.m-1,dd.d);
+  date=ymd(dt);
+ }
+ var rest=tokens.filter(function(x,i){return i!==dateIdx;});
+ var ai=-1;
+ rest.forEach(function(x,i){if(numRe.test(x))ai=i;});
+ if(ai<0)return{type:type,amount:0,date:date,memo:rest.join(" ")};
+ var m2=rest[ai].match(numRe),amount=parseFloat(m2[1].replace(",","."));
+ if(m2[2]&&/^(к|k|тис)$/i.test(m2[2]))amount*=1000;
+ var memo=rest.filter(function(x,i){return i!==ai&&!/^(грн|₴|uah|гривень|гривні)$/i.test(x);}).join(" ");
+ return{type:type,amount:rnd2(amount),date:date,memo:cap(memo)};
+}
+
+/* ---------- 2. КАТЕГОРІЯ: назва → історія → словник ---------- */
+var KW={
+ expense:[
+  ["Харчування",["харч","їж","продукт","магазин","супермаркет","сільпо","атб","варус","novus","новус","ашан","кава","кав","чай","обід","вечер","сніданок","хліб","молок","мяс","м'яс","овоч","фрукт","пекар","піц","бургер","макдон","kfc","шаурм","перекус","ресторан","кафе"]],
+  ["Інтернет",["інтернет","wifi","wi-fi","вайфай","провайдер"]],
+  ["Комуналка",["комун","світло","електр","газ","вода","водоканал","опален","тепло","квартплат","сміття"]],
+  ["Транспорт",["проїзд","маршрутк","метро","автобус","трамвай","тролейб","таксі","uber","bolt","бензин","паливо","пальне","заправк","парков","укрзалізниц","квиток","поїзд"]],
+  ["Одяг",["одяг","взутт","куртк","штан","футболк","кросівк","светр","джинс"]],
+  ["Техніка",["техніка","телефон","навушник","зарядк","ноутбук","кабель","powerbank"]],
+  ["Подарок",["подарун","подарок","квіт","букет"]],
+  ["Послуги",["стрижк","перукар","ремонт","пральн","хімчист","мобіл","зв'язок","звязок","послуг"]]
+ ],
+ income:[
+  ["Зарплата",["зарплат","зп","аванс","премі"]],
+  ["Соціальна УБД",["убд","соціал","виплат"]],
+  ["Борг повернули",["повернули","повернув","борг"]]
+ ]
+};
+function resolve(text,type){
+ var list=cats(type),words=wordsOf(text),i,j;
+ if(!words.length)return null;
+ /* а) слово збігається з назвою категорії */
+ for(i=0;i<list.length;i++){
+  var cl=list[i].toLowerCase();
+  if(cl==="інше"||cl==="погашення боргу")continue;
+  var cs=cl.slice(0,Math.max(4,cl.length-2));
+  for(j=0;j<words.length;j++){if(words[j]===cl||(words[j].length>=4&&words[j].indexOf(cs)===0))return{cat:list[i],how:"назва"};}
+ }
+ /* б) що ви раніше обирали для схожого коментаря */
+ var votes={},joined=words.join(" ");
+ S.transactions.forEach(function(t){
+  if(t.type!==type||!t.memo||!t.category)return;
+  var m=String(t.memo).toLowerCase(),mw=wordsOf(m);
+  words.forEach(function(w){
+   if(w.length<3)return;
+   if(mw.some(function(x){return x===w||(stem(x)===stem(w)&&Math.abs(x.length-w.length)<=3);}))votes[t.category]=(votes[t.category]||0)+1;
+  });
+  if(m.trim()===joined)votes[t.category]=(votes[t.category]||0)+3;
+ });
+ var best=null,bv=0;
+ Object.keys(votes).forEach(function(c){
+  if(list.indexOf(c)<0||c==="Погашення боргу")return;
+  var v=votes[c]-(c==="Інше"?0.5:0);
+  if(v>bv){bv=v;best=c;}
+ });
+ if(best)return{cat:best,how:"історія"};
+ /* в) вбудований словник */
+ var dict=KW[type]||[];
+ for(i=0;i<dict.length;i++){
+  if(list.indexOf(dict[i][0])<0)continue;
+  for(j=0;j<words.length;j++){
+   for(var k=0;k<dict[i][1].length;k++){if(words[j].indexOf(dict[i][1][k])===0)return{cat:dict[i][0],how:"словник"};}
+  }
+ }
+ return null;
+}
+function defAccount(type){
+ var act=(S.accounts||[]).filter(function(a){return a.active!==false;});
+ if(!act.length)return null;
+ for(var i=S.transactions.length-1;i>=0;i--){
+  var t=S.transactions[i];
+  if(t.type===type&&t.accountId){var a=act.filter(function(x){return x.id===t.accountId;})[0];if(a)return a;}
+ }
+ return act[0];
+}
+
+/* ---------- 3. ДУБЛІ ---------- */
+function dupFind(type,amount,date,category){
+ return S.transactions.filter(function(t){
+  return t.type===type&&t.date===date&&(t.category||"")===category&&Math.abs(A(t)-amount)<0.005;
+ });
+}
+function dupMsg(t){
+ return"Схожа операція вже є:\n«"+(t.memo||"без коментаря")+"» · "+money(A(t))+" · "+fd(t.date)+" · "+t.category+"\n\nЦе не випадковий повтор? Усе одно зберегти?";
+}
+
+/* ---------- 4. ЗБЕРЕЖЕННЯ ---------- */
+var undoId=null,toastT=null;
+function qToast(msg,id){
+ var t=G("qeToast");
+ if(!t){
+  t=document.createElement("div");t.id="qeToast";
+  t.style.cssText="position:fixed;left:12px;right:12px;bottom:84px;z-index:99998;padding:12px 14px;border-radius:12px;font-weight:700;font-size:14px;line-height:1.4;box-shadow:0 8px 28px rgba(0,0,0,.5);display:none;align-items:center;gap:10px;color:#fff;background:#12603f;max-width:520px;margin:0 auto";
+  document.body.appendChild(t);
+ }
+ undoId=id||null;
+ t.innerHTML='<span style="flex:1">'+esc(msg)+'</span>'+(id?'<button class="btn smallBtn" style="color:#fff" onclick="qeUndo()">↩ Скасувати</button>':'');
+ t.style.display="flex";
+ clearTimeout(toastT);toastT=setTimeout(function(){t.style.display="none";},8000);
+}
+window.qeUndo=function(){
+ var t=G("qeToast");if(t)t.style.display="none";
+ if(!undoId)return;
+ var id=undoId;undoId=null;
+ S.transactions=S.transactions.filter(function(x){return x.id!==id;});
+ markDirty();refresh();
+};
+function commit(p){
+ var d=dupFind(p.type,p.amount,p.date,p.category);
+ if(d.length&&!confirm(dupMsg(d[0])))return false;
+ var b=null;try{if(window.__limSnap)b=window.__limSnap();}catch(e){}
+ var t={id:uid(),type:p.type,amount:p.amount,amt:p.type==="expense"?-p.amount:p.amount,date:p.date,category:p.category,accountId:p.accountId,memo:p.memo||"",group:p.type};
+ S.transactions.push(t);
+ markDirty();
+ var inp=G("qeInput");if(inp)inp.value="";
+ var h=G("qeHint");if(h)h.textContent="";
+ refresh();
+ try{if(b&&p.type==="expense"&&window.__limAfter)window.__limAfter(b);}catch(e){}
+ qToast((p.type==="income"?"✅ Дохід: ":"✅ Витрата: ")+(p.memo?p.memo+" — ":"")+money(p.amount)+" → "+p.category+" ("+fd(p.date)+")",t.id);
+ return true;
+}
+window.qeGo=function(){
+ var inp=G("qeInput");if(!inp)return;
+ var p=parse(inp.value);
+ if(!p||!(p.amount>0)){alert("Не бачу суми. Приклад: «кава 85» або «вчора таксі 140»");return;}
+ var acc=defAccount(p.type);
+ if(!acc){alert("Спочатку створіть рахунок у розділі «Рахунки».");return;}
+ p.accountId=acc.id;
+ var r=resolve(p.memo,p.type);
+ if(r){p.category=r.cat;commit(p);return;}
+ window.__qeP=p;
+ var list=cats(p.type).filter(function(c){return c!=="Погашення боргу";});
+ var def=list.indexOf("Інше")>=0?"Інше":list[0];
+ var accs=(S.accounts||[]).filter(function(a){return a.active!==false;});
+ G("modal").style.display="flex";
+ G("modalContent").innerHTML=
+  '<h2>⚡ Оберіть категорію</h2>'+
+  '<div class="muted small" style="margin-bottom:10px">'+esc(p.memo||"Без коментаря")+' — <b>'+money(p.amount)+'</b> ('+fd(p.date)+'). Наступного разу програма запам’ятає ваш вибір для такого коментаря.</div>'+
+  '<div class="field"><label>Категорія</label><select id="qePickCat">'+list.map(function(c){return'<option value="'+esc(c)+'"'+(c===def?' selected':'')+'>'+esc(c)+'</option>';}).join("")+'</select></div>'+
+  '<div class="field"><label>Рахунок</label><select id="qePickAcc">'+accs.map(function(a){return'<option value="'+esc(a.id)+'"'+(a.id===acc.id?' selected':'')+'>'+esc(a.name)+'</option>';}).join("")+'</select></div>'+
+  '<div class="row"><button class="btn green" onclick="qePickSave()">💾 Зберегти</button><button class="btn" onclick="closeModal()">Скасувати</button></div>';
+};
+window.qePickSave=function(){
+ var p=window.__qeP;if(!p)return;
+ p.category=G("qePickCat").value;p.accountId=G("qePickAcc").value;
+ closeModal();commit(p);window.__qeP=null;
+};
+window.qePreview=function(){
+ var h=G("qeHint"),inp=G("qeInput");if(!h||!inp)return;
+ var p=parse(inp.value);
+ if(!inp.value.trim()||!p){h.textContent="";return;}
+ if(!(p.amount>0)){h.textContent="Додайте суму, наприклад: кава 85";return;}
+ var r=null;try{r=resolve(p.memo,p.type);}catch(e){}
+ h.textContent="→ "+(p.type==="income"?"дохід":"витрата")+" "+p.amount+" "+cur()+" · "+(r?r.cat:"категорію оберете після натискання")+" · "+fd(p.date);
+};
+
+/* перевірка схожих операцій у звичайних формах */
+var _st=window.saveTransaction,_sq=window.saveQuick;
+function guard(prefix,type){
+ try{
+  var amount=Number(G(prefix+"Amount").value),date=G(prefix+"Date").value,cat=G(prefix+"Category").value;
+  if(!(amount>0)||!date||!cat||cat===NEW_CAT)return true;
+  var d=dupFind(type,Math.abs(amount),date,cat);
+  if(d.length)return confirm(dupMsg(d[0]));
+ }catch(e){}
+ return true;
+}
+if(typeof _st==="function"){
+ window.saveTransaction=function(type){
+  if(!guard(type==="expense"?"expense":"income",type))return;
+  return _st.apply(this,arguments);
+ };
+}
+if(typeof _sq==="function"){
+ window.saveQuick=function(type){
+  if(!guard("quick",type))return;
+  return _sq.apply(this,arguments);
+ };
+}
+
+/* ---------- 5. ПІДСУМОК ТИЖНЯ ---------- */
+var wkView="cur";
+function wkRange(view){
+ var now=new Date(),mon=mondayOf(now);
+ if(view==="prev"){
+  var s=addDays(mon,-7);
+  return{s:ymd(s),e:ymd(addDays(mon,-1)),ps:ymd(addDays(s,-7)),pe:ymd(addDays(s,-1)),elapsed:7};
+ }
+ var el=Math.round((new Date(now.getFullYear(),now.getMonth(),now.getDate())-mon)/864e5)+1;
+ return{s:ymd(mon),e:ymd(now),ps:ymd(addDays(mon,-7)),pe:ymd(addDays(mon,-7+el-1)),elapsed:el};
+}
+function sumRange(s,e){
+ var r={exp:0,inc:0,cats:{},max:null,dates:{},n:0};
+ S.transactions.forEach(function(t){
+  if(!t.date||t.date<s||t.date>e)return;
+  if(t.type==="expense"){
+   var a=A(t);r.exp+=a;r.n++;r.dates[t.date]=1;
+   var c=t.category||"Інше";r.cats[c]=(r.cats[c]||0)+a;
+   if(!r.max||a>A(r.max))r.max=t;
+  }else if(t.type==="income"){r.inc+=A(t);r.n++;r.dates[t.date]=1;}
+ });
+ return r;
+}
+function delta(cur_,prev,good){ /* good: "down" — менше це добре (витрати) */
+ if(!(prev>0))return cur_>0?'<span class="muted">нове</span>':"";
+ var p=Math.round((cur_-prev)/prev*100);
+ if(p===0)return'<span class="muted">= як раніше</span>';
+ var up=p>0,ok=(good==="down")?!up:up;
+ return'<span style="color:'+(ok?"var(--g)":"var(--r)")+';font-weight:700">'+(up?"▲ +":"▼ ")+p+'%</span>';
+}
+function wkRender(){
+ var box=G("qeWeekBox");if(!box||!S)return;
+ var b1=G("qeWkCur"),b2=G("qeWkPrev");
+ if(b1)b1.style.opacity=wkView==="cur"?"1":".55";
+ if(b2)b2.style.opacity=wkView==="prev"?"1":".55";
+ var r=wkRange(wkView),c=sumRange(r.s,r.e),p=sumRange(r.ps,r.pe);
+ var daily=r.elapsed>0?c.exp/r.elapsed:0;
+ var noRec=Math.max(0,r.elapsed-Object.keys(c.dates).length);
+ var h='<div class="muted small" style="margin-bottom:10px">'+fd(r.s)+' — '+fd(r.e)+' · порівняння з '+fd(r.ps)+' — '+fd(r.pe)+'</div>';
+ if(!c.n&&!p.n){box.innerHTML=h+'<div class="empty">За цей тиждень записів ще немає.</div>';return;}
+ h+='<div class="grid grid2" style="margin-bottom:10px">'+
+  '<div class="kpi"><div class="label">ВИТРАТИ</div><div class="value red">'+money(c.exp)+'</div><div class="small">'+delta(c.exp,p.exp,"down")+'</div></div>'+
+  '<div class="kpi"><div class="label">ДОХОДИ</div><div class="value green">'+money(c.inc)+'</div><div class="small">'+delta(c.inc,p.inc,"up")+'</div></div>'+
+  '<div class="kpi"><div class="label">РІЗНИЦЯ</div><div class="value" style="color:'+((c.inc-c.exp)>=0?"var(--g)":"var(--r)")+'">'+money(c.inc-c.exp)+'</div></div>'+
+  '<div class="kpi"><div class="label">В СЕРЕДНЬОМУ ЗА ДЕНЬ</div><div class="value">'+money(daily)+'</div></div>'+
+ '</div>';
+ var names=Object.keys(c.cats).sort(function(a,b){return c.cats[b]-c.cats[a];}).slice(0,3);
+ if(names.length){
+  h+='<div style="font-weight:800;margin:6px 0">Найбільші категорії</div>';
+  names.forEach(function(n){
+   var share=c.exp>0?c.cats[n]/c.exp*100:0;
+   h+='<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;gap:8px" class="small"><span>'+esc(n)+'</span><span><b>'+money(c.cats[n])+'</b> · '+Math.round(share)+'% · '+delta(c.cats[n],p.cats[n]||0,"down")+'</span></div>'+
+    '<div class="progress"><div style="width:'+Math.min(100,share)+'%;background:var(--b)"></div></div></div>';
+  });
+ }
+ if(c.max){
+  h+='<div class="small" style="margin-top:6px">💥 Найбільша витрата: <b>'+money(A(c.max))+'</b> — '+esc(c.max.memo||c.max.category||"")+' ('+fd(c.max.date)+')</div>';
+ }
+ var ins=[];
+ if(p.exp>0&&c.exp>0){
+  var pc=Math.round((c.exp-p.exp)/p.exp*100);
+  if(pc>=5)ins.push("Витрати на "+pc+"% більші, ніж за попередній такий самий відрізок.");
+  else if(pc<=-5)ins.push("Витрати на "+Math.abs(pc)+"% менші, ніж за попередній такий самий відрізок. Гарний темп!");
+  else ins.push("Витрати майже на рівні попереднього відрізка.");
+ }
+ var gc=null,gd=0;
+ Object.keys(c.cats).forEach(function(n){var d=c.cats[n]-(p.cats[n]||0);if(d>gd){gd=d;gc=n;}});
+ if(gc&&c.exp>0&&gd>=c.exp*0.1)ins.push("Найбільше зросла категорія «"+gc+"»: +"+money(gd)+".");
+ if(wkView==="cur"&&noRec>=2)ins.push("Є дні без записів ("+noRec+"): можливо, не всі витрати внесені.");
+ if(ins.length)h+='<div class="item" style="margin-top:10px"><div class="small">'+ins.map(function(x){return"• "+esc(x);}).join("<br>")+'</div></div>';
+ box.innerHTML=h;
+}
+window.qeWk=function(v){wkView=v;wkRender();};
+
+/* ---------- 6. ПОШУК ДУБЛІВ В ІСТОРІЇ ---------- */
+function dupGroups(){
+ var g={};
+ S.transactions.forEach(function(t){
+  if(t.type!=="expense"&&t.type!=="income")return;
+  var k=[t.type,t.date,A(t).toFixed(2),t.category||"",t.accountId||""].join("|");
+  (g[k]=g[k]||[]).push(t);
+ });
+ return g;
+}
+window.qeDupScan=function(){
+ var box=G("qeDupBox");if(!box)return;
+ var g=dupGroups();
+ var keys=Object.keys(g).filter(function(k){return g[k].length>1;}).sort(function(a,b){return g[b][0].date<g[a][0].date?-1:1;}).slice(0,40);
+ if(!keys.length){box.innerHTML='<div class="small" style="color:var(--g)">✅ Дублів не знайдено.</div>';return;}
+ box.innerHTML='<div class="small muted" style="margin-bottom:8px">Знайдено груп: '+keys.length+'. Це можуть бути й справжні повтори (дві однакові покупки за день) — перевіряйте перед видаленням.</div>'+
+ keys.map(function(k){
+  var a=g[k],t=a[0];
+  return'<div class="item" style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center">'+
+   '<div class="small"><b>'+fd(t.date)+'</b> · '+esc(t.category||"")+' · <b>'+money(A(t))+'</b> × '+a.length+'<div class="muted">'+a.map(function(x){return esc(x.memo||"без коментаря");}).join(" | ")+'</div></div>'+
+   '<button class="btn red smallBtn" style="white-space:nowrap" onclick="qeDupFix(\''+encodeURIComponent(k)+'\')">Лишити 1</button></div></div>';
+ }).join("");
+};
+window.qeDupFix=function(enc){
+ var k=decodeURIComponent(enc),a=dupGroups()[k];
+ if(!a||a.length<2){window.qeDupScan();return;}
+ if(!confirm("Залишити одну операцію, а ще "+(a.length-1)+" видалити?"))return;
+ var kill={};
+ a.slice(1).forEach(function(t){
+  kill[t.id]=1;
+  try{
+   if(t.recId&&S.recurring){var rr=S.recurring.filter(function(x){return x.id===t.recId;})[0];if(rr)rr.handled=(rr.handled||[]).filter(function(d){return d!==t.recDate;});}
+   if(t.photos&&typeof photoDel==="function")t.photos.forEach(function(p){try{photoDel(p.id).catch(function(){});}catch(e){}});
+  }catch(e){}
+ });
+ S.transactions=S.transactions.filter(function(t){return!kill[t.id];});
+ markDirty();refresh();window.qeDupScan();
+};
+
+/* ---------- 7. ПОБУДОВА ІНТЕРФЕЙСУ ---------- */
+var built=false;
+function weekKey(){ /* на неділю — поточний тиждень, на понеділок — минулий */
+ var d=new Date(),dow=d.getDay();
+ if(dow===0)return{key:"w"+ymd(mondayOf(d)),view:"cur"};
+ if(dow===1)return{key:"w"+ymd(addDays(mondayOf(d),-7)),view:"prev"};
+ return null;
+}
+function ensure(){
+ if(!S)return;
+ var home=G("home");
+ if(home&&!G("qeCard")){
+  var c=document.createElement("div");c.className="card";c.id="qeCard";c.style.marginTop="14px";
+  c.innerHTML='<div style="font-weight:800;margin-bottom:8px">⚡ Швидкий запис</div>'+
+   '<div style="display:flex;gap:8px"><input id="qeInput" type="text" autocomplete="off" enterkeyhint="done" placeholder="кава 85" style="flex:1;min-width:0" oninput="qePreview()" onkeydown="if(event.key===\'Enter\'){event.preventDefault();qeGo();}"><button class="btn green" onclick="qeGo()">➕</button></div>'+
+   '<div id="qeHint" class="small muted" style="margin-top:6px;min-height:16px"></div>'+
+   '<div class="muted small" style="margin-top:2px">Приклади: «вчора таксі 140» · «12.10 продукти 320» · «+5000 зарплата»</div>'+
+   '<div id="qeWeekBanner" style="display:none;margin-top:10px"></div>';
+  var w=home.querySelector(".dailyWidget");
+  if(w)w.insertAdjacentElement("afterend",c);else home.insertBefore(c,home.firstChild);
+ }
+ if(!built&&!G("weekly")){
+  var anchor=G("calendar")||G("history")||G("budget");
+  if(anchor){
+   var sec=document.createElement("section");sec.id="weekly";
+   sec.innerHTML=
+    '<div class="card sectionToggle" onclick="toggleSection(\'weekly\')"><div class="head" style="margin-bottom:0"><div><h2 style="margin:0">📊 Підсумок тижня</h2><div class="muted small">Витрати за тиждень і порівняння з попереднім · пошук дублів</div></div><span class="badge arrowBadge" id="weekly-arrow">▶</span></div></div>'+
+    '<div id="weekly-body" class="sectionBody collapsed">'+
+     '<div class="card"><div style="display:flex;gap:8px;margin-bottom:10px"><button class="btn primary" id="qeWkCur" onclick="qeWk(\'cur\')">Цей тиждень</button><button class="btn primary" id="qeWkPrev" onclick="qeWk(\'prev\')">Минулий тиждень</button></div><div id="qeWeekBox"></div></div>'+
+     '<div class="card"><h2 style="margin-top:0">🔍 Дублі операцій</h2><div class="muted small" style="margin-bottom:10px">Перевірка історії на однакові записи (дата, сума, категорія, рахунок).</div><button class="btn cyan" onclick="qeDupScan()">Перевірити історію</button><div id="qeDupBox" style="margin-top:10px"></div></div>'+
+    '</div>';
+   anchor.insertAdjacentElement("afterend",sec);
+   var nav=document.querySelector("nav");
+   if(nav&&!nav.querySelector('button[onclick="go(\'weekly\')"]')){
+    var b=document.createElement("button");b.textContent="📊 Тиждень";b.setAttribute("onclick","go('weekly')");
+    var ref=nav.querySelector('button[onclick="go(\'calendar\')"]')||nav.querySelector('button[onclick="go(\'history\')"]');
+    if(ref)ref.insertAdjacentElement("afterend",b);else nav.appendChild(b);
+   }
+   built=true;
+  }
+ }else if(G("weekly"))built=true;
+ /* картка завжди одразу після «Можна витратити сьогодні» */
+ var card=G("qeCard"),wd=home&&home.querySelector(".dailyWidget");
+ if(card&&wd&&wd.nextElementSibling!==card)wd.insertAdjacentElement("afterend",card);
+}
+function banner(){
+ var el=G("qeWeekBanner");if(!el||!S)return;
+ var wk=weekKey();
+ if(!wk||S.settings.weekSeen===wk.key){el.style.display="none";return;}
+ el.style.display="block";
+ el.innerHTML='<div class="item" style="cursor:pointer;border-color:rgba(90,169,255,.4);background:rgba(90,169,255,.08)" onclick="qeWeekOpen()"><div class="itemTitle">📊 Підсумок тижня готовий</div><div class="small muted">Натисніть, щоб переглянути витрати та порівняння</div></div>';
+}
+window.qeWeekOpen=function(){
+ var wk=weekKey();
+ if(wk){wkView=wk.view;S.settings.weekSeen=wk.key;try{persist();}catch(e){}}
+ wkRender();banner();go("weekly");
+};
+
+var _rf=window.refresh;
+window.refresh=function(){
+ var r=_rf?_rf.apply(this,arguments):undefined;
+ try{ensure();wkRender();banner();}catch(e){}
+ return r;
+};
+window.addEventListener("load",function(){
+ setTimeout(function(){try{ensure();wkRender();banner();}catch(e){}},600);
+});
+})();
+
+/* =========================================================
+   🏷️ ВЕРСІЯ ПРОГРАМИ В ШАПЦІ
+   Кожна зміна коду = новий номер нижче (1.0 → 1.1 → 1.2 …).
+   Дата в дужках — коли ця версія вперше запустилась на цьому пристрої.
+========================================================= */
+(function(){
+"use strict";
+var APP_REV="1.1";
+window.APP_REV=APP_REV;
+function p2(n){return String(n).padStart(2,"0");}
+function installDate(){
+ var KEY="fin26_rev_v1",now=new Date(),today=p2(now.getDate())+"."+p2(now.getMonth()+1)+"."+now.getFullYear();
+ try{
+  var o=JSON.parse(localStorage.getItem(KEY)||"null");
+  if(o&&o.v===APP_REV&&o.d)return o.d;
+  localStorage.setItem(KEY,JSON.stringify({v:APP_REV,d:today}));
+ }catch(e){}
+ return today;
+}
+function put(){
+ var logo=document.querySelector("header .logo");
+ if(!logo)return;
+ var el=document.getElementById("advVer");
+ if(!el){el=document.createElement("small");el.id="advVer";logo.appendChild(el);}
+ el.style.letterSpacing="0";
+ el.innerHTML='Версія '+APP_REV+' <span style="font-size:8px;opacity:.7">('+installDate()+')</span>';
+}
+put();
+window.addEventListener("load",put);
 })();
