@@ -161,6 +161,7 @@ function render(){
  var lk=G("advLock");
  if(lk){lk.textContent=ok?"🟢 Можна розглядати":"🔒 Спершу: подушка 3 міс. і борги";lk.className="badge "+(ok?"green":"yellow");}
  if(G("advPct"))G("advPct").placeholder="авто (20)";
+ try{renderTransfer();}catch(e){}
 }
 
 /* ---------- побудова розділу ---------- */
@@ -168,6 +169,67 @@ function link(u){return '<a href="https://'+u+'" target="_blank" rel="noopener" 
 var TITLE_PANEL="📊 Огляд періоду"; /* назва першого згорнутого блоку на «Головній» — змінюйте тут */
 var P={};
 function mk(html,id){var d=document.createElement("div");d.className="card";if(id)d.id=id;d.innerHTML=html;return d;}
+function renderTransfer(){
+ var box=G("advTransferBox");
+ if(!box||typeof S==="undefined"||!S)return;
+ var active=(S.accounts||[]).filter(function(a){return a.active!==false;});
+ if(active.length<2){
+  box.innerHTML='<div class="empty">Для переказу потрібно щонайменше два активні рахунки. Створіть ще один у розділі «Рахунки».</div>';
+  return;
+ }
+ var from=G("advTransferFrom")&&G("advTransferFrom").value;
+ var to=G("advTransferTo")&&G("advTransferTo").value;
+ var options=active.map(function(a){return '<option value="'+esc(a.id)+'">'+esc(a.name)+' — '+money(accountBalance(a.id))+'</option>';}).join("");
+ var todayVal=today();
+ box.innerHTML=
+  '<div class="small muted" style="margin-bottom:12px">Переказ змінює баланси двох рахунків, але не рахується доходом або витратою у фінансовій статистиці.</div>'+
+  '<div class="grid grid2">'+
+   '<div class="field"><label>З рахунку</label><select id="advTransferFrom">'+options+'</select></div>'+
+   '<div class="field"><label>На рахунок</label><select id="advTransferTo">'+options+'</select></div></div>'+
+  '<div class="field"><label>Сума переказу, ₴</label><input id="advTransferAmount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Наприклад, 1500"></div>'+
+  '<div class="grid grid2"><div class="field"><label>Дата</label><input id="advTransferDate" type="date" value="'+todayVal+'"></div>'+
+   '<div class="field"><label>Коментар (необов’язково)</label><input id="advTransferMemo" maxlength="180" placeholder="Наприклад, на заощадження"></div></div>'+
+  '<div class="row"><button class="btn cyan" onclick="advDoTransfer()">↔️ Виконати переказ</button></div>'+
+  '<div id="advTransferMessage" class="small muted" style="margin-top:8px"></div>'+
+  '<h3 style="margin:16px 0 8px">Останні перекази</h3>'+
+  '<div id="advTransferRecent"></div>';
+ if(from&&active.some(function(a){return a.id===from;}))G("advTransferFrom").value=from;
+ if(to&&active.some(function(a){return a.id===to;}))G("advTransferTo").value=to;
+ if(active.length>1&&G("advTransferFrom").value===G("advTransferTo").value)G("advTransferTo").value=active.find(function(a){return a.id!==G("advTransferFrom").value;}).id;
+ var list=(S.transactions||[]).filter(function(t){return t.type==="transfer";}).slice().sort(function(a,b){return String(b.date||"").localeCompare(String(a.date||""));}).slice(0,10);
+ var recent=G("advTransferRecent");
+ if(recent)recent.innerHTML=list.length?list.map(function(t){
+  var fa=(S.accounts||[]).find(function(a){return a.id===t.fromAccountId;}),ta=(S.accounts||[]).find(function(a){return a.id===t.toAccountId;});
+  return '<div class="item"><div class="itemTitle">↗ '+money(amt(t))+'</div><div class="small muted">'+esc(fa?fa.name:"Рахунок видалено")+' → '+esc(ta?ta.name:"Рахунок видалено")+' • '+esc(fd(t.date||today()))+'</div>'+(t.memo?'<div class="small">'+esc(t.memo)+'</div>':"")+'</div>';
+ }).join(""):'<div class="empty">Переказів поки немає</div>';
+}
+function doTransfer(){
+ if(typeof S==="undefined"||!S||!Array.isArray(S.accounts)||!Array.isArray(S.transactions)){alert("Не вдалося отримати дані рахунків. Оновіть застосунок і спробуйте ще раз.");return;}
+ var fromId=G("advTransferFrom")&&G("advTransferFrom").value;
+ var toId=G("advTransferTo")&&G("advTransferTo").value;
+ var raw=G("advTransferAmount")&&G("advTransferAmount").value;
+ var amount=Number(String(raw||"").replace(",","."));
+ var date=G("advTransferDate")&&G("advTransferDate").value;
+ var memo=(G("advTransferMemo")&&G("advTransferMemo").value||"").trim();
+ var from=S.accounts.find(function(a){return a.id===fromId&&a.active!==false;});
+ var to=S.accounts.find(function(a){return a.id===toId&&a.active!==false;});
+ if(!from||!to){alert("Оберіть два активні рахунки.");return;}
+ if(fromId===toId){alert("Рахунок списання та рахунок зарахування мають бути різними.");return;}
+ if(!Number.isFinite(amount)||amount<=0){alert("Введіть суму переказу, більшу за нуль.");return;}
+ amount=Math.round(amount*100)/100;
+ if(!date){alert("Вкажіть дату переказу.");return;}
+ var balance=accountBalance(fromId);
+ if(amount>balance+0.001){alert("Недостатньо коштів на рахунку «"+from.name+"». Доступно: "+money(Math.max(0,balance))+".");return;}
+ if(!confirm("Підтвердити переказ "+money(amount)+" з «"+from.name+"» на «"+to.name+"»?"))return;
+ S.transactions.push({id:uid(),type:"transfer",amount:amount,amt:amount,date:date,fromAccountId:fromId,toAccountId:toId,category:"Переказ між рахунками",memo:memo,group:"transfer"});
+ markDirty();
+ if(G("advTransferAmount"))G("advTransferAmount").value="";
+ if(G("advTransferMemo"))G("advTransferMemo").value="";
+ try{refresh();}catch(e){try{render();renderTransfer();}catch(_){}}
+ alert("Переказ успішно збережено. Баланси рахунків оновлено.");
+}
+window.advDoTransfer=doTransfer;
+
 function build(){
  if(P.kpi)return;
  P.kpi=document.createElement("div");P.kpi.id="advKpi";
@@ -179,6 +241,7 @@ function build(){
   '<div class="grid grid2"><div class="field" style="margin:0"><label>Відкладати з кожного доходу, % (порожньо = авто, 20%)</label><input id="advPct" type="number" min="1" max="90" step="1"></div>'+
   '<div style="align-self:end"><button class="btn green" onclick="advSavePct()">💾 Зберегти</button></div></div>'+
   '<div class="small muted" style="margin-top:10px">Радник працює локально: усі розрахунки робляться в застосунку, дані нікуди не передаються. Це орієнтири, а не індивідуальна фінансова чи інвестиційна консультація.</div>');
+ P.transfer=mk('<div id="advTransferBox"></div>','advTransferCard');
  var dt='<div class="small muted" style="line-height:1.7;margin-top:8px">';
  P.invest=mk(
   '<div class="head"><span class="small muted">Статус розділу</span><span class="badge" id="advLock">—</span></div>'+
@@ -417,7 +480,8 @@ function homeLayout(){
   grp("advGPlan","🪜 План дій крок за кроком","Етапи та заморожені кошти",[plan]),
   grp("advGInv","📈 Куди вкласти: перевірені інструменти (Україна)","Депозит, ОВДП та офіційні джерела",[P.invest]),
   recCard?grp("advGRec","💡 Поради та рекомендації","Поради за вашою ситуацією",[recCard]):null,
-  grp("advGSet","⚙️ Налаштування радника","Відсоток відкладання",[P.settings])
+  grp("advGSet","⚙️ Налаштування радника","Відсоток відкладання",[P.settings]),
+  grp("advGTransfer","↔️ Переказ між рахунками","Переміщення коштів без зміни доходів і витрат",[P.transfer])
  ].forEach(function(g){if(g)body.appendChild(g);});
  home.appendChild(g1);home.appendChild(g2);home.appendChild(g3);
  home.insertBefore(widget,home.firstChild);
