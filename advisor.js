@@ -127,7 +127,7 @@ function tips(){
 
 /* ---------- відображення ---------- */
 function render(){
- if(typeof S==="undefined"||!S||!G("advDyn"))return;
+ if(typeof S==="undefined"||!S||!G("advKpi"))return;
  var bal=totalBalance(),fr=frozen(),av=Math.max(0,bal-fr),A=avgDaily(),cm=cushMonths(),owe=oweList(),goals=goalList();
  var ccls=cm>=3?"green":(cm>=1?"yellow":"red");
  var steps=[
@@ -147,66 +147,66 @@ function render(){
  var fHtml=list.length?list.map(function(f){
   return '<div class="item"><div class="row" style="justify-content:space-between"><div><b>❄️ '+money(f.amount)+'</b> <span class="badge">'+esc(f.purpose)+'</span><div class="small muted">з '+fd(f.date)+'</div></div><button class="btn smallBtn" onclick="advRelease(\''+f.id+'\')">🔓 Розморозити</button></div></div>';
  }).join(""):'<div class="empty">Заморожених коштів немає</div>';
- G("advDyn").innerHTML=
+ G("advKpi").innerHTML=
   '<div class="grid grid4">'+
   '<div class="kpi"><div class="label">ЗАГАЛЬНИЙ БАЛАНС</div><div class="value" style="font-size:20px">'+money(bal)+"</div></div>"+
   '<div class="kpi"><div class="label">❄️ ЗАМОРОЖЕНО</div><div class="value cyan" style="font-size:20px">'+money(fr)+"</div></div>"+
   '<div class="kpi"><div class="label">ДОСТУПНО</div><div class="value green" style="font-size:20px">'+money(av)+"</div></div>"+
   '<div class="kpi"><div class="label">🛟 ПОДУШКА</div><div class="value '+ccls+'" style="font-size:20px">'+cm.toFixed(1)+' з 3 міс.</div><div class="progress" style="margin-top:8px"><div style="width:'+Math.min(100,cm/3*100)+'%"></div></div></div>'+
-  "</div>"+
-  '<div class="card" style="margin-top:14px"><h3>💬 Поради радника</h3>'+tips().map(function(x){return adv(x[0],x[1]);}).join("")+"</div>"+
-  '<div class="card" style="margin-top:14px"><h3>🪜 План дій крок за кроком</h3>'+stepsHtml+"</div>"+
-  '<div class="card" style="margin-top:14px"><div class="head"><h3 style="margin:0">❄️ Заморожені кошти</h3><button class="btn cyan smallBtn" onclick="advManual()">+ Заморозити</button></div>'+fHtml+"</div>";
+  "</div>";
+ G("advTips").innerHTML=tips().map(function(x){return adv(x[0],x[1]);}).join("");
+ G("advSteps").innerHTML=stepsHtml;
+ G("advFrozen").innerHTML='<div class="head"><h3 style="margin:0">❄️ Заморожені кошти</h3><button class="btn cyan smallBtn" onclick="advManual()">+ Заморозити</button></div>'+fHtml;
  var ok=cm>=3&&!owe.length;
  var lk=G("advLock");
  if(lk){lk.textContent=ok?"🟢 Можна розглядати":"🔒 Спершу: подушка 3 міс. і борги";lk.className="badge "+(ok?"green":"yellow");}
  if(G("advPct"))G("advPct").placeholder="авто (20)";
- var h=G("homeAdvice");
- if(h){
-  var c=h.closest(".card"),el=G("advHome");
-  if(c&&!el){el=document.createElement("div");el.id="advHome";el.className="card";el.style.marginBottom="14px";c.parentNode.insertBefore(el,c);}
-  if(el)el.innerHTML='<div class="head"><h3 style="margin:0">🧭 Радник</h3><button class="btn smallBtn" onclick="go(\'advisor\')">Відкрити →</button></div>'+
-   '<div class="statLine"><span>❄️ Заморожено</span><b class="cyan">'+money(fr)+'</b></div><div class="statLine"><span>Доступно</span><b class="green">'+money(av)+'</b></div>'+
-   '<div style="margin-top:10px">'+(function(t){return adv(t[0],t[1]);})(tips()[0])+"</div>";
- }
 }
 
 /* ---------- побудова розділу ---------- */
 function link(u){return '<a href="https://'+u+'" target="_blank" rel="noopener" style="color:var(--c);font-weight:bold">'+u+"</a>";}
+var TITLE_PANEL="📊 Огляд періоду"; /* назва першого згорнутого блоку на «Головній» — змінюйте тут */
+var P={};
+function mk(html,id){var d=document.createElement("div");d.className="card";if(id)d.id=id;d.innerHTML=html;return d;}
 function build(){
- if(G("advisor")||!G("aiAssistant"))return;
- var sec=document.createElement("section");sec.id="advisor";
- sec.innerHTML=
- '<div class="card aiCard sectionToggle" onclick="toggleSection(\'advisor\')"><div class="head" style="margin-bottom:0"><div class="aiTitle"><div class="aiIcon">🧭</div><div><h2 style="margin:0">ФІНАНСОВИЙ РАДНИК</h2><div class="aiStatus">● Накопичення та вкладення крок за кроком</div></div></div><span class="badge arrowBadge" id="advisor-arrow">▶</span></div></div>'+
- '<div id="advisor-body" class="sectionBody collapsed">'+
-  '<div id="advDyn"></div>'+
-  '<div class="card" style="margin-top:14px"><h3>⚙️ Налаштування радника</h3>'+
-   '<div class="grid grid2"><div class="field" style="margin:0"><label>Відкладати з кожного доходу, % (порожньо = авто, 20%)</label><input id="advPct" type="number" min="1" max="90" step="1"></div>'+
-   '<div style="align-self:end"><button class="btn green" onclick="advSavePct()">💾 Зберегти</button></div></div>'+
-   '<div class="small muted" style="margin-top:10px">Радник працює локально: усі розрахунки робляться в застосунку, дані нікуди не передаються. Це орієнтири, а не індивідуальна фінансова чи інвестиційна консультація.</div></div>'+
-  '<div class="card" id="advInvest" style="margin-top:14px"><div class="head"><h3 style="margin:0">📈 Куди вкласти: перевірені інструменти (Україна)</h3><span class="badge" id="advLock">—</span></div>'+
-   '<div class="small muted" style="margin-bottom:12px">Лише після подушки ≥ 3 міс. і без боргів. Умови, ставки й податки змінюються — перед рішенням перевіряйте на офіційних сайтах.</div>'+
-   '<details class="item"><summary class="itemTitle" style="cursor:pointer">🏦 Банківський депозит (простіше й ліквідніше)</summary><div class="small muted" style="line-height:1.7;margin-top:8px">'+
-    '1. Переконайтесь, що банк має ліцензію: '+link("bank.gov.ua")+' (НБУ) і є учасником Фонду гарантування вкладів: '+link("fg.gov.ua")+'.<br>'+
-    '2. Перевірте актуальну суму гарантії на '+link("fg.gov.ua")+': під час воєнного стану діє підвищений ліміт, після його завершення передбачено 600 тис. грн. Тримайте суму в межах гарантії або розділіть між банками.<br>'+
-    '3. Порівняйте ставки у 2–3 банках: строк, виплата відсотків, чи можна поповнювати й знімати достроково.<br>'+
-    '4. Уточніть в банку чи на '+link("tax.gov.ua")+' податок на відсотки.<br>'+
-    '5. Відкрийте депозит у застосунку банку, збережіть договір, а тут позначте заморожену суму як «Вкладення».</div></details>'+
-   '<details class="item"><summary class="itemTitle" style="cursor:pointer">🇺🇦 ОВДП / військові облігації через «Дію»</summary><div class="small muted" style="line-height:1.7;margin-top:8px">'+
-    '1. У застосунку «Дія»: Послуги → «Військові облігації» (інформація: '+link("diia.gov.ua")+').<br>'+
-    '2. Оберіть випуск: валюта, строк, ставка. Результати аукціонів і умови — на '+link("mof.gov.ua")+' (Мінфін).<br>'+
-    '3. Оберіть банк чи брокера, підпишіть документи електронним підписом і оплатіть.<br>'+
-    '4. За публікаціями 2026 року дохід фізосіб від таких ОВДП не оподатковується ПДФО та військовим збором, але поточний режим перевірте на '+link("mof.gov.ua")+' або '+link("tax.gov.ua")+'.<br>'+
-    '5. Ставка зазвичай фіксована: тримайте до погашення; продаж раніше можливий лише на вторинному ринку за ринковою ціною.</div></details>'+
-   '<details class="item"><summary class="itemTitle" style="cursor:pointer">⛔ Чого уникати</summary><div class="small muted" style="line-height:1.7;margin-top:8px">'+
-    '• «Гарантований» високий дохід, піраміди, невідомі «трейдери» та платформи.<br>'+
-    '• Вкладення подушки безпеки в ризикові активи (акції, крипта).<br>'+
-    '• Кредити чи позики заради інвестування.<br>'+
-    '• Компанії без ліцензії: перевіряйте в НБУ ('+link("bank.gov.ua")+') та НКЦПФР ('+link("nssmc.gov.ua")+').</div></details>'+
-  '</div></div>';
- G("aiAssistant").parentNode.insertBefore(sec,G("aiAssistant"));
+ if(P.kpi)return;
+ P.kpi=document.createElement("div");P.kpi.id="advKpi";
+ P.tips=mk('<div id="advTips"></div>');
+ P.chat=mk("","advChat");P.chat.classList.add("aiCard");
+ P.steps=mk('<div id="advSteps"></div>');
+ P.frozen=mk('<div id="advFrozen"></div>');
+ P.settings=mk(
+  '<div class="grid grid2"><div class="field" style="margin:0"><label>Відкладати з кожного доходу, % (порожньо = авто, 20%)</label><input id="advPct" type="number" min="1" max="90" step="1"></div>'+
+  '<div style="align-self:end"><button class="btn green" onclick="advSavePct()">💾 Зберегти</button></div></div>'+
+  '<div class="small muted" style="margin-top:10px">Радник працює локально: усі розрахунки робляться в застосунку, дані нікуди не передаються. Це орієнтири, а не індивідуальна фінансова чи інвестиційна консультація.</div>');
+ var dt='<div class="small muted" style="line-height:1.7;margin-top:8px">';
+ P.invest=mk(
+  '<div class="head"><span class="small muted">Статус розділу</span><span class="badge" id="advLock">—</span></div>'+
+  '<div class="small muted" style="margin-bottom:12px">Лише після подушки ≥ 3 міс. і без боргів. Умови, ставки й податки змінюються: перед рішенням перевіряйте на офіційних сайтах. Нижче реальні канали та організації.</div>'+
+  '<details class="item"><summary class="itemTitle" style="cursor:pointer">🏦 Банківський депозит (простіше й ліквідніше)</summary>'+dt+
+   '1. Оберіть банк, що є учасником Фонду гарантування вкладів: перелік банків і поточна сума гарантії на '+link("fg.gov.ua")+'; ліцензії та реєстр банків на '+link("bank.gov.ua")+' (НБУ).<br>'+
+   '2. Порівняйте ставки на офіційних сайтах і в застосунках банків: '+link("privatbank.ua")+', '+link("oschadbank.ua")+', '+link("monobank.ua")+', '+link("pumb.ua")+', '+link("raiffeisen.ua")+'. Для швидкого порівняння є агрегатор '+link("minfin.com.ua")+' (комерційний сайт, не офіційне джерело).<br>'+
+   '3. Дивіться на строк, виплату відсотків, можливість поповнення та дострокового зняття.<br>'+
+   '4. Тримайте суму в межах гарантії або розділіть між банками. Податок на відсотки уточніть на '+link("tax.gov.ua")+'.<br>'+
+   '5. Відкрийте депозит у застосунку банку, збережіть договір, а тут позначте заморожену суму як «Вкладення».</div></details>'+
+  '<details class="item"><summary class="itemTitle" style="cursor:pointer">🇺🇦 ОВДП / військові облігації</summary>'+dt+
+   '1. Найпростіше через «Дію» ('+link("diia.gov.ua")+'): Послуги → «Військові облігації» → оберіть тип, банк чи брокера → підпишіть документи електронним підписом.<br>'+
+   '2. Або напряму в застосунку банку: ПриватБанк (Приват24 → «Облігації», '+link("privatbank.ua")+'), Ощадбанк ('+link("oschadbank.ua")+'), monobank (розділ «Накопичення», '+link("monobank.ua")+'), Райффайзен ('+link("raiffeisen.ua")+'), ПУМБ ('+link("pumb.ua")+'), Укрексімбанк ('+link("eximb.com")+'), Укргазбанк ('+link("ukrgasbank.com")+'), ОТП Банк ('+link("otpbank.com.ua")+'). Перелік банків і опції змінюються, актуальне дивіться в застосунку.<br>'+
+   '3. Умови випусків і результати аукціонів: '+link("mof.gov.ua")+' (Мінфін).<br>'+
+   '4. За публікаціями 2026 року дохід фізосіб від ОВДП не оподатковується ПДФО та військовим збором; поточний режим перевірте на '+link("mof.gov.ua")+' або '+link("tax.gov.ua")+'.<br>'+
+   '5. Ставка зазвичай фіксована: тримайте до погашення; продаж раніше можливий лише за ринковою ціною.</div></details>'+
+  '<details class="item"><summary class="itemTitle" style="cursor:pointer">🧾 Де перевірити компанію чи платформу</summary>'+dt+
+   '• Банки та фінансові установи: реєстри НБУ на '+link("bank.gov.ua")+'.<br>'+
+   '• Брокери, інвестиційні фірми, торговці цінними паперами: ліцензії на '+link("nssmc.gov.ua")+' (НКЦПФР).<br>'+
+   '• Гарантії за вкладами: '+link("fg.gov.ua")+'.<br>'+
+   '• Немає в реєстрі — не вкладайте.</div></details>'+
+  '<details class="item"><summary class="itemTitle" style="cursor:pointer">⛔ Чого уникати</summary>'+dt+
+   '• «Гарантований» високий дохід, піраміди, невідомі «трейдери» та платформи.<br>'+
+   '• Вкладення подушки безпеки в ризикові активи (акції, крипта).<br>'+
+   '• Кредити чи позики заради інвестування.</div></details>'+
+  '<div class="small muted" style="margin-top:10px">Це довідник, а не індивідуальна інвестиційна консультація.</div>',"advInvest");
  var nav=document.querySelector("nav"),home=nav&&nav.querySelector('button[onclick="go(\'home\')"]');
- var b=document.createElement("button");b.textContent="🧭 Радник";b.setAttribute("onclick","go('advisor')");
+ var b=document.createElement("button");b.textContent="🧭 Радник";b.setAttribute("onclick","go('hAdv')");
  if(home)home.insertAdjacentElement("afterend",b);else if(nav)nav.appendChild(b);
 }
 
@@ -373,14 +373,12 @@ function ask(q){
  },700);
 }
 function chatBuild(){
- if(G("advChat")||!G("advDyn"))return;
- var el=document.createElement("div");el.id="advChat";el.className="card aiCard";el.style.marginTop="14px";
+ var el=G("advChat");if(!el||G("advMsgs"))return;
  var qs=["З чого мені почати?","Скільки відкладати?","Чому саме так?","Як швидше накопичити?","Борги чи накопичення?","Коли буде подушка?","Куди вкласти гроші?"];
- el.innerHTML='<h3>💬 Запитайте радника</h3><div class="small muted" style="margin-bottom:10px">Радник міркує на основі ваших даних, пояснює кроки й радить. Усе рахується в застосунку.</div>'+
+ el.innerHTML='<div class="small muted" style="margin-bottom:10px">Радник міркує на основі ваших даних, пояснює кроки й радить. Усе рахується в застосунку.</div>'+
   '<div class="quick aiQuick">'+qs.map(function(q){return '<button onclick="advAsk(this.textContent)">'+q+"</button>";}).join("")+"</div>"+
   '<div id="advMsgs" class="aiMessages" style="height:340px"></div>'+
   '<div class="aiInputRow"><input id="advQ" placeholder="Наприклад: Чи можу я витратити 800 грн?" onkeydown="if(event.key===\'Enter\')advAsk()"><button class="btn cyan" onclick="advAsk()">Надіслати</button></div>';
- G("advDyn").insertAdjacentElement("afterend",el);
  chatAdd("ai",fmt("Привіт! Я ваш фінансовий радник. Можу пояснити, скільки й чому відкладати, з чого почати, чи можна зробити покупку та куди вкладати. Запитайте своїми словами або оберіть питання вище."));
 }
 window.advAsk=ask;
@@ -401,13 +399,38 @@ function homeLayout(){
  var advC=G("homeAdvice")&&G("homeAdvice").closest(".card");
  var st=home.querySelector(":scope > .grid.grid2");
  if(!kpi||!widget||!advC||!st||!quick||!dg||!prw)return;
- var g1=grp("hFin","💼 Огляд періоду","Баланс, доходи, витрати, ліміт і прогрес періоду",[kpi,quick,dg,prw]);
- var g2=grp("hAdv","🧭 Радник і поради","Підказки радника та головні поради",[advC]);
+ var rec=G("recommendations"),recCard=rec&&rec.closest(".card");
+ if(recCard){var h2=recCard.querySelector("h2");if(h2)h2.style.display="none";if(recCard.parentNode)recCard.parentNode.style.gridTemplateColumns="1fr";}
+ var g1=grp("hFin",TITLE_PANEL,"Баланс, доходи, витрати, ліміт і прогрес періоду",[kpi,quick,dg,prw]);
+ var g2=grp("hAdv","🧭 Радник і поради","Підказки, план дій, чат і налаштування радника",[]);
  var g3=grp("hState","🧠 Фінансовий стан та 50/30/20","Фінансовий бал і розподіл бюджету",[st]);
  [quick,dg,prw].forEach(function(n){n.style.marginTop="14px";});
  widget.style.marginTop="0";
+ var body=g2.querySelector(".sectionBody");
+ var ab=advC.querySelector("button");if(ab)ab.setAttribute("onclick","advOpenTips()");
+ body.appendChild(P.kpi);
+ advC.style.marginTop="14px";body.appendChild(advC);
+ var plan=document.createElement("div");plan.appendChild(P.steps);P.frozen.style.marginTop="14px";plan.appendChild(P.frozen);
+ [
+  grp("advGTips","💬 Поради радника","Повний список порад радника",[P.tips]),
+  grp("advGChat","💬 Запитайте радника","Радник міркує, пояснює й радить",[P.chat]),
+  grp("advGPlan","🪜 План дій крок за кроком","Етапи та заморожені кошти",[plan]),
+  grp("advGInv","📈 Куди вкласти: перевірені інструменти (Україна)","Депозит, ОВДП та офіційні джерела",[P.invest]),
+  recCard?grp("advGRec","💡 Поради та рекомендації","Поради за вашою ситуацією",[recCard]):null,
+  grp("advGSet","⚙️ Налаштування радника","Відсоток відкладання",[P.settings])
+ ].forEach(function(g){if(g)body.appendChild(g);});
  home.appendChild(g1);home.appendChild(g2);home.appendChild(g3);
  home.insertBefore(widget,home.firstChild);
+}
+window.advOpenTips=function(){
+ var g=G("advGTips");
+ if(G("hAdv-body")&&G("hAdv-body").classList.contains("collapsed"))toggleSection("hAdv");
+ if(G("advGTips-body")&&G("advGTips-body").classList.contains("collapsed"))toggleSection("advGTips");
+ if(g)g.scrollIntoView({behavior:"smooth"});
+};
+function renameAI(){
+ var ai=G("aiAssistant"),h=ai&&ai.querySelector("h2");
+ if(h&&/ФІНАНСОВИЙ ШІ-ПОМІЧНИК/i.test(h.textContent))h.textContent="ШІ-ПОМІЧНИК";
 }
 
 /* ---------- календар доходів і витрат ---------- */
@@ -486,7 +509,7 @@ window.advCalMove=function(n){
 };
 
 build();
-try{homeLayout();}catch(e){}
+try{homeLayout();}catch(e){}try{renameAI();}catch(e){}
 try{calBuild();}catch(e){}
 try{chatBuild();}catch(e){}
 try{bio();}catch(e){}
