@@ -1188,15 +1188,15 @@ window.qeGo=function(){
  if(!acc){alert("Спочатку створіть рахунок у розділі «Рахунки».");return;}
  p.accountId=acc.id;
  var r=resolve(p.memo,p.type);
- if(r){p.category=r.cat;commit(p);return;}
+ if(r&&p.type!=="income"){p.category=r.cat;commit(p);return;}
  window.__qeP=p;
  var list=cats(p.type).filter(function(c){return c!=="Погашення боргу";});
- var def=list.indexOf("Інше")>=0?"Інше":list[0];
+ var def=(r&&list.indexOf(r.cat)>=0)?r.cat:(list.indexOf("Інше")>=0?"Інше":list[0]);
  var accs=(S.accounts||[]).filter(function(a){return a.active!==false;});
  G("modal").style.display="flex";
  G("modalContent").innerHTML=
-  '<h2>⚡ Оберіть категорію</h2>'+
-  '<div class="muted small" style="margin-bottom:10px">'+esc(p.memo||"Без коментаря")+' — <b>'+money(p.amount)+'</b> ('+fd(p.date)+'). Наступного разу програма запам’ятає ваш вибір для такого коментаря.</div>'+
+  '<h2>'+(p.type==="income"?'⚡ Куди зарахувати дохід?':'⚡ Оберіть категорію')+'</h2>'+
+  '<div class="muted small" style="margin-bottom:10px">'+esc(p.memo||"Без коментаря")+' — <b>'+money(p.amount)+'</b> ('+fd(p.date)+').'+(r?'':' Наступного разу програма запам’ятає ваш вибір для такого коментаря.')+'</div>'+
   '<div class="field"><label>Категорія</label><select id="qePickCat">'+list.map(function(c){return'<option value="'+esc(c)+'"'+(c===def?' selected':'')+'>'+esc(c)+'</option>';}).join("")+'</select></div>'+
   '<div class="field"><label>Рахунок</label><select id="qePickAcc">'+accs.map(function(a){return'<option value="'+esc(a.id)+'"'+(a.id===acc.id?' selected':'')+'>'+esc(a.name)+'</option>';}).join("")+'</select></div>'+
   '<div class="row"><button class="btn green" onclick="qePickSave()">💾 Зберегти</button><button class="btn" onclick="closeModal()">Скасувати</button></div>';
@@ -1428,7 +1428,7 @@ window.addEventListener("load",function(){
 ========================================================= */
 (function(){
 "use strict";
-var APP_REV="1.2";
+var APP_REV="1.3";
 window.APP_REV=APP_REV;
 function p2(n){return String(n).padStart(2,"0");}
 function installDate(){
