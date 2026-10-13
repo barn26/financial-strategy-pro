@@ -234,7 +234,7 @@ function build(){
  if(P.kpi)return;
  P.kpi=document.createElement("div");P.kpi.id="advKpi";
  P.tips=mk('<div id="advTips"></div>');
- P.chat=mk("","advChat");P.chat.classList.add("aiCard");
+ 
  P.steps=mk('<div id="advSteps"></div>');
  P.frozen=mk('<div id="advFrozen"></div>');
  P.settings=mk(
@@ -417,34 +417,70 @@ function think(q){
 
  return{r:[],t:"Я можу пояснити, скільки й чому відкладати, з чого почати, чи можна зробити покупку, як швидше накопичити, що робити з боргами та куди вкладати. Зараз: баланс "+money(c.bal)+", заморожено "+money(c.fr)+", подушка "+c.cm.toFixed(1)+" з 3 міс.\n\nСпробуйте, наприклад: «Чи можу я витратити 800 грн?»"};
 }
-function chatAdd(who,html){
- var b=G("advMsgs");if(!b)return;
- var d=document.createElement("div");d.className="aiMsg "+who;
- d.innerHTML='<div class="who">'+(who==="ai"?"🧭 РАДНИК":"👤 ВИ")+"</div>"+html;
- b.appendChild(d);b.scrollTop=b.scrollHeight;
+/* ---------- ШІ-ПОМІЧНИК тепер знає все, що вміє радник ---------- */
+/* Власні запити ШІ-помічника (кнопки) лишаються за ним; питання про відкладання, подушку,
+   борги, вкладення, «чи можу витратити N» тощо обробляє логіка радника. */
+var AI_OWN=["зроби повний аналіз","дай практичні поради","порівняй цей період","скільки я можу витратити сьогодні","на що я витрачаю найбільше","який прогрес по моїх","що у мене з боргами","зроби прогноз на кінець","проаналізуй мій бюджет"];
+function advisorRoute(q){
+ var l=String(q||"").toLowerCase(),i;
+ for(i=0;i<AI_OWN.length;i++){if(l.indexOf(AI_OWN[i])===0)return false;}
+ var mm=l.match(/(\d[\d\s]*(?:[.,]\d+)?)/),n=mm?Number(mm[1].replace(/\s/g,"").replace(",",".")):0;
+ if(n>0&&l.indexOf("50/30/20")<0&&/чи можу|чи можна|купит|дозволит|вистачить|витратит/.test(l))return true;
+ if(/подушк|коли буде|скільки часу/.test(l))return true;
+ if(/скільки.*(відклад|заморож|накопич|кладу)|відкладат/.test(l))return true;
+ if(/чому|поясни|навіщо|обґрунт/.test(l))return true;
+ if(/борг|кредит|позик/.test(l)&&/чи |або|краще|спочатку|погаш|стратег|що робити|пріоритет/.test(l))return true;
+ if(/вклад|інвест|депозит|овдп|облігац|куди (вклас|інвест|діт)/.test(l))return true;
+ if(/швидше|заощад|скороти|економ|зекономит/.test(l))return true;
+ if(/з чого|почат|стратег|що робити|покрокови|план дій/.test(l))return true;
+ return false;
 }
-function ask(q){
- var inp=G("advQ");q=String(q||(inp?inp.value:"")).trim();
- if(!q)return;
- if(inp)inp.value="";
- chatAdd("user",fmt(q));
- chatAdd("ai",'<span id="advTyping">💭 Думаю…</span>');
- setTimeout(function(){
-  var t=G("advTyping"),box=t&&t.parentNode;if(box)box.remove();
-  var o;try{o=think(q);}catch(e){o={r:[],t:"Не вдалося порахувати. Спробуйте переформулювати запитання."};}
-  chatAdd("ai",(o.r.length?'<details style="margin-bottom:8px"><summary class="small muted" style="cursor:pointer">💭 Як я міркую</summary><div class="small muted" style="margin-top:6px">'+o.r.map(function(x){return "• "+fmt(x);}).join("<br>")+"</div></details>":"")+fmt(o.t));
- },700);
+function wrapAI(){
+ if(typeof window.processAIQuery!=="function"||window.processAIQuery.__adv)return;
+ var orig=window.processAIQuery;
+ var w=function(q){
+  var o=null;
+  try{if(advisorRoute(q))o=think(String(q));}catch(e){o=null;}
+  if(!o)return orig.apply(this,arguments);
+  appendAIMsg("ai",o.t);
+  try{
+   var box=G("aiMessages"),last=box&&box.lastElementChild;
+   if(last&&o.r&&o.r.length){
+    var det=document.createElement("details");det.style.marginTop="8px";
+    det.innerHTML='<summary class="small muted" style="cursor:pointer">💭 Як я міркую</summary><div class="small muted" style="margin-top:6px">'+
+     o.r.map(function(x){return"• "+esc(x).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");}).join("<br>")+'</div>';
+    last.appendChild(det);
+    box.scrollTop=box.scrollHeight;
+   }
+  }catch(e){}
+ };
+ w.__adv=1;window.processAIQuery=w;
+ if(typeof window.initAI==="function"&&!window.initAI.__adv){
+  var oi=window.initAI;
+  var wi=function(){
+   var box=G("aiMessages"),had=box&&box.children.length>0;
+   var r=oi.apply(this,arguments);
+   try{
+    if(!had&&box&&box.children.length===1){
+     var d=box.firstElementChild.lastElementChild;
+     if(d)d.textContent+="\n\nЯ також фінансовий радник: поясню, скільки й чому відкладати, з чого почати, коли буде подушка, що краще — борги чи накопичення, і куди вкласти гроші. Кнопки швидких запитів — нижче.";
+    }
+   }catch(e){}
+   return r;
+  };
+  wi.__adv=1;window.initAI=wi;
+ }
 }
-function chatBuild(){
- var el=G("advChat");if(!el||G("advMsgs"))return;
+function aiExtras(){
+ wrapAI();
+ var body=G("aiAssistant-body");
+ if(!body||G("advAiQuick"))return;
+ var q=body.querySelector(".aiQuick");if(!q)return;
  var qs=["З чого мені почати?","Скільки відкладати?","Чому саме так?","Як швидше накопичити?","Борги чи накопичення?","Коли буде подушка?","Куди вкласти гроші?"];
- el.innerHTML='<div class="small muted" style="margin-bottom:10px">Радник міркує на основі ваших даних, пояснює кроки й радить. Усе рахується в застосунку.</div>'+
-  '<div class="quick aiQuick">'+qs.map(function(q){return '<button onclick="advAsk(this.textContent)">'+q+"</button>";}).join("")+"</div>"+
-  '<div id="advMsgs" class="aiMessages" style="height:340px"></div>'+
-  '<div class="aiInputRow"><input id="advQ" placeholder="Наприклад: Чи можу я витратити 800 грн?" onkeydown="if(event.key===\'Enter\')advAsk()"><button class="btn cyan" onclick="advAsk()">Надіслати</button></div>';
- chatAdd("ai",fmt("Привіт! Я ваш фінансовий радник. Можу пояснити, скільки й чому відкладати, з чого почати, чи можна зробити покупку та куди вкладати. Запитайте своїми словами або оберіть питання вище."));
+ var d=document.createElement("div");d.id="advAiQuick";d.className="quick aiQuick";d.style.marginTop="6px";
+ d.innerHTML=qs.map(function(x){return'<button onclick="aiQuick(this.textContent)">'+x+'</button>';}).join("");
+ q.insertAdjacentElement("afterend",d);
 }
-window.advAsk=ask;
 
 /* ---------- «Головна»: ліміт завжди видно, решта згортається ---------- */
 function grp(id,title,sub,nodes){
@@ -465,7 +501,7 @@ function homeLayout(){
  var rec=G("recommendations"),recCard=rec&&rec.closest(".card");
  if(recCard){var h2=recCard.querySelector("h2");if(h2)h2.style.display="none";if(recCard.parentNode)recCard.parentNode.style.gridTemplateColumns="1fr";}
  var g1=grp("hFin",TITLE_PANEL,"Баланс, доходи, витрати, ліміт і прогрес періоду",[kpi,quick,dg,prw]);
- var g2=grp("hAdv","🧭 Радник і поради","Підказки, план дій, чат і налаштування радника",[]);
+ var g2=grp("hAdv","🧭 Радник і поради","Підказки, план дій і налаштування радника",[]);
  var g3=grp("hState","🧠 Фінансовий стан та 50/30/20","Фінансовий бал і розподіл бюджету",[st]);
  [quick,dg,prw].forEach(function(n){n.style.marginTop="14px";});
  widget.style.marginTop="0";
@@ -476,7 +512,6 @@ function homeLayout(){
  var plan=document.createElement("div");plan.appendChild(P.steps);P.frozen.style.marginTop="14px";plan.appendChild(P.frozen);
  [
   grp("advGTips","💬 Поради радника","Повний список порад радника",[P.tips]),
-  grp("advGChat","💬 Запитайте радника","Радник міркує, пояснює й радить",[P.chat]),
   grp("advGPlan","🪜 План дій крок за кроком","Етапи та заморожені кошти",[plan]),
   grp("advGInv","📈 Куди вкласти: перевірені інструменти (Україна)","Депозит, ОВДП та офіційні джерела",[P.invest]),
   recCard?grp("advGRec","💡 Поради та рекомендації","Поради за вашою ситуацією",[recCard]):null,
@@ -499,6 +534,8 @@ window.advOpenTips=function(){
 function renameAI(){
  var ai=G("aiAssistant"),h=ai&&ai.querySelector("h2");
  if(h&&/ФІНАНСОВИЙ ШІ-ПОМІЧНИК/i.test(h.textContent))h.textContent="ШІ-ПОМІЧНИК";
+ var st=ai&&ai.querySelector(".aiStatus");
+ if(st&&/Локальний ШІ-аналітик активний/.test(st.textContent))st.textContent="● Локальний ШІ-аналітик і радник активний";
 }
 
 /* ---------- календар доходів і витрат ---------- */
@@ -579,7 +616,7 @@ window.advCalMove=function(n){
 build();
 try{homeLayout();}catch(e){}try{renameAI();}catch(e){}
 try{calBuild();}catch(e){}
-try{chatBuild();}catch(e){}
+try{aiExtras();}catch(e){}
 try{bio();}catch(e){}
 /* ---------- закріплені шапки розділів: багаторівнева навігація ---------- */
 (function stickySectionHeaders(){
@@ -1391,7 +1428,7 @@ window.addEventListener("load",function(){
 ========================================================= */
 (function(){
 "use strict";
-var APP_REV="1.1";
+var APP_REV="1.2";
 window.APP_REV=APP_REV;
 function p2(n){return String(n).padStart(2,"0");}
 function installDate(){
