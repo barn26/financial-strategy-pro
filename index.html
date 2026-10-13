@@ -183,9 +183,58 @@ html[data-theme="light"] .progress{background:#e3ecf6;}
 header{padding-top:env(safe-area-inset-top,0px);}
 body{padding-bottom:env(safe-area-inset-bottom,0px);}
 #netBadge{border-color:rgba(255,209,102,.5);color:var(--y);}
+.calGrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;}
+.calWd{text-align:center;font-size:11px;color:var(--muted);padding:4px 0;}
+.calCell{min-height:56px;border:1px solid var(--line);border-radius:9px;padding:4px;cursor:pointer;overflow:hidden;}
+.calCell.empty{border:0;cursor:default;}
+.calCell.today{outline:2px solid var(--c);}
+.calCell.sel{box-shadow:0 0 0 2px var(--b) inset;}
+.calD{font-size:11px;color:var(--muted);}
+.calV{font-size:11px;font-weight:800;margin-top:2px;word-break:break-all;}
+@media(max-width:700px){.calCell{min-height:48px;padding:3px;}.calV{font-size:10px;}}
+/* ===== ефект об'єму: розділи «парять» над фоном ===== */
+.card{
+ box-shadow:0 1px 0 rgba(255,255,255,.07) inset,0 -1px 0 rgba(0,0,0,.25) inset,0 22px 40px -14px rgba(0,0,0,.6),0 8px 16px -6px rgba(0,0,0,.35);
+ border-color:rgba(120,160,210,.22);
+ transition:transform .28s ease,box-shadow .28s ease;
+}
+.kpi,.item,.dailyMini{box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 6px 14px -8px rgba(0,0,0,.55);}
+.btn{box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 4px 8px -3px rgba(0,0,0,.45);transition:transform .15s ease,filter .15s ease,box-shadow .15s ease;}
+.btn:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 1px 3px rgba(0,0,0,.4);}
+input,select,textarea{box-shadow:0 2px 6px -3px rgba(0,0,0,.6) inset;}
+.dailyWidget{box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 26px 46px -14px rgba(54,224,154,.18),0 10px 20px -8px rgba(0,0,0,.45);}
+@media (hover:hover){
+ .card:hover{transform:translateY(-4px);box-shadow:0 1px 0 rgba(255,255,255,.09) inset,0 -1px 0 rgba(0,0,0,.25) inset,0 32px 52px -14px rgba(0,0,0,.65),0 12px 22px -6px rgba(0,0,0,.4);}
+ .item:hover,.kpi:hover{transform:translateY(-2px);transition:transform .2s ease;}
+}
+html[data-theme="light"] .card{box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 22px 38px -16px rgba(30,60,100,.28),0 8px 14px -8px rgba(30,60,100,.18);border-color:#d6e0ec;}
+html[data-theme="light"] .kpi,html[data-theme="light"] .item,html[data-theme="light"] .dailyMini{box-shadow:0 1px 0 #fff inset,0 6px 12px -8px rgba(30,60,100,.25);}
+html[data-theme="light"] .btn{box-shadow:0 1px 0 #fff inset,0 3px 7px -3px rgba(30,60,100,.3);}
+html[data-theme="light"] input,html[data-theme="light"] select,html[data-theme="light"] textarea{box-shadow:0 2px 5px -3px rgba(30,60,100,.25) inset;}
+html[data-theme="light"] .dailyWidget{box-shadow:0 1px 0 #fff inset,0 26px 44px -16px rgba(15,157,99,.28),0 8px 16px -8px rgba(30,60,100,.2);}
+@media (prefers-reduced-motion:reduce){.card,.btn,.item,.kpi{transition:none!important;transform:none!important;}}
+.payRow{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
 </style>
 </head>
 <body>
+<div id="licGate" style="display:none;position:fixed;inset:0;z-index:9500;background:var(--bg,#07111f);color:var(--text,#e8f0fa);overflow:auto;align-items:center;justify-content:center;padding:18px">
+ <div class="card" style="width:min(460px,100%);margin:auto">
+  <div style="font-size:22px;font-weight:800;margin-bottom:4px">🔒 Програму не активовано</div>
+  <div class="muted small" style="margin-bottom:14px">Ця програма працює лише на пристроях, які дозволив власник. Надішліть йому код цього пристрою й отримайте ключ активації.</div>
+  <div class="field"><label>Код цього пристрою</label>
+   <div style="display:flex;gap:8px;align-items:center">
+    <div id="licDev" style="flex:1;font-family:monospace;font-size:22px;font-weight:800;letter-spacing:2px;padding:10px 12px;border:1px solid var(--line,#274058);border-radius:10px;text-align:center">—</div>
+    <button class="btn cyan" onclick="licCopy()">📋</button>
+   </div>
+  </div>
+  <div class="field"><label>Ключ активації</label>
+   <textarea id="licKey" rows="4" placeholder="Вставте ключ, який надіслав власник" style="font-family:monospace;font-size:13px" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+  </div>
+  <button class="btn green" style="width:100%" onclick="licActivate()">✅ Активувати</button>
+  <div id="licMsg" class="small" style="margin-top:10px;min-height:18px"></div>
+ </div>
+</div>
+
 
 <div id="login">
  <div class="loginBox">
@@ -198,6 +247,7 @@ body{padding-bottom:env(safe-area-inset-bottom,0px);}
    <input id="loginPassword" type="password" placeholder="Введіть пароль" onkeydown="if(event.key==='Enter')login()">
   </div>
   <button class="btn primary" style="width:100%" onclick="login()">🔐 Увійти</button>
+  <button id="bioLoginBtn" class="btn green" style="width:100%;margin-top:10px;display:none" onclick="bioLogin(false)">👆 Увійти за відбитком</button>
   <button class="btn cyan" style="width:100%;margin-top:10px" onclick="openInstructions()">📖 Інструкція</button>
   <button id="installLoginBtn" class="btn green" style="width:100%;margin-top:10px;display:none" onclick="installApp()">📲 Встановити застосунок</button>
   <div id="iosHint" class="small muted" style="display:none;margin-top:10px;text-align:center">iPhone/iPad: натисніть «Поділитися» → «На початковий екран»</div>
@@ -236,7 +286,7 @@ body{padding-bottom:env(safe-area-inset-bottom,0px);}
 
    <div class="instrStep"><div class="instrNum">3</div><div class="instrBody">
     <div class="instrTitle"><span class="instrIcon">🏦</span> Додайте рахунки</div>
-    <div class="instrText">У розділі «Рахунки» натисніть «+ Рахунок» і вкажіть назву (Готівка, Картка, Заощадження тощо). Рахунки потрібні, щоб коректно рахувати баланс.</div>
+    <div class="instrText">У розділі «Рахунки» натисніть «+ Рахунок» і вкажіть назву (Готівка, Картка, Заощадження тощо). Рахунки потрібні, щоб коректно рахувати баланс. Порядок рахунків змінюється кнопками ⬆️ ⬇️ (від цього залежить і порядок у списках вибору рахунку).</div>
     <span class="instrTag">Рахунки</span>
    </div></div>
 
@@ -361,6 +411,60 @@ body{padding-bottom:env(safe-area-inset-bottom,0px);}
     <span class="instrTag">PWA</span>
    </div></div>
 
+   <div class="instrStep"><div class="instrNum">21</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">📆</span> Календар витрат</div>
+    <div class="instrText">Розділ «📆 Календар»: місяць у вигляді сітки, де кожен день підсвічений залежно від суми (витрати, доходи або баланс дня — перемикається зверху). Натисніть на день, щоб побачити його операції, змінити чи видалити їх, або додати нову витрату/дохід саме на цю дату. Місяці гортаються стрілками або свайпом. Під календарем — підсумок місяця та топ категорій.</div>
+    <span class="instrTag">Календар</span>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">22</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">🔄</span> Оновлення програми</div>
+    <div class="instrText">Програма сама перевіряє наявність нової версії під час запуску та коли ви повертаєтесь до неї. Якщо оновлення є, внизу з'явиться повідомлення з кнопкою «Оновити». Перевірити вручну можна в «Налаштування → 🔄 Оновлення програми». Дані при оновленні не втрачаються. Незбережені дані у відкритих формах перед оновленням краще зберегти. Для публікації нової версії достатньо замінити на GitHub один файл index.html.</div>
+    <span class="instrTag">Налаштування</span>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">23</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">🔁</span> Перекази між рахунками</div>
+    <div class="instrText">У розділі «Рахунки» натисніть «🔁 Переказ»: виберіть рахунок-відправник і отримувач, суму та дату. Гроші переходять з одного рахунку на інший, а загальний баланс, доходи й витрати не змінюються. Переказ видно в «Історії» (фільтр типу «Переказ») і можна видалити, якщо створено помилково.</div>
+    <span class="instrTag">Рахунки</span>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">24</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">💱</span> Конвертер валют</div>
+    <div class="instrText">Розділ «💱 Курси»: введіть суму, виберіть валюти, і одразу побачите результат та курс. Нижче таблиця: та сама сума в кількох валютах одразу (список можна змінювати). Джерело курсів: світові (ExchangeRate-API) або офіційні НБУ. Курси оновлюються раз на добу; останні завантажені зберігаються й показуються без інтернету.</div>
+    <span class="instrTag">Курси</span>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">25</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">🌍</span> Перегляд сум в іншій валюті</div>
+    <div class="instrText">Вибір валюти у верхньому меню (поруч із кнопкою 👁) перераховує всі суми в програмі: баланс, історію, календар, бюджет, цілі, борги, плани, графіки. Усі дані при цьому зберігаються й вносяться в базовій валюті (вона вказується в «Налаштування → Вигляд і валюта»). Для перерахунку використовується поточний курс, тому старі операції теж показуються за сьогоднішнім курсом, це орієнтовні суми. Щоб повернутись, виберіть базову валюту зі списку або натисніть кнопку в повідомленні вгорі.</div>
+    <span class="instrTag">Верхнє меню</span>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">26</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">👆</span> Вхід за відбитком пальця</div>
+    <div class="instrText">«Налаштування → 🔒 Безпека → Увімкнути вхід за відбитком»: телефон попросить підтвердити відбиток (на iPhone — Face ID/Touch ID). Після цього на екрані входу з'явиться кнопка «👆 Увійти за відбитком», а під час запуску програма сама запропонує підтвердити. Пароль і PIN залишаються запасним способом. Функція працює лише на пристрої, де її увімкнено, потребує https і біометрії, налаштованої в телефоні, а також додає зручності, але не шифрує дані.</div>
+    <span class="instrTag">Налаштування → Безпека</span>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">27</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">🔁</span> Регулярні платежі</div>
+    <div class="instrText">Розділ «🔁 Платежі» → «+ Платіж»: вкажіть назву, суму, категорію, рахунок і періодичність (щомісяця, щотижня, кожні N днів або щороку). Коли настає дата, на Головній з'являється блок «Платежі» з кнопками «Підтвердити» (можна змінити суму та дату) і «Пропустити». За кілька днів до платежу (налаштовується) він показується як нагадування. Для кожного платежу можна вибрати, чи резервувати його суму у розрахунку «Можна витратити сьогодні». Платіж можна прив'язати до боргу, поставити на паузу або видалити. Програма не надсилає сповіщень, коли закрита, нагадування видно під час відкриття. Дні з платежами позначені 🔁 у календарі.</div>
+    <span class="instrTag">Платежі</span>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">29</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">🛡️</span> Фінансова подушка</div>
+    <div class="instrText">Розділ «🛡️ Подушка» показує, на скільки місяців вистачить ваших заощаджень: заощадження ÷ середні місячні витрати. Спершу позначте рахунки, які є вашою подушкою (або виберіть «Весь баланс»), і вкажіть, які витрати враховувати (усі чи лише обов'язкові) та за скільки останніх періодів усереднювати. Програма покаже рівень (до 1 міс. — критично, 1–3 — початковий, 3–6 — добре, 6+ — дуже добре), скільки не вистачає до цілі, скільки відкладати щомісяця та приблизну дату досягнення. Кнопка «Створити ціль» додасть подушку у фінансові цілі.</div>
+    <span class="instrTag">Подушка</span>
+   </div></div>
+
+   <div class="instrStep"><div class="instrNum">28</div><div class="instrBody">
+    <div class="instrTitle"><span class="instrIcon">📅</span> Сповіщення про платежі в календарі телефону</div>
+    <div class="instrText">У розділі «🔁 Платежі» натисніть «📅 Додати в календар (.ics)». Виберіть «Календар» у меню «Поділитися» або відкрийте збережений файл. Усі активні платежі додадуться в календар як події, що повторюються, з нагадуванням за N днів (налаштовується) і в день платежу о вибраний час. Сповіщення приходять від самого телефона, навіть коли програма закрита. Якщо ви змінили платежі, експортуйте ще раз (програма підкаже). Щоб не було дублів, перед повторним імпортом видаліть старі події «💳 …» або додавайте їх у той самий календар.</div>
+    <span class="instrTag">Платежі</span>
+   </div></div>
+
    <div class="instrStep"><div class="instrNum">20</div><div class="instrBody">
     <div class="instrTitle"><span class="instrIcon">📲</span> Встановлення як застосунок і робота офлайн</div>
     <div class="instrText">Якщо програма розміщена за https-адресою, у «Налаштування → 📲 Застосунок та офлайн-режим» натисніть «Встановити застосунок» (на iPhone: Safari → «Поділитись» → «На початковий екран»). Після першого відкриття з інтернетом програма працює й без нього: усі операції, цілі й фото зберігаються на пристрої. Без інтернету не працюють лише хмарна синхронізація JSONBin та перше розпізнавання чека (мовний модуль потрібно один раз завантажити онлайн). Нові версії програма пропонує встановити сама.</div>
@@ -387,12 +491,17 @@ body{padding-bottom:env(safe-area-inset-bottom,0px);}
    <button onclick="go('transactions')">Витрата</button>
    <button onclick="go('income')">Дохід</button>
    <button onclick="go('history')">Історія</button>
+   <button onclick="go('calendar')">📆 Календар</button>
    <button onclick="go('accounts')">Рахунки</button>
    <button onclick="go('goals')">Цілі</button>
    <button onclick="go('planner')">🛒 План</button>
+   <button onclick="go('converter')">💱 Курси</button>
+   <button onclick="go('recurring')">🔁 Платежі</button>
+   <button onclick="go('cushion')">🛡️ Подушка</button>
    <button onclick="go('debts')">Борги</button>
    <button onclick="go('budget')">Бюджет</button>
    <button onclick="go('settings')">Налаштування</button>
+   <select id="viewCurSel" onchange="setViewCur(this.value)" title="Показувати суми у валюті" style="width:auto;padding:7px 8px;font-size:12px;align-self:center"></select>
    <button id="hideBtn" onclick="toggleHide()" title="Сховати/показати суми">👁</button>
    <button onclick="toggleTheme()" title="Світла/темна тема">🌗</button>
    <button onclick="logout()">Вийти</button>
@@ -401,6 +510,8 @@ body{padding-bottom:env(safe-area-inset-bottom,0px);}
 </header>
 
 <main class="container">
+
+<div id="viewBanner" class="item" style="display:none;border-color:rgba(70,224,255,.4);background:rgba(70,224,255,.07)"></div>
 
 <!-- HOME -->
 <section id="home">
@@ -439,6 +550,8 @@ body{padding-bottom:env(safe-area-inset-bottom,0px);}
   </div>
  </div>
 
+ <div id="homePayments" class="card" style="margin-top:14px;display:none"></div>
+
  <div class="card" style="margin-top:14px">
   <div class="head"><h3 style="margin:0">💡 Головні поради</h3><button class="btn smallBtn" onclick="go('budget')">Усі поради →</button></div>
   <div id="homeAdvice"></div>
@@ -452,6 +565,7 @@ body{padding-bottom:env(safe-area-inset-bottom,0px);}
    <div class="statLine"><span>Доходи</span><b class="green" id="stateIncome">₴0.00</b></div>
    <div class="statLine"><span>Витрати</span><b class="red" id="stateExpense">₴0.00</b></div>
    <div class="statLine"><span>Борги</span><b id="stateDebt">₴0.00</b></div>
+   <div class="statLine"><span>Фінансова подушка</span><b id="stateCushion">—</b></div>
   </div>
   <div class="card">
    <h3>🎯 50 / 30 / 20</h3>
@@ -517,7 +631,7 @@ body{padding-bottom:env(safe-area-inset-bottom,0px);}
    </div>
    <div class="grid grid4">
     <div class="field" style="margin:0"><label>Тип</label>
-     <select id="histFilterType" onchange="renderHistory()"><option value="">Усі</option><option value="income">Дохід</option><option value="expense">Витрата</option></select>
+     <select id="histFilterType" onchange="renderHistory()"><option value="">Усі</option><option value="income">Дохід</option><option value="expense">Витрата</option><option value="transfer">Переказ</option></select>
     </div>
     <div class="field" style="margin:0"><label>Категорія</label>
      <select id="histFilterCategory" onchange="renderHistory()"><option value="">Усі категорії</option></select>
@@ -538,6 +652,36 @@ body{padding-bottom:env(safe-area-inset-bottom,0px);}
    </div>
   </div>
   <div class="card" style="margin-top:14px"><div id="historyList"></div></div>
+ </div>
+</section>
+
+<!-- CALENDAR -->
+<section id="calendar">
+ <div class="card sectionToggle" onclick="toggleSection('calendar')">
+  <div class="head" style="margin-bottom:0">
+   <div><h2 style="margin:0">📆 Календар витрат</h2><div class="muted small">Дні місяця за сумою. Натисніть день — побачите операції</div></div>
+   <span class="badge arrowBadge" id="calendar-arrow">▶</span>
+  </div>
+ </div>
+ <div id="calendar-body" class="sectionBody collapsed">
+  <div class="card">
+   <div class="head">
+    <div class="row">
+     <button class="btn smallBtn" onclick="calShift(-1)">◀</button>
+     <b id="calTitle" style="min-width:140px;text-align:center"></b>
+     <button class="btn smallBtn" onclick="calShift(1)">▶</button>
+    </div>
+    <div class="row">
+     <button class="btn smallBtn" onclick="calToday()">Сьогодні</button>
+     <select id="calModeSel" style="width:auto" onchange="calSetMode(this.value)"><option value="expense">Витрати</option><option value="income">Доходи</option><option value="net">Баланс дня</option></select>
+    </div>
+   </div>
+   <div class="calGrid"><div class="calWd">Пн</div><div class="calWd">Вт</div><div class="calWd">Ср</div><div class="calWd">Чт</div><div class="calWd">Пт</div><div class="calWd">Сб</div><div class="calWd">Нд</div></div>
+   <div id="calGrid" class="calGrid"></div>
+   <div class="small muted" style="margin-top:8px">Чим насиченіший колір, тим більша сума. Перелистуйте місяці свайпом вліво/вправо.</div>
+  </div>
+  <div class="card" style="margin-top:14px"><div id="calSummary"></div></div>
+  <div class="card" style="margin-top:14px"><div id="calDay"></div></div>
  </div>
 </section>
 
@@ -641,7 +785,7 @@ body{padding-bottom:env(safe-area-inset-bottom,0px);}
  </div>
  <div id="accounts-body" class="sectionBody collapsed">
   <div class="card">
-   <div class="head"><div></div><button class="btn primary" onclick="addAccount()">+ Рахунок</button></div>
+   <div class="head"><div></div><div class="row"><button class="btn cyan" onclick="transferModal()">🔁 Переказ</button><button class="btn primary" onclick="addAccount()">+ Рахунок</button></div></div>
    <div id="accountsList"></div>
   </div>
  </div>
@@ -675,6 +819,111 @@ body{padding-bottom:env(safe-area-inset-bottom,0px);}
   <div class="card">
    <div class="head"><div class="muted small">Оцінка спирається на ваш середній вільний залишок (доходи мінус витрати) у поточному періоді. «Відкладено» тут — це облік, а не списання з рахунків.</div><button class="btn primary" onclick="addPlan()">+ Покупка</button></div>
    <div id="plansList"></div>
+  </div>
+ </div>
+</section>
+
+<!-- CUSHION -->
+<section id="cushion">
+ <div class="card sectionToggle" onclick="toggleSection('cushion')">
+  <div class="head" style="margin-bottom:0">
+   <div><h2 style="margin:0">🛡️ Фінансова подушка</h2><div class="muted small">На скільки місяців вистачить ваших заощаджень</div></div>
+   <span class="badge arrowBadge" id="cushion-arrow">▶</span>
+  </div>
+ </div>
+ <div id="cushion-body" class="sectionBody collapsed">
+  <div class="card">
+   <h3>Налаштування розрахунку</h3>
+   <div class="grid grid2">
+    <div class="field"><label>Що вважати заощадженнями</label>
+     <select id="cushMode" onchange="setCush('cushMode',this.value)"><option value="accounts">Вибрані рахунки (рекомендовано)</option><option value="all">Весь баланс</option></select>
+    </div>
+    <div class="field"><label>Які витрати враховувати</label>
+     <select id="cushExp" onchange="setCush('cushExp',this.value)"><option value="all">Усі витрати</option><option value="needs">Лише обов'язкові (потреби та борги)</option></select>
+    </div>
+    <div class="field"><label>Усереднювати витрати за останні</label>
+     <select id="cushAvg" onchange="setCush('cushAvg',this.value)"><option value="1">1 період</option><option value="2">2 періоди</option><option value="3">3 періоди</option><option value="4">4 періоди</option><option value="6">6 періодів</option></select>
+    </div>
+    <div class="field"><label>Цільова подушка, місяців</label>
+     <input id="cushTarget" type="number" min="1" max="36" step="1" onchange="setCush('cushTarget',this.value)">
+    </div>
+   </div>
+   <div id="cushAccBox"></div>
+  </div>
+  <div id="cushMain" style="margin-top:14px"></div>
+  <div class="card" style="margin-top:14px">
+   <h3>📈 Динаміка подушки</h3>
+   <div class="chartBox"><canvas id="cushChart"></canvas></div>
+   <div class="small muted" style="margin-top:8px">Показано, на скільки місяців вистачало б заощаджень на кінець кожного з останніх періодів за поточного рівня витрат. Лінія — ваша ціль.</div>
+  </div>
+ </div>
+</section>
+
+<!-- RECURRING -->
+<section id="recurring">
+ <div class="card sectionToggle" onclick="toggleSection('recurring')">
+  <div class="head" style="margin-bottom:0">
+   <div><h2 style="margin:0">🔁 Регулярні платежі</h2><div class="muted small">Комуналка, інтернет, підписки: нагадування та внесення з підтвердженням</div></div>
+   <span class="badge arrowBadge" id="recurring-arrow">▶</span>
+  </div>
+ </div>
+ <div id="recurring-body" class="sectionBody collapsed">
+  <div class="card">
+   <div class="head">
+    <div class="row">
+     <div><label>Нагадувати за</label>
+      <select id="recRemindSel" style="width:auto" onchange="setRecRemind(this.value)"><option value="1">1 день</option><option value="2">2 дні</option><option value="3">3 дні</option><option value="5">5 днів</option><option value="7">7 днів</option></select>
+     </div>
+    </div>
+    <button class="btn primary" onclick="recForm()">+ Платіж</button>
+   </div>
+   <div class="item" style="margin-bottom:12px">
+    <div class="itemTitle">📅 Нагадування в календар телефону</div>
+    <div class="small muted" style="margin-bottom:10px">Сповіщення приходитимуть навіть коли програма закрита: платежі додаються в календар телефону з нагадуванням за вказану кількість днів і в день платежу.</div>
+    <div class="row" style="align-items:flex-end">
+     <div><label>Час сповіщення</label><input id="recTimeInp" type="time" style="width:auto" onchange="setRecTime(this.value)"></div>
+     <button class="btn cyan" onclick="exportIcs()">📅 Додати в календар (.ics)</button>
+    </div>
+    <div id="icsNote" class="small" style="margin-top:8px"></div>
+   </div>
+   <div id="recSummary" class="small muted" style="margin-bottom:12px"></div>
+   <div id="recList"></div>
+  </div>
+ </div>
+</section>
+
+<!-- CONVERTER -->
+<section id="converter">
+ <div class="card sectionToggle" onclick="toggleSection('converter')">
+  <div class="head" style="margin-bottom:0">
+   <div><h2 style="margin:0">💱 Конвертер валют</h2><div class="muted small">Актуальні курси: будь-яка сума в різних валютах</div></div>
+   <span class="badge arrowBadge" id="converter-arrow">▶</span>
+  </div>
+ </div>
+ <div id="converter-body" class="sectionBody collapsed">
+  <div class="card">
+   <div class="grid grid2">
+    <div class="field"><label>Сума</label><input id="convAmount" type="text" inputmode="decimal" placeholder="100" oninput="renderConverter()"></div>
+    <div class="field"><label>Джерело курсів</label>
+     <select id="convSource" onchange="setRateSource(this.value)"><option value="auto">Світові курси (ExchangeRate-API)</option><option value="nbu">Офіційні курси НБУ</option></select>
+    </div>
+   </div>
+   <div class="row" style="align-items:flex-end;flex-wrap:nowrap">
+    <div style="flex:1;min-width:0"><label>З валюти</label><select id="convFrom" onchange="renderConverter()"></select></div>
+    <button class="btn" onclick="swapCur()" style="margin-bottom:12px" title="Поміняти місцями">⇄</button>
+    <div style="flex:1;min-width:0"><label>У валюту</label><select id="convTo" onchange="renderConverter()"></select></div>
+   </div>
+   <div class="kpi" style="margin-top:6px"><div class="label">РЕЗУЛЬТАТ</div><div class="value cyan" id="convResult" style="font-size:22px">—</div><div id="convRates" class="small muted" style="margin-top:8px"></div></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+   <h3>У кількох валютах одразу</h3>
+   <div id="convTable"></div>
+   <div class="field" style="margin-top:10px"><select id="convAdd" onchange="addFavCur(this.value)"></select></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+   <div class="row"><button class="btn cyan" onclick="refreshRates(true)">🔄 Оновити курси</button></div>
+   <div id="convStatus" class="small muted" style="margin-top:8px"></div>
+   <div class="small muted" style="margin-top:8px">Це ринкові (середні) або офіційні курси. Банки та обмінники застосовують власні курси купівлі й продажу, тому реальна сума може відрізнятися. Курси оновлюються раз на добу.</div>
   </div>
  </div>
 </section>
@@ -775,10 +1024,10 @@ body{padding-bottom:env(safe-area-inset-bottom,0px);}
     <div class="field"><label>Тема</label>
      <select id="themeSel" onchange="setTheme(this.value)"><option value="dark">Темна</option><option value="light">Світла</option><option value="auto">Авто (як у системі)</option></select>
     </div>
-    <div class="field"><label>Символ валюти</label>
+    <div class="field"><label>Базова валюта (в ній вносяться суми)</label>
      <select id="currencySel" onchange="setCurrency(this.value)"><option value="₴">₴ (гривня)</option><option value="$">$ (долар)</option><option value="€">€ (євро)</option><option value="zł">zł (злотий)</option><option value="£">£ (фунт)</option></select>
     </div>
-    <div class="small muted">Валюта змінює лише символ, суми автоматично не конвертуються.</div>
+    <div class="small muted">Це валюта, у якій ви вносите й зберігаєте суми (змінює лише символ, без перерахунку). Переглядати всі суми в іншій валюті можна вибором валюти у верхньому меню.</div>
    </div>
    <div class="card">
     <h2>🔒 Безпека</h2>
@@ -789,6 +1038,11 @@ body{padding-bottom:env(safe-area-inset-bottom,0px);}
      <button class="btn red" onclick="removePin()">Видалити PIN</button>
     </div>
     <div id="pinStatus" class="small muted" style="margin-bottom:12px"></div>
+    <div class="row" style="margin-bottom:6px">
+     <button class="btn cyan" id="bioEnableBtn" style="display:none" onclick="bioEnable()">👆 Увімкнути вхід за відбитком</button>
+     <button class="btn red" id="bioDisableBtn" style="display:none" onclick="bioDisable()">Вимкнути вхід за відбитком</button>
+    </div>
+    <div id="bioStatus" class="small muted" style="margin-bottom:12px"></div>
     <div class="field"><label>Автоблокування після бездіяльності</label>
      <select id="autoLockSel" onchange="setAutoLock(this.value)"><option value="0">Вимкнено</option><option value="1">1 хв</option><option value="2">2 хв</option><option value="5">5 хв</option><option value="10">10 хв</option><option value="15">15 хв</option></select>
     </div>
@@ -810,6 +1064,14 @@ body{padding-bottom:env(safe-area-inset-bottom,0px);}
    <h2>🏷️ Власні категорії</h2>
    <div class="muted small" style="margin-bottom:10px">Додавайте нові категорії прямо у списку категорій («➕ Додати свою категорію…»). Тут їх можна видалити, якщо вони не використовуються в операціях.</div>
    <div id="catManager"></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+   <h2>🔄 Оновлення програми</h2>
+   <div class="statLine"><span>Поточна версія</span><b id="updVer"></b></div>
+   <div class="row" style="margin-top:10px">
+    <button class="btn cyan" onclick="checkUpdate(true)">🔄 Перевірити оновлення</button>
+   </div>
+   <div id="updStatus" class="small muted" style="margin-top:10px"></div>
   </div>
   <div class="card" style="margin-top:14px">
    <h2>💾 Резервна копія</h2>
@@ -836,6 +1098,16 @@ body{padding-bottom:env(safe-area-inset-bottom,0px);}
 <div id="offlineBar" style="display:none;position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:4000;padding:10px 14px;border-radius:12px;background:#2b2411;border:1px solid rgba(255,209,102,.5);color:#ffd166;font-size:12px;text-align:center">📴 Немає інтернету — програма працює офлайн. Усі дані зберігаються на пристрої; хмарна синхронізація та перше розпізнавання чеків недоступні.</div>
 <div id="updateBar" style="display:none;position:fixed;left:10px;right:10px;bottom:calc(60px + env(safe-area-inset-bottom,0px));z-index:4001;padding:10px 14px;border-radius:12px;background:#0d2a3a;border:1px solid rgba(70,224,255,.5);color:#46e0ff;font-size:13px;text-align:center">🔄 Доступна нова версія програми. <button class="btn cyan smallBtn" onclick="applyUpdate()">Оновити</button></div>
 
+<div id="updBanner" class="card" style="display:none;position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:6500;max-width:520px;margin:auto;">
+ <div class="row" style="justify-content:space-between;flex-wrap:nowrap">
+  <div><b>🆕 Доступна нова версія</b><div class="small muted" id="updBannerText"></div></div>
+  <div class="row" style="flex-wrap:nowrap">
+   <button class="btn green smallBtn" onclick="applyUpdate()">Оновити</button>
+   <button class="btn smallBtn" onclick="document.getElementById('updBanner').style.display='none'">✕</button>
+  </div>
+ </div>
+</div>
+
 <div id="photoViewer" class="modal" onclick="closePhoto()"><img id="photoViewerImg" alt=""></div>
 
 <div id="modal" class="modal" onclick="if(event.target===this)closeModal()">
@@ -846,6 +1118,7 @@ body{padding-bottom:env(safe-area-inset-bottom,0px);}
 /* =========================================================
    STATE
 ========================================================= */
+const APP_VERSION="2026.10.13-2";
 const KEY="fin26_state_v13";
 const KEY_PERIOD="fin26_period_v1";      // окрема резервна копія періоду
 const KEY_MIG="fin26_migrated_v1";       // прапорець: старі ключі вже перенесені
@@ -863,6 +1136,7 @@ const DEFAULT={
  goalContrib:[],
  debts:[],
  plans:[],
+ recurring:[],
  cats:{expense:[],income:[],needs:[]},   // тільки ВЛАСНІ категорії користувача
  settings:{
   annualPercent:15,
@@ -877,6 +1151,19 @@ const DEFAULT={
   hideAmounts:false,
   autoLock:0,
   pinHash:"",
+  convFrom:"USD",
+  convTo:"UAH",
+  convAmount:"100",
+  favCur:["UAH","USD","EUR","PLN","GBP","CZK"],
+  rateSource:"auto",
+  viewCur:"",
+  recRemind:3,
+  recTime:"09:00",
+  cushMode:"accounts",
+  cushAccounts:[],
+  cushExp:"all",
+  cushAvg:3,
+  cushTarget:6,
   binId:"",
   binKey:"",
   autoSync:false,
@@ -895,10 +1182,29 @@ let autoTimer=null;
 ========================================================= */
 function clone(x){return JSON.parse(JSON.stringify(x));}
 function uid(){return Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,9);}
+const CUR_SYM={UAH:"₴",USD:"$",EUR:"€",PLN:"zł",GBP:"£"};
+const SYM_CODE={"₴":"UAH","$":"USD","€":"EUR","zł":"PLN","£":"GBP"};
 function cur(){return (S&&S.settings&&S.settings.currency)||"₴";}
+function baseCode(){return SYM_CODE[cur()]||"UAH";}
+// Чи активний перегляд у іншій валюті (потрібні завантажені курси)
+function viewActive(){
+ const v=S&&S.settings&&S.settings.viewCur;
+ if(!v||v===baseCode()||typeof RATES==="undefined"||!RATES)return false;
+ const r=RATES.rates;
+ return !!(r[baseCode()]&&r[v]);
+}
+function viewFactor(){
+ if(!viewActive())return 1;
+ const r=RATES.rates;
+ return r[S.settings.viewCur]/r[baseCode()];
+}
+function viewSymbol(){
+ return viewActive()?(CUR_SYM[S.settings.viewCur]||S.settings.viewCur):cur();
+}
 function money(n){
- if(S&&S.settings&&S.settings.hideAmounts)return "•••• "+cur();
- return Number(n||0).toLocaleString("uk-UA",{minimumFractionDigits:2,maximumFractionDigits:2})+" "+cur();
+ const sym=viewSymbol();
+ if(S&&S.settings&&S.settings.hideAmounts)return "•••• "+sym;
+ return (Number(n||0)*viewFactor()).toLocaleString("uk-UA",{minimumFractionDigits:2,maximumFractionDigits:2})+" "+sym;
 }
 function fmtDate(d){
  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
@@ -945,7 +1251,7 @@ function normalize(o){
   sync:{...d.sync,...(o.sync||{})},
   cats:{...d.cats,...(o.cats||{})}
  };
- ["transactions","accounts","goals","goalContrib","debts","plans"].forEach(k=>{if(!Array.isArray(r[k]))r[k]=[];});
+ ["transactions","accounts","goals","goalContrib","debts","plans","recurring"].forEach(k=>{if(!Array.isArray(r[k]))r[k]=[];});
  ["expense","income","needs"].forEach(k=>{if(!Array.isArray(r.cats[k]))r.cats[k]=[];});
  return r;
 }
@@ -1017,6 +1323,15 @@ async function hashPin(p){
  return "d"+(h>>>0);
 }
 
+function enterApp(){
+ document.getElementById("login").style.display="none";
+ document.getElementById("appContent").style.display="block";
+ refresh(true);
+ initAI();
+ resetIdle();
+ if(location.hash){const hid=location.hash.slice(1);if(document.getElementById(hid))setTimeout(()=>go(hid),250);}
+}
+
 async function login(){
  if(Date.now()<lockUntil){
   alert(`Забагато невдалих спроб. Зачекайте ${Math.ceil((lockUntil-Date.now())/1000)} с.`);
@@ -1029,12 +1344,7 @@ async function login(){
  }
  if(ok){
   loginFails=0;
-  document.getElementById("login").style.display="none";
-  document.getElementById("appContent").style.display="block";
-  refresh(true);
-  initAI();
-  resetIdle();
-  if(location.hash){const hid=location.hash.slice(1);if(document.getElementById(hid))setTimeout(()=>go(hid),250);}
+  enterApp();
  }else{
   loginFails++;
   if(loginFails>=5){
@@ -1068,6 +1378,8 @@ function toggleSection(id){
   body.classList.remove("collapsed");
   if(arrow){arrow.textContent="▼";arrow.classList.add("open");}
   if(id==="budget")setTimeout(()=>{updateCharts();updateCompare();},60);
+  if(id==="converter"){renderConverter();ensureRates();}
+  if(id==="cushion")setTimeout(renderCushion,60);
  }else{
   body.classList.add("collapsed");
   if(arrow){arrow.textContent="▶";arrow.classList.remove("open");}
@@ -1286,21 +1598,29 @@ function toggleAccount(id){
 }
 function deleteAccount(id){
  if(S.accounts.length<=1){alert("Не можна видалити останній рахунок");return;}
- if(S.transactions.some(t=>t.accountId===id)){alert("Цей рахунок використовується в операціях і не може бути видалений.");return;}
+ if(S.transactions.some(t=>t.accountId===id||t.fromAccountId===id||t.toAccountId===id)){alert("Цей рахунок використовується в операціях і не може бути видалений.");return;}
  if(!confirm("Видалити цей рахунок?"))return;
  S.accounts=S.accounts.filter(a=>a.id!==id);
+ markDirty();refresh();
+}
+function moveAccount(id,dir){
+ const i=S.accounts.findIndex(a=>a.id===id),j=i+dir;
+ if(i<0||j<0||j>=S.accounts.length)return;
+ const t=S.accounts[i];S.accounts[i]=S.accounts[j];S.accounts[j]=t;
  markDirty();refresh();
 }
 function renderAccounts(){
  const el=document.getElementById("accountsList");
  if(!S.accounts.length){el.innerHTML='<div class="empty">Рахунків немає</div>';return;}
- el.innerHTML=S.accounts.map(a=>{
+ el.innerHTML=S.accounts.map((a,i)=>{
   const bal=accountBalance(a.id);
   return `
    <div class="item">
     <div class="itemTitle">${esc(a.name)} <span class="badge">${a.active?"Активний":"Вимкнений"}</span></div>
     <div class="statLine"><span>Баланс</span><b class="${bal>=0?"green":"red"}">${money(bal)}</b></div>
     <div class="row" style="margin-top:9px">
+     <button class="btn smallBtn" onclick="moveAccount('${a.id}',-1)" ${i===0?"disabled style=\"opacity:.35\"":""} title="Вгору">⬆️</button>
+     <button class="btn smallBtn" onclick="moveAccount('${a.id}',1)" ${i===S.accounts.length-1?"disabled style=\"opacity:.35\"":""} title="Вниз">⬇️</button>
      <button class="btn smallBtn" onclick="renameAccount('${a.id}')">✏️ Перейменувати</button>
      <button class="btn smallBtn" onclick="toggleAccount('${a.id}')">${a.active?"⏸ Вимкнути":"▶ Увімкнути"}</button>
      <button class="btn red smallBtn" onclick="deleteAccount('${a.id}')">🗑 Видалити</button>
@@ -1418,6 +1738,7 @@ function saveEditTx(id){
 function deleteTx(id){
  if(!confirm("Видалити цю операцію?"))return;
  const t=S.transactions.find(x=>x.id===id);
+ if(t&&t.recId){const rr=S.recurring.find(x=>x.id===t.recId);if(rr)rr.handled=(rr.handled||[]).filter(d=>d!==t.recDate);}
  if(t&&t.photos)t.photos.forEach(p=>photoDel(p.id).catch(()=>{}));
  S.transactions=S.transactions.filter(t=>t.id!==id);
  markDirty();refresh();
@@ -1458,16 +1779,16 @@ function renderHistory(){
  const fromF=document.getElementById("histFilterFrom")?.value||"";
  const toF=document.getElementById("histFilterTo")?.value||"";
 
- let arr=S.transactions.filter(t=>t.type==="income"||t.type==="expense");
+ let arr=S.transactions.filter(t=>t.type==="income"||t.type==="expense"||t.type==="transfer");
  if(typeF)arr=arr.filter(t=>t.type===typeF);
  if(catF)arr=arr.filter(t=>(t.category||"Інше")===catF);
- if(accF)arr=arr.filter(t=>t.accountId===accF);
+ if(accF)arr=arr.filter(t=>t.accountId===accF||t.fromAccountId===accF||t.toAccountId===accF);
  if(fromF)arr=arr.filter(t=>t.date>=fromF);
  if(toF)arr=arr.filter(t=>t.date<=toF);
 
  let totalSum=0;
  if(typeF)totalSum=arr.reduce((s,t)=>s+amt(t),0);
- else totalSum=arr.reduce((s,t)=>s+(t.type==="income"?amt(t):-amt(t)),0);
+ else totalSum=arr.reduce((s,t)=>s+(t.type==="transfer"?0:(t.type==="income"?amt(t):-amt(t))),0);
 
  const labelEl=document.getElementById("histFilteredLabel");
  const totalEl=document.getElementById("histFilteredTotal");
@@ -1475,6 +1796,7 @@ function renderHistory(){
   totalEl.textContent=money(totalSum);
   if(typeF==="expense"){labelEl.textContent="СУМА ВИТРАТ";totalEl.className="value red";}
   else if(typeF==="income"){labelEl.textContent="СУМА ДОХОДІВ";totalEl.className="value green";}
+  else if(typeF==="transfer"){labelEl.textContent="СУМА ПЕРЕКАЗІВ";totalEl.className="value cyan";}
   else{labelEl.textContent="РАЗОМ (БАЛАНС)";totalEl.className="value "+(totalSum>=0?"green":"red");}
  }
 
@@ -1484,12 +1806,16 @@ function renderHistory(){
  el.innerHTML=arr.map(t=>{
   const amount=amt(t);
   const income=t.type==="income";
+  if(t.type==="transfer"){
+   const f=account(t.fromAccountId),to=account(t.toAccountId);
+   return `<div class="item"><div class="row" style="justify-content:space-between"><div><div class="itemTitle">🔁 Переказ</div><div class="small muted">${fd(t.date)} • ${esc(f?.name||"?")} → ${esc(to?.name||"?")}</div>${t.memo?`<div class="small muted" style="margin-top:5px">${esc(t.memo)}</div>`:""}</div><div style="text-align:right"><b class="cyan">${money(amount)}</b><div class="row" style="justify-content:flex-end;margin-top:7px"><button class="btn red smallBtn" onclick="deleteTx('${t.id}')">🗑</button></div></div></div></div>`;
+  }
   const acc=account(t.accountId);
   return `
    <div class="item">
     <div class="row" style="justify-content:space-between">
      <div>
-      <div class="itemTitle">${income?"➕":"➖"} ${esc(t.category||"Інше")}</div>
+      <div class="itemTitle">${income?"➕":"➖"} ${esc(t.category||"Інше")}${t.recId?" 🔁":""}</div>
       <div class="small muted">${fd(t.date)} • ${esc(acc?.name||"Рахунок")}</div>
       ${t.memo?`<div class="small muted" style="margin-top:5px">${esc(t.memo)}</div>`:""}
       ${(t.photos&&t.photos.length)?`<div class="thumbs" style="margin-top:8px">${t.photos.map(p=>`<div class="thumbWrap"><img class="thumb" data-pid="${p.id}" alt="" onclick="openPhoto('${p.id}')"><span class="kindTag">${p.kind==="receipt"?"🧾":"📦"}</span></div>`).join("")}</div>`:""}
@@ -1509,13 +1835,13 @@ function renderHistory(){
 /* =========================================================
    QUICK ADD
 ========================================================= */
-function quickAdd(type){
+function quickAdd(type,dateArg){
  document.getElementById("modal").style.display="flex";
  const accountOptions=S.accounts.filter(a=>a.active).map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join("");
  document.getElementById("modalContent").innerHTML=`
   <h2>${type==="expense"?"➖ Швидка витрата":"➕ Швидкий дохід"}</h2>
   <div class="field"><label>Сума</label><input id="quickAmount" type="number" step="0.01" min="0"></div>
-  <div class="field"><label>Дата</label><input id="quickDate" type="date" value="${today()}"></div>
+  <div class="field"><label>Дата</label><input id="quickDate" type="date" value="${dateArg||today()}"></div>
   <div class="field"><label>Категорія</label><select id="quickCategory" onfocus="this.dataset.prev=this.value" onchange="onCatChange(this,'${type}')">${catOptions(type,"",true)}</select></div>
   <div class="field"><label>Рахунок</label><select id="quickAccount">${accountOptions}</select></div>
   <div class="field"><label>Коментар</label><input id="quickMemo"></div>
@@ -1772,14 +2098,14 @@ function renderDebts(){
 ========================================================= */
 function spentUntilToday(){
  const t=today();
- return periodTx().filter(x=>x.type==="expense"&&x.date<=t).reduce((s,x)=>s+amt(x),0);
+ return periodTx().filter(x=>x.type==="expense"&&!x.recLimit&&x.date<=t).reduce((s,x)=>s+amt(x),0);
 }
 function spentToday(){
  const t=today();
- return periodTx().filter(x=>x.type==="expense"&&x.date===t).reduce((s,x)=>s+amt(x),0);
+ return periodTx().filter(x=>x.type==="expense"&&!x.recLimit&&x.date===t).reduce((s,x)=>s+amt(x),0);
 }
 function periodBudgetBase(){
- return Math.max(0,Math.max(0,totalBalance())+spentUntilToday());
+ return Math.max(0,Math.max(0,totalBalance())+spentUntilToday()-reservedPayments());
 }
 
 function calculateSpend(){
@@ -1805,6 +2131,8 @@ function calculateSpend(){
 
  let text=`Базовий денний ліміт: ${money(daily)}. Сьогодні витрачено: ${money(tSpent)}. `;
  text+=carry>=0?`Невикористаний запас: ${money(carry)}.`:`Перевищення плану: ${money(Math.abs(carry))}.`;
+ const rsv=reservedPayments();
+ if(rsv>0)text+=` Зарезервовано на платежі: ${money(rsv)}.`;
  return{amount,daily,carry,spentToday:tSpent,daysLeft,progress,text};
 }
 
@@ -1832,6 +2160,13 @@ function buildAdvice(){
  const out=[];
  const add=(l,text)=>out.push({l,text});
  const safeDaily=d.daysLeft>0?Math.max(0,bal)/d.daysLeft:0;
+ {const ci=cushionInfo();
+  if(ci&&!ci.noExp){
+   if(ci.months<1)add("r",`Фінансова подушка менша за 1 місяць (${fmtMonths(ci.months)}). Першою метою зробіть запас на 1 місяць витрат — це ≈${money(ci.monthlyExp)}. Відкладайте одразу після надходження доходу.`);
+   else if(ci.months<3)add("y",`Фінансова подушка — ${fmtMonths(ci.months)} (мінімум радять 3). До 3 місяців не вистачає ≈${money(Math.max(0,ci.monthlyExp*3-ci.savings))}.`);
+   else if(ci.months>=ci.target)add("g",`Фінансова подушка досягла цілі: ${fmtMonths(ci.months)} з ${ci.target}. Надлишок можна спрямувати в цілі чи інвестиції.`);
+  }}
+ {const pp=pendingPayments();if(pp.length)add("y",`Є регулярні платежі, що чекають підтвердження: ${pp.length}. Підтвердьте або пропустіть їх на Головній, щоб баланс і ліміт були точними.`);}
 
  if(ended)add("y","Фінансовий період завершився. Розпочніть новий (Налаштування → «Новий період»), щоб денний ліміт, графіки та бюджет знову працювали.");
 
@@ -2003,6 +2338,7 @@ function updateCharts(){
  const trendCanvas=document.getElementById("trendChart");
  const catCanvas=document.getElementById("categoryChart");
  if(!trendCanvas||!catCanvas)return;
+ const vf=viewFactor();
 
  const labels=[],incomes=[],expenses=[],balances=[];
  let d=dateObj(start);
@@ -2017,7 +2353,7 @@ function updateCharts(){
     if(t.type==="expense")exp+=amt(t);
    }
   });
-  incomes.push(inc);expenses.push(exp);balances.push(totalBalanceUntil(ds));
+  incomes.push(inc*vf);expenses.push(exp*vf);balances.push(totalBalanceUntil(ds)*vf);
   d.setDate(d.getDate()+1);
  }
 
@@ -2034,7 +2370,7 @@ function updateCharts(){
  });
 
  const a=analytics();
- const catLabels=a.list.map(x=>x[0]),catData=a.list.map(x=>x[1]);
+ const catLabels=a.list.map(x=>x[0]),catData=a.list.map(x=>x[1]*vf);
  if(categoryChart)categoryChart.destroy();
  categoryChart=new Chart(catCanvas,{
   type:"doughnut",
@@ -2378,7 +2714,7 @@ function toggleTheme(){
  const eff=document.documentElement.dataset.theme==="light"?"dark":"light";
  setTheme(eff);
 }
-function setCurrency(v){S.settings.currency=v;markDirty();refresh();}
+function setCurrency(v){S.settings.currency=v;if(S.settings.viewCur===baseCode())S.settings.viewCur="";markDirty();refresh();}
 function setHide(on){S.settings.hideAmounts=!!on;persist();refresh();}
 function toggleHide(){setHide(!S.settings.hideAmounts);}
 
@@ -2568,11 +2904,12 @@ function updateCompare(){
  if(!canvas||typeof Chart==="undefined")return;
  const st=S.settings.periodStart,dur=c.dur;
  const labels=[],inc=[],exp=[];
+ const vf=viewFactor();
  for(let i=5;i>=0;i--){
   const ps=addDays(st,-dur*i),pe=addDays(ps,dur-1);
   const r=rangeStats(ps,pe);
   labels.push(fd(ps).slice(0,5)+"–"+fd(pe).slice(0,5));
-  inc.push(r.income);exp.push(r.expense);
+  inc.push(r.income*vf);exp.push(r.expense*vf);
  }
  if(periodsChart)periodsChart.destroy();
  periodsChart=new Chart(canvas,{
@@ -2712,6 +3049,1069 @@ function renderPlans(){
     </div>
    </div>`;
  }).join("");
+}
+
+/* =========================================================
+   ВХІД ЗА ВІДБИТКОМ (WebAuthn, біометрія пристрою)
+========================================================= */
+const BIO_KEY="fin26_bio_v1";
+let bioSupported=null;
+const b64e=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+const b64d=x=>{x=x.replace(/-/g,"+").replace(/_/g,"/");while(x.length%4)x+="=";return Uint8Array.from(atob(x),c=>c.charCodeAt(0));};
+const randBytes=n=>crypto.getRandomValues(new Uint8Array(n));
+
+async function bioCheck(){
+ if(bioSupported!==null)return bioSupported;
+ try{
+  bioSupported=!!(window.isSecureContext&&window.PublicKeyCredential&&PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable());
+ }catch(e){bioSupported=false;}
+ return bioSupported;
+}
+function bioEnabled(){try{return !!localStorage.getItem(BIO_KEY);}catch(e){return false;}}
+
+async function bioUpdateUI(){
+ const sup=await bioCheck(),on=bioEnabled();
+ const g=id=>document.getElementById(id);
+ if(g("bioEnableBtn"))g("bioEnableBtn").style.display=sup&&!on?"":"none";
+ if(g("bioDisableBtn"))g("bioDisableBtn").style.display=on?"":"none";
+ if(g("bioLoginBtn"))g("bioLoginBtn").style.display=sup&&on?"":"none";
+ if(g("bioStatus")){
+  g("bioStatus").textContent=!sup
+   ?"Вхід за відбитком недоступний: потрібні https і біометрія, налаштована в телефоні."
+   :on?"✅ Вхід за відбитком увімкнено на цьому пристрої.":"Вхід за відбитком вимкнено.";
+ }
+}
+
+async function bioEnable(){
+ if(!(await bioCheck())){alert("Вхід за відбитком недоступний на цьому пристрої або в цьому режимі (потрібен https).");return;}
+ try{
+  const cred=await navigator.credentials.create({publicKey:{
+   challenge:randBytes(32),
+   rp:{name:"Financial Strategy"},
+   user:{id:randBytes(16),name:"user",displayName:"Користувач"},
+   pubKeyCredParams:[{type:"public-key",alg:-7},{type:"public-key",alg:-257}],
+   authenticatorSelection:{authenticatorAttachment:"platform",userVerification:"required",residentKey:"discouraged"},
+   timeout:60000,attestation:"none"
+  }});
+  localStorage.setItem(BIO_KEY,b64e(cred.rawId));
+  bioUpdateUI();
+  alert("Вхід за відбитком увімкнено.");
+ }catch(e){
+  if(e&&e.name!=="NotAllowedError"&&e.name!=="AbortError")alert("Не вдалося увімкнути вхід за відбитком.");
+ }
+}
+function bioDisable(){
+ if(!confirm("Вимкнути вхід за відбитком на цьому пристрої?"))return;
+ try{localStorage.removeItem(BIO_KEY);}catch(e){}
+ bioUpdateUI();
+}
+
+async function bioLogin(auto){
+ const id=localStorage.getItem(BIO_KEY);
+ if(!id)return;
+ try{
+  await navigator.credentials.get({publicKey:{
+   challenge:randBytes(32),
+   allowCredentials:[{type:"public-key",id:b64d(id)}],
+   userVerification:"required",
+   timeout:60000
+  }});
+  loginFails=0;
+  enterApp();
+ }catch(e){
+  if(!auto)alert("Відбиток не підтверджено. Скористайтесь PIN або паролем.");
+ }
+}
+
+async function bioInit(){
+ await bioUpdateUI();
+ if(bioSupported&&bioEnabled()&&!appVisible())setTimeout(()=>{if(!appVisible())bioLogin(true);},500);
+}
+
+/* =========================================================
+   РЕГУЛЯРНІ ПЛАТЕЖІ
+========================================================= */
+const WD=["нд","пн","вт","ср","чт","пт","сб"];
+const p2=n=>String(n).padStart(2,"0");
+function lastDayOfMonth(y,m){return new Date(y,m+1,0).getDate();}
+function recHandled(r,ds){return (r.handled||[]).includes(ds);}
+function dd(ds){return Math.round((dateObj(ds)-dateObj(today()))/86400000);}
+
+// Дати платежу в діапазоні [from,to] (включно)
+function recOccurrences(r,from,to){
+ const out=[];
+ if(!r||!r.startDate)return out;
+ const start=r.startDate,end=r.endDate||"9999-12-31";
+ const lo=from>start?from:start,hi=to<end?to:end;
+ if(lo>hi)return out;
+ const push=ds=>{if(ds>=lo&&ds<=hi)out.push(ds);};
+ const sd=dateObj(start);
+ if(r.freq==="monthly"){
+  const dl=dateObj(lo);
+  let y=dl.getFullYear(),m=dl.getMonth();
+  for(let g=0;g<600;g++){
+   const day=Math.min(Number(r.day)||sd.getDate(),lastDayOfMonth(y,m));
+   const ds=`${y}-${p2(m+1)}-${p2(day)}`;
+   if(ds>hi)break;
+   push(ds);
+   m++;if(m>11){m=0;y++;}
+  }
+ }else if(r.freq==="weekly"){
+  const w=(r.weekday===undefined||r.weekday===null||r.weekday==="")?sd.getDay():Number(r.weekday);
+  const d=dateObj(lo);
+  while(d.getDay()!==w)d.setDate(d.getDate()+1);
+  for(let g=0;g<600&&fmtDate(d)<=hi;g++){push(fmtDate(d));d.setDate(d.getDate()+7);}
+ }else if(r.freq==="every"){
+  const n=Math.max(1,Number(r.interval)||1);
+  const diff=Math.round((dateObj(lo)-sd)/86400000);
+  let k=Math.max(0,Math.ceil(diff/n));
+  for(let g=0;g<1500;g++){
+   const d=new Date(sd);d.setDate(d.getDate()+k*n);
+   const ds=fmtDate(d);
+   if(ds>hi)break;
+   push(ds);k++;
+  }
+ }else if(r.freq==="yearly"){
+  const mo=sd.getMonth(),dy=sd.getDate();
+  for(let y=dateObj(lo).getFullYear();y<=dateObj(hi).getFullYear();y++){
+   push(`${y}-${p2(mo+1)}-${p2(Math.min(dy,lastDayOfMonth(y,mo)))}`);
+  }
+ }
+ return out;
+}
+
+// Платежі, дата яких настала (до сьогодні), але ще не підтверджені
+function pendingPayments(){
+ const t=today(),from=addDays(t,-62),out=[];
+ S.recurring.forEach(r=>{
+  if(r.active===false)return;
+  recOccurrences(r,from,t).forEach(ds=>{if(!recHandled(r,ds))out.push({r,ds});});
+ });
+ return out.sort((a,b)=>a.ds.localeCompare(b.ds));
+}
+// Найближчі платежі (після сьогодні, у межах днів нагадування)
+function upcomingPayments(n){
+ const t=today(),out=[];
+ S.recurring.forEach(r=>{
+  if(r.active===false)return;
+  recOccurrences(r,addDays(t,1),addDays(t,n)).forEach(ds=>{if(!recHandled(r,ds))out.push({r,ds});});
+ });
+ return out.sort((a,b)=>a.ds.localeCompare(b.ds));
+}
+// Сума, яку варто зарезервувати з поточного балансу до кінця періоду
+function reservedPayments(){
+ const end=S.settings.periodEnd;
+ if(!end||!S.recurring)return 0;
+ const from=addDays(today(),-62);
+ let sum=0;
+ S.recurring.forEach(r=>{
+  if(r.active===false||r.inLimit===false)return;
+  recOccurrences(r,from,end).forEach(ds=>{if(!recHandled(r,ds))sum+=Number(r.amount)||0;});
+ });
+ return sum;
+}
+function recNext(r){
+ const t=today();
+ const o=recOccurrences(r,addDays(t,-62),addDays(t,800)).find(ds=>!recHandled(r,ds));
+ return o||"";
+}
+function recFreqText(r){
+ if(r.freq==="monthly")return `Щомісяця, ${r.day||dateObj(r.startDate).getDate()}-го`;
+ if(r.freq==="weekly"){const w=(r.weekday===undefined||r.weekday===null||r.weekday==="")?dateObj(r.startDate).getDay():Number(r.weekday);return `Щотижня, ${WD[w]}`;}
+ if(r.freq==="every")return `Кожні ${r.interval||1} дн.`;
+ return `Щороку, ${fd(r.startDate).slice(0,5)}`;
+}
+function monthlyCost(r){
+ const a=Number(r.amount)||0;
+ if(r.freq==="monthly")return a;
+ if(r.freq==="weekly")return a*52/12;
+ if(r.freq==="every")return a*30.4375/Math.max(1,Number(r.interval)||1);
+ return a/12;
+}
+
+function setRecRemind(v){S.settings.recRemind=Number(v)||3;markDirty();refresh();}
+
+/* ---- форма платежу ---- */
+function recForm(id){
+ const r=id?S.recurring.find(x=>x.id===id):null;
+ const act=S.accounts.filter(a=>a.active);
+ if(!act.length){alert("Спершу додайте рахунок");return;}
+ const owe=S.debts.filter(d=>d.type==="i_owe"&&debtRemaining(d)>0);
+ const now=new Date();
+ const v=r||{name:"",amount:"",category:"Комуналка",accountId:act[0].id,freq:"monthly",day:now.getDate(),weekday:now.getDay(),interval:30,startDate:today(),endDate:"",inLimit:true,debtId:""};
+ document.getElementById("modal").style.display="flex";
+ document.getElementById("modalContent").innerHTML=`
+  <h2>${r?"✏️ Редагування платежу":"🔁 Новий регулярний платіж"}</h2>
+  <div class="field"><label>Назва</label><input id="rfName" value="${esc(v.name)}" placeholder="Наприклад: Інтернет"></div>
+  <div class="field"><label>Сума</label><input id="rfAmount" type="number" step="0.01" min="0" value="${v.amount}"></div>
+  <div class="field"><label>Категорія</label><select id="rfCat" onfocus="this.dataset.prev=this.value" onchange="onCatChange(this,'expense')">${catOptions("expense",v.category)}</select></div>
+  <div class="field"><label>Рахунок</label><select id="rfAcc">${act.map(a=>`<option value="${a.id}"${a.id===v.accountId?" selected":""}>${esc(a.name)}</option>`).join("")}</select></div>
+  <div class="field"><label>Періодичність</label>
+   <select id="rfFreq" onchange="recFreqChange()">
+    <option value="monthly"${v.freq==="monthly"?" selected":""}>Щомісяця</option>
+    <option value="weekly"${v.freq==="weekly"?" selected":""}>Щотижня</option>
+    <option value="every"${v.freq==="every"?" selected":""}>Кожні N днів</option>
+    <option value="yearly"${v.freq==="yearly"?" selected":""}>Щороку</option>
+   </select>
+  </div>
+  <div class="field" id="rfRowDay"><label>Число місяця (1–31; у коротких місяцях — останній день)</label><input id="rfDay" type="number" min="1" max="31" value="${v.day||now.getDate()}"></div>
+  <div class="field" id="rfRowWeek"><label>День тижня</label>
+   <select id="rfWeekday">${[1,2,3,4,5,6,0].map(w=>`<option value="${w}"${Number(v.weekday)===w?" selected":""}>${WD[w]}</option>`).join("")}</select>
+  </div>
+  <div class="field" id="rfRowEvery"><label>Кожні N днів</label><input id="rfInterval" type="number" min="1" value="${v.interval||30}"></div>
+  <div class="grid grid2">
+   <div class="field"><label>Початок (перша дата)</label><input id="rfStart" type="date" value="${v.startDate}"></div>
+   <div class="field"><label>Завершення (необов'язково)</label><input id="rfEnd" type="date" value="${v.endDate||""}"></div>
+  </div>
+  <div class="field"><label>Прив'язати до мого боргу (необов'язково)</label>
+   <select id="rfDebt"><option value="">Без боргу</option>${owe.map(d=>`<option value="${d.id}"${d.id===v.debtId?" selected":""}>${esc(d.name)} — ${money(debtRemaining(d))}</option>`).join("")}</select>
+  </div>
+  <div class="field"><label><input id="rfLimit" type="checkbox" style="width:auto"${v.inLimit!==false?" checked":""}> Враховувати в розрахунку «Можна витратити сьогодні» (резервувати суму)</label></div>
+  <div class="row">
+   <button class="btn green" onclick="saveRec('${id||""}')">💾 Зберегти</button>
+   <button class="btn" onclick="closeModal()">Скасувати</button>
+  </div>`;
+ recFreqChange();
+}
+function recFreqChange(){
+ const f=document.getElementById("rfFreq").value;
+ document.getElementById("rfRowDay").style.display=f==="monthly"?"":"none";
+ document.getElementById("rfRowWeek").style.display=f==="weekly"?"":"none";
+ document.getElementById("rfRowEvery").style.display=f==="every"?"":"none";
+}
+function saveRec(id){
+ const g=x=>document.getElementById(x);
+ const name=g("rfName").value.trim(),amount=Number(g("rfAmount").value);
+ const cat=g("rfCat").value,freq=g("rfFreq").value;
+ const start=g("rfStart").value,end=g("rfEnd").value;
+ if(!name){alert("Вкажіть назву");return;}
+ if(!amount||amount<=0){alert("Введіть правильну суму");return;}
+ if(!cat||cat===NEW_CAT){alert("Виберіть категорію");return;}
+ if(!start){alert("Вкажіть дату початку");return;}
+ if(end&&end<start){alert("Дата завершення не може бути раніше початку");return;}
+ const day=Number(g("rfDay").value),interval=Number(g("rfInterval").value);
+ if(freq==="monthly"&&(!day||day<1||day>31)){alert("Число місяця має бути від 1 до 31");return;}
+ if(freq==="every"&&(!interval||interval<1)){alert("Вкажіть кількість днів");return;}
+ const data={name,amount,category:cat,accountId:g("rfAcc").value,freq,day,weekday:Number(g("rfWeekday").value),interval,startDate:start,endDate:end,debtId:g("rfDebt").value,inLimit:g("rfLimit").checked};
+ if(id){
+  const r=S.recurring.find(x=>x.id===id);
+  if(!r)return;
+  Object.assign(r,data);
+ }else{
+  S.recurring.push({id:uid(),active:true,handled:[],...data});
+ }
+ markDirty();closeModal();refresh();
+}
+function toggleRec(id){
+ const r=S.recurring.find(x=>x.id===id);if(!r)return;
+ r.active=r.active===false;
+ markDirty();refresh();
+}
+function deleteRec(id){
+ if(!confirm("Видалити регулярний платіж? Уже внесені операції залишаться в історії."))return;
+ S.recurring=S.recurring.filter(x=>x.id!==id);
+ markDirty();refresh();
+}
+
+/* ---- підтвердження / пропуск ---- */
+function recConfirm(id,ds){
+ const r=S.recurring.find(x=>x.id===id);if(!r)return;
+ const act=S.accounts.filter(a=>a.active);
+ document.getElementById("modal").style.display="flex";
+ document.getElementById("modalContent").innerHTML=`
+  <h2>✅ Підтвердження платежу</h2>
+  <div class="muted" style="margin-bottom:12px">${esc(r.name)} • за розкладом ${fd(ds)}</div>
+  <div class="field"><label>Сума (змініть, якщо відрізняється)</label><input id="rcAmount" type="number" step="0.01" min="0" value="${r.amount}"></div>
+  <div class="field"><label>Дата оплати</label><input id="rcDate" type="date" value="${ds>today()?today():ds}"></div>
+  <div class="field"><label>Рахунок</label><select id="rcAcc">${act.map(a=>`<option value="${a.id}"${a.id===r.accountId?" selected":""}>${esc(a.name)}</option>`).join("")}</select></div>
+  <div class="field"><label>Коментар</label><input id="rcMemo" value="${esc(r.name)}"></div>
+  <div class="row">
+   <button class="btn green" onclick="saveRecConfirm('${id}','${ds}')">💾 Внести витрату</button>
+   <button class="btn" onclick="closeModal()">Скасувати</button>
+  </div>`;
+}
+function saveRecConfirm(id,ds){
+ const r=S.recurring.find(x=>x.id===id);if(!r)return;
+ const amount=Number(document.getElementById("rcAmount").value);
+ if(!amount||amount<=0){alert("Введіть правильну суму");return;}
+ const t={
+  id:uid(),type:"expense",amount,amt:-amount,
+  date:document.getElementById("rcDate").value||today(),
+  category:r.category,accountId:document.getElementById("rcAcc").value,
+  memo:document.getElementById("rcMemo").value.trim(),group:"expense",
+  recId:r.id,recDate:ds,recLimit:r.inLimit!==false
+ };
+ if(r.debtId&&S.debts.some(d=>d.id===r.debtId))t.debtId=r.debtId;
+ S.transactions.push(t);
+ r.handled=(r.handled||[]).concat(ds).slice(-80);
+ markDirty();closeModal();refresh();
+}
+function recSkip(id,ds){
+ const r=S.recurring.find(x=>x.id===id);if(!r)return;
+ if(!confirm(`Пропустити платіж «${r.name}» за ${fd(ds)}? Витрата не буде внесена.`))return;
+ r.handled=(r.handled||[]).concat(ds).slice(-80);
+ markDirty();refresh();
+}
+function recSkipAll(){
+ const pp=pendingPayments();
+ if(!pp.length)return;
+ if(!confirm(`Пропустити всі платежі, що очікують (${pp.length})? Витрати не будуть внесені.`))return;
+ pp.forEach(({r,ds})=>{r.handled=(r.handled||[]).concat(ds).slice(-80);});
+ markDirty();refresh();
+}
+
+/* ---- відображення ---- */
+function payRow(p,due){
+ const {r,ds}=p,n=dd(ds);
+ let label,cls;
+ if(due){
+  cls=n<0?"r":"y";
+  label=n===0?"Сьогодні":`Було ${fd(ds)} (${-n} дн. тому)`;
+ }else{
+  cls="b";
+  label=`Через ${n} дн. (${fd(ds)})`;
+ }
+ return `<div class="item adv ${cls}"><div class="payRow">
+  <div><b>${esc(r.name)}</b> • ${money(r.amount)}<div class="small muted">${label}</div></div>
+  <div class="row">
+   <button class="btn green smallBtn" onclick="recConfirm('${r.id}','${ds}')">${due?"✅ Підтвердити":"✅ Вже оплатив"}</button>
+   ${due?`<button class="btn smallBtn" onclick="recSkip('${r.id}','${ds}')">⏭ Пропустити</button>`:""}
+  </div></div></div>`;
+}
+
+function renderRecurring(){
+ if(!S||!S.recurring)return;
+ updateIcsNote();
+ const remind=Number(S.settings.recRemind)||3;
+ const pend=pendingPayments(),up=upcomingPayments(remind);
+
+ const hb=document.getElementById("homePayments");
+ if(hb){
+  if(!pend.length&&!up.length){hb.style.display="none";hb.innerHTML="";}
+  else{
+   hb.style.display="block";
+   hb.innerHTML=`<div class="head"><h3 style="margin:0">🔁 Платежі</h3><button class="btn smallBtn" onclick="go('recurring')">Усі →</button></div>`+
+    pend.slice(0,6).map(p=>payRow(p,true)).join("")+
+    (pend.length>6?`<div class="small muted" style="margin:6px 0">… та ще ${pend.length-6}. Усі — у розділі «Платежі».</div>`:"")+
+    (pend.length>1?`<div class="row" style="margin:6px 0 10px"><button class="btn smallBtn" onclick="recSkipAll()">⏭ Пропустити всі</button></div>`:"")+
+    up.map(p=>payRow(p,false)).join("");
+  }
+ }
+
+ const sel=document.getElementById("recRemindSel");
+ if(sel)sel.value=String(remind);
+ const list=document.getElementById("recList"),sum=document.getElementById("recSummary");
+ if(!list)return;
+ const active=S.recurring.filter(r=>r.active!==false);
+ const month=active.reduce((a,r)=>a+monthlyCost(r),0);
+ if(sum)sum.innerHTML=active.length?`Активних: <b>${active.length}</b> • орієнтовно <b>${money(month)}</b>/міс • <b>${money(month*12)}</b>/рік`:"";
+ if(!S.recurring.length){list.innerHTML='<div class="empty">Регулярних платежів ще немає. Додайте, наприклад, комуналку чи інтернет.</div>';return;}
+ list.innerHTML=S.recurring.map(r=>{
+  const next=recNext(r),pending=pend.some(x=>x.r.id===r.id);
+  const nTxt=r.active===false?"На паузі":pending?"⚠️ Очікує підтвердження":next?`Наступний: ${fd(next)} (${dd(next)>=0?`через ${dd(next)} дн.`:`${-dd(next)} дн. тому`})`:"Платежів більше немає";
+  return `<div class="item">
+   <div class="head">
+    <div><div class="itemTitle">🔁 ${esc(r.name)} ${r.active===false?'<span class="badge">Пауза</span>':""}</div>
+     <div class="small muted">${recFreqText(r)} • ${esc(r.category)}${r.endDate?" • до "+fd(r.endDate):""}</div></div>
+    <b class="red">${money(r.amount)}</b>
+   </div>
+   <div class="small ${pending?"yellow":"muted"}">${nTxt}</div>
+   <div style="margin-top:6px">
+    <span class="badge">${r.inLimit!==false?"Резервується в ліміті":"Не впливає на ліміт"}</span>
+    ${r.debtId&&S.debts.some(d=>d.id===r.debtId)?`<span class="badge">Борг: ${esc(S.debts.find(d=>d.id===r.debtId).name)}</span>`:""}
+   </div>
+   <div class="row" style="margin-top:10px">
+    ${(pending)?`<button class="btn green smallBtn" onclick="recConfirm('${r.id}','${pend.find(x=>x.r.id===r.id).ds}')">✅ Підтвердити</button>`:""}
+    <button class="btn smallBtn" onclick="recForm('${r.id}')">✏️</button>
+    <button class="btn smallBtn" onclick="toggleRec('${r.id}')">${r.active===false?"▶ Відновити":"⏸ Пауза"}</button>
+    <button class="btn red smallBtn" onclick="deleteRec('${r.id}')">🗑</button>
+   </div>
+  </div>`;
+ }).join("");
+}
+
+/* =========================================================
+   ЕКСПОРТ ПЛАТЕЖІВ У КАЛЕНДАР ТЕЛЕФОНУ (.ics)
+========================================================= */
+const ICS_KEY="fin26_ics_sig_v1";
+function icsEsc(t){return String(t).replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\r?\n/g,"\\n");}
+function icsFold(line){
+ const enc=new TextEncoder();
+ let out="",cur="",len=0;
+ for(const ch of line){
+  const b=enc.encode(ch).length;
+  if(len+b>73){out+=cur+"\r\n ";cur="";len=1;}
+  cur+=ch;len+=b;
+ }
+ return out+cur;
+}
+function icsRule(r){
+ const sd=dateObj(r.startDate);
+ let rule="";
+ if(r.freq==="monthly"){
+  const d=Number(r.day)||sd.getDate();
+  if(d<=28)rule=`FREQ=MONTHLY;BYMONTHDAY=${d}`;
+  else{const list=[];for(let x=28;x<=d;x++)list.push(x);rule=`FREQ=MONTHLY;BYMONTHDAY=${list.join(",")};BYSETPOS=-1`;}
+ }else if(r.freq==="weekly"){
+  const w=(r.weekday===undefined||r.weekday===null||r.weekday==="")?sd.getDay():Number(r.weekday);
+  rule=`FREQ=WEEKLY;BYDAY=${["SU","MO","TU","WE","TH","FR","SA"][w]}`;
+ }else if(r.freq==="every"){
+  rule=`FREQ=DAILY;INTERVAL=${Math.max(1,Number(r.interval)||1)}`;
+ }else rule="FREQ=YEARLY";
+ if(r.endDate)rule+=`;UNTIL=${r.endDate.replace(/-/g,"")}T235959`;
+ return rule;
+}
+function buildIcs(){
+ const t=today();
+ const time=/^\d{2}:\d{2}$/.test(S.settings.recTime||"")?S.settings.recTime:"09:00";
+ const hh=Number(time.slice(0,2)),mm=Number(time.slice(3,5));
+ const endMin=Math.min(23*60+59,hh*60+mm+15);
+ const endT=`${p2(Math.floor(endMin/60))}${p2(endMin%60)}00`;
+ const startT=`${p2(hh)}${p2(mm)}00`;
+ const remind=Number(S.settings.recRemind)||3;
+ const stamp=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+/,"");
+ const L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Financial Strategy 2026 PRO//UK","CALSCALE:GREGORIAN","X-WR-CALNAME:Регулярні платежі"];
+ let count=0;
+ S.recurring.forEach(r=>{
+  if(r.active===false)return;
+  const first=recOccurrences(r,t,addDays(t,800))[0];
+  if(!first)return;
+  const d0=first.replace(/-/g,"");
+  const amountTxt=Number(r.amount).toLocaleString("uk-UA",{minimumFractionDigits:2,maximumFractionDigits:2})+" "+cur();
+  const sum=`💳 ${r.name} — ${amountTxt}`;
+  const desc=`Регулярний платіж. Категорія: ${r.category}. Підтвердьте оплату в програмі Financial Strategy.`;
+  L.push("BEGIN:VEVENT",`UID:${r.id}@fin26`,`DTSTAMP:${stamp}`,
+   `DTSTART:${d0}T${startT}`,`DTEND:${d0}T${endT}`,
+   `RRULE:${icsRule(r)}`,
+   `SUMMARY:${icsEsc(sum)}`,`DESCRIPTION:${icsEsc(desc)}`,
+   "BEGIN:VALARM","ACTION:DISPLAY",`DESCRIPTION:${icsEsc(`Через ${remind} дн.: ${sum}`)}`,`TRIGGER:-P${remind}D`,"END:VALARM",
+   "BEGIN:VALARM","ACTION:DISPLAY",`DESCRIPTION:${icsEsc(`Сьогодні платіж: ${sum}`)}`,"TRIGGER:PT0S","END:VALARM",
+   "END:VEVENT");
+  count++;
+ });
+ L.push("END:VCALENDAR");
+ return{text:L.map(icsFold).join("\r\n")+"\r\n",count};
+}
+function icsSig(){
+ return JSON.stringify(S.recurring.filter(r=>r.active!==false).map(r=>[r.id,r.name,r.amount,r.freq,r.day,r.weekday,r.interval,r.startDate,r.endDate]).concat([[S.settings.recRemind,S.settings.recTime]]));
+}
+function updateIcsNote(){
+ const n=document.getElementById("icsNote"),inp=document.getElementById("recTimeInp");
+ if(inp)inp.value=S.settings.recTime||"09:00";
+ if(!n)return;
+ if(!S.recurring.some(r=>r.active!==false)){n.textContent="";return;}
+ let last=null;
+ try{last=localStorage.getItem(ICS_KEY);}catch(e){}
+ if(last===null){n.className="small muted";n.textContent="Ще не експортовано в календар.";}
+ else if(last!==icsSig()){n.className="small yellow";n.textContent="⚠️ Платежі змінилися після останнього експорту. Експортуйте календар ще раз.";}
+ else{n.className="small green";n.textContent="✅ Календар актуальний.";}
+}
+function setRecTime(v){S.settings.recTime=v||"09:00";markDirty();updateIcsNote();}
+async function exportIcs(){
+ const {text,count}=buildIcs();
+ if(!count){alert("Немає активних платежів із майбутніми датами.");return;}
+ const mark=()=>{try{localStorage.setItem(ICS_KEY,icsSig());}catch(e){}updateIcsNote();};
+ try{
+  const file=new File([text],"regular-payments.ics",{type:"text/calendar"});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+   await navigator.share({files:[file],title:"Регулярні платежі"});
+   mark();return;
+  }
+ }catch(e){if(e&&e.name==="AbortError")return;}
+ const url=URL.createObjectURL(new Blob([text],{type:"text/calendar;charset=utf-8"}));
+ const a=document.createElement("a");
+ a.href=url;a.download="regular-payments.ics";
+ document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),2000);
+ mark();
+ alert(`Файл збережено (платежів: ${count}). Відкрийте його із «Завантажень» і додайте події в календар.`);
+}
+
+/* =========================================================
+   ФІНАНСОВА ПОДУШКА
+========================================================= */
+let cushChart=null;
+function fmtMonths(m){return m.toLocaleString("uk-UA",{maximumFractionDigits:1})+" міс.";}
+
+function accountBalanceUntil(id,ds){
+ let sum=0;
+ S.transactions.forEach(t=>{
+  if(t.date>ds)return;
+  const a=amt(t);
+  if(t.type==="transfer"){if(t.fromAccountId===id)sum-=a;if(t.toAccountId===id)sum+=a;return;}
+  if(t.accountId!==id)return;
+  if(t.type==="income")sum+=a;
+  if(t.type==="expense")sum-=a;
+ });
+ return sum;
+}
+function cushionIds(){
+ if(S.settings.cushMode==="all")return null;
+ const ids=(S.settings.cushAccounts||[]).filter(id=>account(id));
+ return ids.length?ids:null;
+}
+function cushionSavingsAt(ds){
+ const ids=cushionIds();
+ return ids?ids.reduce((sm,id)=>sm+accountBalanceUntil(id,ds),0):totalBalanceUntil(ds);
+}
+function cushionExpenseOf(st){
+ if(S.settings.cushExp==="needs"){
+  const nl=needsList().concat("Погашення боргу");
+  return Object.entries(st.cats).reduce((sm,[c,v])=>nl.includes(c)?sm+v:sm,0);
+ }
+ return st.expense;
+}
+function cushionInfo(){
+ const st=S.settings.periodStart,en=S.settings.periodEnd,dur=days(st,en);
+ if(dur<=0)return null;
+ const N=Math.max(1,Number(S.settings.cushAvg)||3);
+ const used=[];
+ for(let i=1;i<=N;i++){
+  const ps=addDays(st,-dur*i),pe=addDays(ps,dur-1);
+  if(!S.transactions.some(t=>t.date>=ps&&t.date<=pe&&(t.type==="income"||t.type==="expense")))continue;
+  const r=rangeStats(ps,pe);
+  used.push({exp:cushionExpenseOf(r),res:r.result,days:dur});
+ }
+ let note="";
+ if(!used.length){
+  const t=today();
+  if(t>=st){
+   const el=Math.min(dur,days(st,t));
+   if(el>=7){
+    const r=rangeStats(st,addDays(st,el-1));
+    used.push({exp:cushionExpenseOf(r),res:r.result,days:el});
+    note="Завершених періодів з даними ще немає, тому розраховано за поточний період.";
+   }
+  }
+ }
+ if(!used.length)return null;
+ const totDays=used.reduce((sm,u)=>sm+u.days,0);
+ const k=30.4375/totDays;
+ const monthlyExp=used.reduce((sm,u)=>sm+u.exp,0)*k;
+ const monthlySurplus=used.reduce((sm,u)=>sm+u.res,0)*k;
+ const savings=cushionSavingsAt("9999-12-31");
+ const target=Math.max(1,Number(S.settings.cushTarget)||6);
+ if(monthlyExp<=0)return{noExp:true,savings,monthlySurplus,target,usedCount:used.length,note};
+ const months=savings/monthlyExp;
+ const targetAmt=monthlyExp*target;
+ return{savings,monthlyExp,monthlySurplus,months,target,targetAmt,missing:Math.max(0,targetAmt-savings),usedCount:used.length,note};
+}
+function cushLevel(m){
+ if(m<1)return{cls:"red",text:"Критично (до 1 міс.)"};
+ if(m<3)return{cls:"yellow",text:"Початковий рівень (1–3 міс.)"};
+ if(m<6)return{cls:"cyan",text:"Добре (3–6 міс.)"};
+ return{cls:"green",text:"Дуже добре (6+ міс.)"};
+}
+
+function setCush(key,val){
+ S.settings[key]=(key==="cushAvg"||key==="cushTarget")?(Number(val)||(key==="cushAvg"?3:6)):val;
+ markDirty();renderCushion();
+}
+function toggleCushAcc(id,on){
+ const set=new Set(S.settings.cushAccounts||[]);
+ if(on)set.add(id);else set.delete(id);
+ S.settings.cushAccounts=[...set];
+ markDirty();renderCushion();
+}
+function cushToGoal(){
+ const ci=cushionInfo();
+ if(!ci||ci.noExp){alert("Недостатньо даних для розрахунку цілі.");return;}
+ if(!confirm(`Створити фінансову ціль «Фінансова подушка» на ${money(ci.targetAmt)} (${ci.target} міс.)?`))return;
+ S.goals.push({id:uid(),name:"Фінансова подушка",targetAmt:Math.round(ci.targetAmt),currentAmt:Math.max(0,Math.min(ci.savings,ci.targetAmt)),deadline:"",priority:"high",accountId:S.accounts[0]?.id||"",notes:`Ціль: ${ci.target} міс. витрат`,active:true});
+ markDirty();refresh();
+ alert("Ціль створено в розділі «Цілі».");
+}
+
+function renderCushion(){
+ const main=document.getElementById("cushMain");
+ if(!main)return;
+ const g=id=>document.getElementById(id);
+ g("cushMode").value=S.settings.cushMode||"accounts";
+ g("cushExp").value=S.settings.cushExp||"all";
+ g("cushAvg").value=String(S.settings.cushAvg||3);
+ if(document.activeElement!==g("cushTarget"))g("cushTarget").value=S.settings.cushTarget||6;
+
+ // вибір рахунків
+ const accBox=g("cushAccBox");
+ if(S.settings.cushMode==="all"){accBox.innerHTML="";}
+ else{
+  const sel=new Set(S.settings.cushAccounts||[]);
+  accBox.innerHTML=`<div class="small muted" style="margin:6px 0">Позначте рахунки, які є вашою подушкою:</div>`+
+   S.accounts.map(a=>`<div class="statLine"><label style="margin:0;display:flex;align-items:center;gap:8px;color:var(--text);font-size:14px"><input type="checkbox" style="width:auto"${sel.has(a.id)?" checked":""} onchange="toggleCushAcc('${a.id}',this.checked)"> ${esc(a.name)}</label><b>${money(accountBalance(a.id))}</b></div>`).join("")+
+   (cushionIds()?"":`<div class="small yellow" style="margin-top:8px">Рахунки не вибрано, тому зараз враховується весь баланс.</div>`);
+ }
+
+ const ci=cushionInfo();
+ const sc=g("stateCushion");
+ if(!ci){
+  if(sc)sc.textContent="—";
+  main.innerHTML='<div class="card"><div class="empty">Недостатньо даних для розрахунку. Потрібен хоча б один завершений період із операціями або 7 днів у поточному періоді.</div></div>';
+  drawCushChart(null);
+  return;
+ }
+ if(ci.noExp){
+  if(sc)sc.textContent="—";
+  main.innerHTML=`<div class="card"><div class="empty">За вибраними витратами немає даних (витрати дорівнюють нулю), тому подушку порахувати не можна. Спробуйте режим «Усі витрати».</div></div>`;
+  drawCushChart(null);
+  return;
+ }
+ const lv=cushLevel(ci.months);
+ if(sc){sc.textContent=fmtMonths(ci.months);sc.className=lv.cls;}
+ const pct=clamp(ci.months/ci.target*100,0,100);
+ const sur=ci.monthlySurplus;
+ let forecast;
+ if(ci.missing<=0)forecast="🎉 Ціль уже досягнута.";
+ else if(sur>0){
+  const n=ci.missing/sur;
+  forecast=`За вашого середнього вільного залишку (${money(sur)}/міс) подушку буде накопичено приблизно через ${n.toLocaleString("uk-UA",{maximumFractionDigits:1})} міс. (≈ ${fd(addDays(today(),Math.round(n*30.4375)))}).`;
+ }else forecast="Зараз ваші витрати не менші за доходи, тому вільних коштів на подушку немає. Спершу скоротіть витрати або збільште дохід.";
+ const plan=ci.missing>0?[6,12,24].map(m=>{
+  const need=ci.missing/m;
+  const ok=sur>0&&need<=sur,tight=sur>0&&need<=sur*1.5;
+  return `<div class="item adv ${ok?"g":tight?"y":"r"}"><div class="payRow"><span>За <b>${m} міс.</b> відкладайте</span><b>${money(need)}/міс</b></div><div class="small muted">${ok?"Реально за вашим залишком":tight?"Напружено":"Потребує скорочення витрат"}</div></div>`;
+ }).join(""):"";
+ main.innerHTML=`
+  <div class="card">
+   <div class="head"><div><h3 style="margin:0">Ваша подушка</h3><div class="small muted">За середніх витрат ≈ ${money(ci.monthlyExp)}/міс (${S.settings.cushExp==="needs"?"обов'язкові":"усі"}, період(и): ${ci.usedCount})</div></div><span class="badge ${lv.cls}">${lv.text}</span></div>
+   <div class="dailyAmount ${lv.cls}" style="font-size:38px;margin:4px 0 10px">${fmtMonths(ci.months)}</div>
+   <div class="progress"><div style="width:${pct}%"></div></div>
+   <div class="small muted" style="margin-top:6px">Ціль: ${ci.target} міс. (${money(ci.targetAmt)}) • виконано ${pct.toFixed(0)}%</div>
+   ${ci.note?`<div class="small yellow" style="margin-top:8px">${esc(ci.note)}</div>`:""}
+   <div class="row" style="margin-top:12px"><button class="btn green" onclick="cushToGoal()">🎯 Створити ціль «Фінансова подушка»</button></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+   <h3>Деталі</h3>
+   <div class="statLine"><span>Заощадження (подушка)</span><b class="green">${money(ci.savings)}</b></div>
+   <div class="statLine"><span>Середні витрати на місяць</span><b>${money(ci.monthlyExp)}</b></div>
+   <div class="statLine"><span>Ціль (${ci.target} міс.)</span><b>${money(ci.targetAmt)}</b></div>
+   <div class="statLine"><span>Не вистачає до цілі</span><b class="yellow">${money(ci.missing)}</b></div>
+   <div class="statLine"><span>Середній вільний залишок на місяць</span><b class="${sur>=0?"green":"red"}">${money(sur)}</b></div>
+   <div class="small muted" style="margin-top:10px">${forecast}</div>
+  </div>
+  ${plan?`<div class="card" style="margin-top:14px"><h3>План накопичення</h3>${plan}<div class="small muted" style="margin-top:8px">Це орієнтовна оцінка, а не фінансова порада.</div></div>`:""}`;
+ drawCushChart(ci);
+}
+
+function drawCushChart(ci){
+ const canvas=document.getElementById("cushChart");
+ if(!canvas||typeof Chart==="undefined")return;
+ if(cushChart){cushChart.destroy();cushChart=null;}
+ if(!ci||ci.noExp||canvas.offsetParent===null)return;
+ const st=S.settings.periodStart,dur=days(st,S.settings.periodEnd),t=today();
+ const labels=[],vals=[],tgt=[];
+ for(let i=5;i>=0;i--){
+  const ps=addDays(st,-dur*i),pe=addDays(ps,dur-1);
+  const at=pe>t?t:pe;
+  if(at<ps&&i===0)continue;
+  labels.push(fd(pe).slice(0,5));
+  vals.push(Math.max(0,+(cushionSavingsAt(at)/ci.monthlyExp).toFixed(2)));
+  tgt.push(ci.target);
+ }
+ cushChart=new Chart(canvas,{
+  type:"bar",
+  data:{labels,datasets:[
+   {label:"Місяців витрат",data:vals,backgroundColor:"rgba(70,224,255,.6)"},
+   {label:"Ціль",data:tgt,type:"line",borderColor:"#36e09a",borderDash:[5,5],pointRadius:0,fill:false}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:"#8fa6bd"}}},
+   scales:{x:{ticks:{color:"#8fa6bd"},grid:{color:"rgba(32,52,75,.4)"}},y:{beginAtZero:true,ticks:{color:"#8fa6bd"},grid:{color:"rgba(32,52,75,.4)"}}}}
+ });
+}
+
+/* =========================================================
+   ПЕРЕГЛЯД СУМ В ІНШІЙ ВАЛЮТІ
+========================================================= */
+function fillViewSelect(){
+ const sel=document.getElementById("viewCurSel");
+ if(!sel)return;
+ const b=baseCode(),v=S.settings.viewCur||"";
+ const list=[...new Set([...(S.settings.favCur||[]),...POPULAR])].filter(c=>c!==b);
+ if(v&&!list.includes(v))list.push(v);
+ sel.innerHTML=`<option value="">${CUR_SYM[b]||""} ${b}</option>`+list.map(c=>`<option value="${c}">≈ ${CUR_SYM[c]||""} ${c}</option>`).join("");
+ sel.value=v;
+}
+function setViewCur(v){
+ S.settings.viewCur=v;
+ persist();
+ if(v)ensureRates();
+ refresh();
+}
+function updateViewBanner(){
+ const b=document.getElementById("viewBanner");
+ if(!b)return;
+ const v=S.settings.viewCur,base=baseCode();
+ if(!v||v===base){b.style.display="none";return;}
+ b.style.display="block";
+ if(viewActive()){
+  const d=RATES.provDate?(RATES.source==="nbu"?RATES.provDate:new Date(RATES.provDate).toLocaleDateString("uk-UA")):"—";
+  b.innerHTML=`💱 Суми показано у <b>${v}</b> за поточним курсом (${RATES.source==="nbu"?"НБУ":"світовий"}, ${d}) — орієнтовно. Вносяться та зберігаються суми в ${base}. <button class="btn smallBtn" style="margin-left:6px" onclick="setViewCur('')">Показати в ${base}</button>`;
+ }else{
+  b.innerHTML=`💱 Очікую курси для ${v}… Якщо немає інтернету й немає збережених курсів, суми показуються в ${base}. <button class="btn smallBtn" style="margin-left:6px" onclick="setViewCur('')">Показати в ${base}</button>`;
+ }
+}
+
+/* =========================================================
+   ПЕРЕКАЗИ МІЖ РАХУНКАМИ
+========================================================= */
+function transferModal(){
+ const act=S.accounts.filter(a=>a.active);
+ if(act.length<2){alert("Для переказу потрібно щонайменше два активні рахунки. Додайте ще один рахунок.");return;}
+ const opts=idx=>act.map((a,i)=>`<option value="${a.id}"${i===idx?" selected":""}>${esc(a.name)} (${money(accountBalance(a.id))})</option>`).join("");
+ document.getElementById("modal").style.display="flex";
+ document.getElementById("modalContent").innerHTML=`
+  <h2>🔁 Переказ між рахунками</h2>
+  <div class="field"><label>З рахунку</label><select id="trFrom">${opts(0)}</select></div>
+  <div class="field"><label>На рахунок</label><select id="trTo">${opts(1)}</select></div>
+  <div class="field"><label>Сума</label><input id="trAmount" type="number" step="0.01" min="0"></div>
+  <div class="field"><label>Дата</label><input id="trDate" type="date" value="${today()}"></div>
+  <div class="field"><label>Коментар</label><input id="trMemo" placeholder="Наприклад: зняв готівку"></div>
+  <div class="row">
+   <button class="btn green" onclick="saveTransfer()">💾 Виконати переказ</button>
+   <button class="btn" onclick="closeModal()">Скасувати</button>
+  </div>`;
+}
+function saveTransfer(){
+ const from=document.getElementById("trFrom").value,to=document.getElementById("trTo").value;
+ const amount=Number(document.getElementById("trAmount").value);
+ const date=document.getElementById("trDate").value||today();
+ if(from===to){alert("Виберіть різні рахунки");return;}
+ if(!amount||amount<=0){alert("Введіть правильну суму");return;}
+ if(amount>accountBalance(from)+0.001&&!confirm("Сума більша за баланс рахунку-відправника. Баланс стане від'ємним. Продовжити?"))return;
+ S.transactions.push({id:uid(),type:"transfer",amount,amt:amount,date,category:"Переказ",fromAccountId:from,toAccountId:to,memo:document.getElementById("trMemo").value.trim(),group:"transfer"});
+ markDirty();closeModal();refresh();
+ alert("Переказ виконано");
+}
+
+/* =========================================================
+   КОНВЕРТЕР ВАЛЮТ (актуальні курси)
+========================================================= */
+const RATES_KEY="fin26_rates_v1";
+const POPULAR=["UAH","USD","EUR","PLN","GBP","CZK","CHF","CAD","TRY","CNY","JPY"];
+let RATES=null,convFilled=false;
+let curDN=null;
+try{curDN=new Intl.DisplayNames(["uk"],{type:"currency"});}catch(e){}
+function curName(c){try{return(curDN&&curDN.of(c))||c;}catch(e){return c;}}
+
+function loadRatesCache(){
+ try{const r=JSON.parse(localStorage.getItem(RATES_KEY)||"null");if(r&&r.rates)RATES=r;}catch(e){}
+}
+async function fetchErApi(){
+ const r=await fetch("https://open.er-api.com/v6/latest/USD",{cache:"no-store"});
+ if(!r.ok)throw new Error("http");
+ const j=await r.json();
+ if(j.result!=="success"||!j.rates)throw new Error("bad");
+ return{source:"er",rates:j.rates,provDate:j.time_last_update_utc||"",fetched:Date.now()};
+}
+async function fetchNbu(){
+ const r=await fetch("https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json",{cache:"no-store"});
+ if(!r.ok)throw new Error("http");
+ const arr=await r.json();
+ const per={UAH:1};
+ arr.forEach(x=>{if(x.cc&&x.rate>0)per[x.cc]=x.rate;});
+ const usd=per.USD;
+ if(!usd)throw new Error("bad");
+ const rates={};
+ Object.entries(per).forEach(([cc,u])=>{rates[cc]=usd/u;});
+ return{source:"nbu",rates,provDate:(arr[0]&&arr[0].exchangedate)||"",fetched:Date.now()};
+}
+async function refreshRates(manual){
+ const st=document.getElementById("convStatus");
+ if(!navigator.onLine){
+  if(manual&&st)st.textContent="Немає інтернету. Показано останні збережені курси.";
+  renderConverter();return;
+ }
+ if(manual&&st)st.textContent="⏳ Оновлення курсів…";
+ try{
+  const pref=S.settings.rateSource||"auto";
+  let r;
+  if(pref==="nbu")r=await fetchNbu();
+  else{try{r=await fetchErApi();}catch(e){r=await fetchNbu();}}
+  RATES=r;
+  try{localStorage.setItem(RATES_KEY,JSON.stringify(r));}catch(e){}
+  convFilled=false;
+  renderConverter();
+  if(S.settings.viewCur)refresh();
+ }catch(e){
+  if(st)st.textContent="Не вдалося отримати курси. Перевірте інтернет і спробуйте ще раз."+(RATES?" Показано останні збережені.":"");
+ }
+}
+function ensureRates(){
+ if(!RATES||Date.now()-(RATES.fetched||0)>6*3600*1000)refreshRates(false);
+}
+function setRateSource(v){
+ S.settings.rateSource=v;persist();
+ refreshRates(true);
+}
+
+function convert(amount,from,to){
+ if(!RATES)return null;
+ const r=RATES.rates;
+ if(!r[from]||!r[to])return null;
+ return amount/r[from]*r[to];
+}
+function fmtNum(v){
+ const a=Math.abs(v);
+ const d=a>=1?2:a>=0.01?4:6;
+ return v.toLocaleString("uk-UA",{minimumFractionDigits:d===2?2:0,maximumFractionDigits:d});
+}
+function curLabel(c){return `${c} — ${curName(c)}`;}
+
+function fillCurrencySelects(){
+ const g=id=>document.getElementById(id);
+ if(!RATES)return;
+ const all=Object.keys(RATES.rates).sort();
+ const pop=POPULAR.filter(c=>RATES.rates[c]);
+ const rest=all.filter(c=>!pop.includes(c));
+ const opts=(sel)=>`<optgroup label="Популярні">${pop.map(c=>`<option value="${c}"${c===sel?" selected":""}>${esc(curLabel(c))}</option>`).join("")}</optgroup><optgroup label="Усі валюти">${rest.map(c=>`<option value="${c}"${c===sel?" selected":""}>${esc(curLabel(c))}</option>`).join("")}</optgroup>`;
+ g("convFrom").innerHTML=opts(S.settings.convFrom);
+ g("convTo").innerHTML=opts(S.settings.convTo);
+ g("convFrom").value=RATES.rates[S.settings.convFrom]?S.settings.convFrom:"USD";
+ g("convTo").value=RATES.rates[S.settings.convTo]?S.settings.convTo:"UAH";
+ convFilled=true;
+}
+
+function swapCur(){
+ const f=document.getElementById("convFrom"),t=document.getElementById("convTo");
+ const x=f.value;f.value=t.value;t.value=x;
+ renderConverter();
+}
+function addFavCur(c){
+ if(!c)return;
+ if(!S.settings.favCur.includes(c))S.settings.favCur.push(c);
+ persist();renderConverter();
+}
+function removeFavCur(c){
+ S.settings.favCur=S.settings.favCur.filter(x=>x!==c);
+ persist();renderConverter();
+}
+
+function renderConverter(){
+ const g=id=>document.getElementById(id);
+ if(!g("convResult"))return;
+ const srcSel=g("convSource");
+ if(srcSel)srcSel.value=S.settings.rateSource||"auto";
+ const amountEl=g("convAmount");
+ if(amountEl&&!amountEl.dataset.init){amountEl.value=S.settings.convAmount||"100";amountEl.dataset.init="1";}
+ if(!RATES){
+  g("convResult").textContent="—";
+  g("convRates").textContent="";
+  g("convTable").innerHTML='<div class="empty">Немає збережених курсів. Підключіться до інтернету й натисніть «Оновити курси».</div>';
+  g("convStatus").textContent=navigator.onLine?"⏳ Завантаження курсів…":"Немає інтернету й немає збережених курсів.";
+  return;
+ }
+ if(!convFilled)fillCurrencySelects();
+ const from=g("convFrom").value,to=g("convTo").value;
+ const raw=(amountEl.value||"").replace(/\s/g,"").replace(",",".");
+ const amount=parseFloat(raw);
+ S.settings.convFrom=from;S.settings.convTo=to;S.settings.convAmount=amountEl.value;persist();
+
+ if(!isFinite(amount)){
+  g("convResult").textContent="Введіть суму";
+  g("convRates").textContent="";
+ }else{
+  const v=convert(amount,from,to);
+  g("convResult").textContent=v===null?"Курс недоступний":`${fmtNum(amount)} ${from} = ${fmtNum(v)} ${to}`;
+  const one=convert(1,from,to),back=convert(1,to,from);
+  g("convRates").textContent=one===null?"":`1 ${from} = ${fmtNum(one)} ${to}  •  1 ${to} = ${fmtNum(back)} ${from}`;
+ }
+
+ const favs=S.settings.favCur.filter(c=>c!==from&&RATES.rates[c]);
+ g("convTable").innerHTML=favs.length?favs.map(c=>{
+  const v=isFinite(amount)?convert(amount,from,c):null;
+  return `<div class="statLine"><span>${esc(curLabel(c))}</span><span><b>${v===null?"—":fmtNum(v)+" "+c}</b> <button class="btn red smallBtn" onclick="removeFavCur('${c}')">✕</button></span></div>`;
+ }).join(""):'<div class="empty">Додайте валюти нижче</div>';
+ const addable=Object.keys(RATES.rates).sort().filter(c=>!S.settings.favCur.includes(c)&&c!==from);
+ g("convAdd").innerHTML='<option value="">➕ Додати валюту до списку…</option>'+addable.map(c=>`<option value="${c}">${esc(curLabel(c))}</option>`).join("");
+
+ const when=RATES.source==="nbu"
+  ?`офіційні курси НБУ станом на ${RATES.provDate||"—"}`
+  :`світові курси від ${RATES.provDate?new Date(RATES.provDate).toLocaleString("uk-UA"):"—"}`;
+ g("convStatus").innerHTML=`Курси: ${when}. Оновлено в застосунку: ${new Date(RATES.fetched).toLocaleString("uk-UA")}${navigator.onLine?"":" (немає інтернету, показано збережені)"}.`+
+  (RATES.source==="er"?` <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener" style="color:var(--c)">Rates By Exchange Rate API</a>`:"");
+}
+
+/* =========================================================
+   ОНОВЛЕННЯ ПРОГРАМИ
+========================================================= */
+let lastUpdCheck=0,foundVersion="";
+function setUpdStatus(t){const e=document.getElementById("updStatus");if(e)e.textContent=t;}
+
+async function checkUpdate(manual){
+ const ver=document.getElementById("updVer");
+ if(ver)ver.textContent=APP_VERSION;
+ if(!navigator.onLine){if(manual)setUpdStatus("Немає інтернету. Спробуйте, коли з'явиться мережа.");return;}
+ if(manual)setUpdStatus("⏳ Перевірка…");
+ try{
+  const r=await fetch("index.html?chk="+Date.now(),{cache:"no-store"});
+  if(!r.ok)throw new Error("http");
+  const m=(await r.text()).match(/const APP_VERSION="([^"]+)"/);
+  lastUpdCheck=Date.now();
+  if(m&&m[1]!==APP_VERSION){
+   foundVersion=m[1];
+   setUpdStatus(`🆕 Доступна версія ${m[1]} (у вас ${APP_VERSION}).`);
+   document.getElementById("updBannerText").textContent=`Версія ${m[1]}. Натисніть «Оновити».`;
+   document.getElementById("updBanner").style.display="block";
+  }else if(manual){
+   setUpdStatus(`✅ У вас остання версія (${APP_VERSION}). Якщо ви щойно завантажили нову на GitHub, зачекайте 1–2 хвилини й перевірте ще раз.`);
+  }
+ }catch(e){
+  if(manual)setUpdStatus("Не вдалося перевірити оновлення. Перевірте інтернет і спробуйте ще раз.");
+ }
+}
+
+async function applyUpdate(){
+ try{
+  if("serviceWorker" in navigator){
+   const reg=await navigator.serviceWorker.getRegistration();
+   if(reg)await reg.update();
+  }
+ }catch(e){}
+ location.reload();
+}
+
+function scheduleUpdateChecks(){
+ const ver=document.getElementById("updVer");
+ if(ver)ver.textContent=APP_VERSION;
+ setTimeout(()=>checkUpdate(false),4000);
+ document.addEventListener("visibilitychange",()=>{
+  if(!document.hidden&&Date.now()-lastUpdCheck>10*60000)checkUpdate(false);
+ });
+}
+
+/* =========================================================
+   КАЛЕНДАР ВИТРАТ
+========================================================= */
+let calY=new Date().getFullYear(),calM=new Date().getMonth(),calSel="",calMode="expense";
+
+function calShift(n){
+ calM+=n;
+ if(calM>11){calM=0;calY++;}
+ if(calM<0){calM=11;calY--;}
+ calSel="";
+ renderCalendar();
+}
+function calToday(){
+ const d=new Date();
+ calY=d.getFullYear();calM=d.getMonth();calSel=today();
+ renderCalendar();
+}
+function calSetMode(m){calMode=m;renderCalendar();}
+function calPick(ds){calSel=calSel===ds?"":ds;renderCalendar();}
+
+function calShort(v,mode){
+ if(S.settings.hideAmounts)return "•••";
+ if(!v)return "";
+ v=v*viewFactor();
+ const a=Math.abs(v);
+ const txt=a>=10000?Math.round(a/1000)+"k":a>=1000?(a/1000).toFixed(1).replace(".0","")+"k":String(Math.round(a));
+ return mode==="net"?(v>0?"+":"−")+txt:txt;
+}
+
+function renderCalendar(){
+ const grid=document.getElementById("calGrid");
+ if(!grid)return;
+ const pad=n=>String(n).padStart(2,"0");
+ const title=new Date(calY,calM,1).toLocaleDateString("uk-UA",{month:"long",year:"numeric"});
+ document.getElementById("calTitle").textContent=title.charAt(0).toUpperCase()+title.slice(1);
+ const ms=document.getElementById("calModeSel");
+ if(ms)ms.value=calMode;
+
+ const dim=new Date(calY,calM+1,0).getDate();
+ const offset=(new Date(calY,calM,1).getDay()+6)%7;
+ const prefix=`${calY}-${pad(calM+1)}-`;
+ const inc={},exp={},cats={};
+ let ti=0,te=0;
+ S.transactions.forEach(t=>{
+  if((t.type!=="income"&&t.type!=="expense")||!String(t.date).startsWith(prefix))return;
+  const a=amt(t);
+  if(t.type==="income"){inc[t.date]=(inc[t.date]||0)+a;ti+=a;}
+  else{exp[t.date]=(exp[t.date]||0)+a;te+=a;const c=t.category||"Інше";cats[c]=(cats[c]||0)+a;}
+ });
+ const val=ds=>calMode==="expense"?(exp[ds]||0):calMode==="income"?(inc[ds]||0):((inc[ds]||0)-(exp[ds]||0));
+ const recDays=new Set();
+ S.recurring.forEach(r=>{
+  if(r.active===false)return;
+  recOccurrences(r,prefix+"01",prefix+pad(dim)).forEach(ds=>{if(!recHandled(r,ds))recDays.add(ds);});
+ });
+ let max=0;
+ for(let d=1;d<=dim;d++)max=Math.max(max,Math.abs(val(prefix+pad(d))));
+
+ let html="";
+ for(let i=0;i<offset;i++)html+='<div class="calCell empty"></div>';
+ for(let d=1;d<=dim;d++){
+  const ds=prefix+pad(d),v=val(ds);
+  let bg="transparent";
+  if(v!==0&&max>0){
+   const al=(0.14+0.5*Math.abs(v)/max).toFixed(2);
+   const red=calMode==="expense"||(calMode==="net"&&v<0);
+   bg=red?`rgba(255,100,124,${al})`:`rgba(54,224,154,${al})`;
+  }
+  html+=`<div class="calCell${ds===today()?" today":""}${ds===calSel?" sel":""}" style="background:${bg}" onclick="calPick('${ds}')"><div class="calD">${d}${recDays.has(ds)?" 🔁":""}</div><div class="calV">${calShort(v,calMode)}</div></div>`;
+ }
+ grid.innerHTML=html;
+
+ const now=new Date();
+ let n=dim;
+ if(calY===now.getFullYear()&&calM===now.getMonth())n=now.getDate();
+ const top=Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,3);
+ document.getElementById("calSummary").innerHTML=`
+  <h3 style="margin:0 0 10px">Підсумок місяця</h3>
+  <div class="statLine"><span>Доходи</span><b class="green">${money(ti)}</b></div>
+  <div class="statLine"><span>Витрати</span><b class="red">${money(te)}</b></div>
+  <div class="statLine"><span>Результат</span><b class="${ti-te>=0?"green":"red"}">${money(ti-te)}</b></div>
+  <div class="statLine"><span>Середні витрати на день</span><b>${money(te/Math.max(1,n))}</b></div>
+  ${top.length?`<div style="margin-top:10px">${top.map(([c,sm])=>`<span class="badge">${esc(c)}: ${money(sm)}</span>`).join("")}</div>`:'<div class="small muted" style="margin-top:8px">У цьому місяці ще немає витрат</div>'}`;
+
+ renderCalDay();
+}
+
+function renderCalDay(){
+ const el=document.getElementById("calDay");
+ if(!el)return;
+ if(!calSel){el.innerHTML='<div class="empty">Оберіть день у календарі, щоб побачити операції</div>';return;}
+ const list=S.transactions.filter(t=>(t.type==="income"||t.type==="expense")&&t.date===calSel);
+ const e=list.filter(t=>t.type==="expense").reduce((s,t)=>s+amt(t),0);
+ const i=list.filter(t=>t.type==="income").reduce((s,t)=>s+amt(t),0);
+ const items=list.length?list.map(t=>{
+  const inc=t.type==="income",acc=account(t.accountId);
+  return `<div class="item"><div class="row" style="justify-content:space-between">
+   <div>
+    <div class="itemTitle">${inc?"➕":"➖"} ${esc(t.category||"Інше")}</div>
+    <div class="small muted">${esc(acc?.name||"Рахунок")}</div>
+    ${t.memo?`<div class="small muted" style="margin-top:5px">${esc(t.memo)}</div>`:""}
+    ${(t.photos&&t.photos.length)?`<div class="thumbs" style="margin-top:8px">${t.photos.map(p=>`<div class="thumbWrap"><img class="thumb" data-pid="${p.id}" alt="" onclick="openPhoto('${p.id}')"><span class="kindTag">${p.kind==="receipt"?"🧾":"📦"}</span></div>`).join("")}</div>`:""}
+   </div>
+   <div style="text-align:right">
+    <b class="${inc?"green":"red"}">${inc?"+":"-"}${money(amt(t))}</b>
+    <div class="row" style="justify-content:flex-end;margin-top:7px">
+     <button class="btn smallBtn" onclick="editTx('${t.id}')">✏️</button>
+     <button class="btn red smallBtn" onclick="deleteTx('${t.id}')">🗑</button>
+    </div>
+   </div>
+  </div></div>`;
+ }).join(""):'<div class="empty">У цей день операцій немає</div>';
+ el.innerHTML=`
+  <div class="head">
+   <div><h3 style="margin:0">${fd(calSel)}</h3><div class="small muted">Витрати: ${money(e)} • Доходи: ${money(i)}</div></div>
+   <div class="row">
+    <button class="btn red smallBtn" onclick="quickAdd('expense','${calSel}')">➖ Витрата</button>
+    <button class="btn green smallBtn" onclick="quickAdd('income','${calSel}')">➕ Дохід</button>
+   </div>
+  </div>${items}`;
+ hydrateThumbs(el);
+}
+
+function initCalendarSwipe(){
+ const g=document.getElementById("calGrid");
+ if(!g)return;
+ let x0=null,y0=null;
+ g.addEventListener("touchstart",e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY;},{passive:true});
+ g.addEventListener("touchend",e=>{
+  if(x0===null)return;
+  const dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;
+  x0=null;
+  if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5)calShift(dx<0?1:-1);
+ },{passive:true});
 }
 
 /* =========================================================
@@ -3055,14 +4455,20 @@ function refresh(syncForm){
  populateCats();
  renderAccounts();
  renderHistory();
+ renderCalendar();
  renderGoals();
  renderPlans();
+ renderRecurring();
+ renderCushion();
  renderDebts();
  renderCatManager();
  updateOverview();
  updateBudget();
  updateCharts();
  updateCompare();
+ fillViewSelect();
+ updateViewBanner();
+ bioUpdateUI();
  loadExtraSettings();
  if(syncForm)loadSettingsToForm();
 }
@@ -3074,6 +4480,11 @@ window.addEventListener("DOMContentLoaded",()=>{
  loadState();
  applyTheme();
  setupPWA();
+ initCalendarSwipe();
+ scheduleUpdateChecks();
+ loadRatesCache();
+ bioInit();
+ if(S.settings.viewCur)ensureRates();
  const e=document.getElementById("expenseDate"),i=document.getElementById("incomeDate");
  if(e&&!e.value)e.value=today();
  if(i&&!i.value)i.value=today();
@@ -3081,6 +4492,98 @@ window.addEventListener("DOMContentLoaded",()=>{
  setupAutoSync();
 });
 </script>
+<script>
+/* =========================================================
+   🔑 АКТИВАЦІЯ ЗА КОДОМ ПРИСТРОЮ
+   Кожен пристрій має власний код. Програма працює, якщо є ключ, підписаний власником
+   для цього коду. Секретний ключ є лише в інструменті власника, у програмі — лише публічний.
+   Поки LIC_PUB = null, перевірка вимкнена і програма працює без активації.
+========================================================= */
+const LIC_PUB={"kty":"EC","crv":"P-256","x":"R5Zd1nt816dzxqepOV4KStj_F8JPbCJnWSZDNupj6dU","y":"p-qRhIeUsrRy6H8Qsl0qjEfOqtjuUdPbkOfFWLJD8Qs"}; /* ← сюди вставляється публічний ключ, див. інструкцію */
+(function(){
+"use strict";
+const K_DEV="fin26_dev",K_LIC="fin26_lic";
+const $=id=>document.getElementById(id);
+let licOk=false,pending=null;
+function b64uDec(s){
+ s=String(s).replace(/-/g,"+").replace(/_/g,"/");
+ while(s.length%4)s+="=";
+ const b=atob(s),u=new Uint8Array(b.length);
+ for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);
+ return u;
+}
+function devCode(){
+ let c=null;
+ try{c=localStorage.getItem(K_DEV);}catch(e){}
+ if(c&&/^[A-Z2-9]{5}-[A-Z2-9]{5}$/.test(c))return c;
+ const al="ABCDEFGHJKLMNPQRSTUVWXYZ23456789",r=new Uint8Array(10);
+ crypto.getRandomValues(r);
+ let s="";
+ for(let i=0;i<10;i++){s+=al[r[i]%al.length];if(i===4)s+="-";}
+ try{localStorage.setItem(K_DEV,s);}catch(e){}
+ return s;
+}
+window.finDeviceCode=function(){try{return localStorage.getItem(K_DEV)||"";}catch(e){return "";}};
+async function verify(code,key){
+ try{
+  const pub=await crypto.subtle.importKey("jwk",LIC_PUB,{name:"ECDSA",namedCurve:"P-256"},false,["verify"]);
+  const sig=b64uDec(String(key).replace(/\s+/g,"").replace(/^FIN26-/i,""));
+  return await crypto.subtle.verify({name:"ECDSA",hash:"SHA-256"},pub,sig,new TextEncoder().encode("FIN26|"+code));
+ }catch(e){return false;}
+}
+function showGate(msg,bad){
+ const g=$("licGate");if(!g)return;
+ $("licDev").textContent=devCode();
+ g.style.display="flex";
+ const m=$("licMsg");
+ if(m){m.textContent=msg||"";m.style.color=bad?"var(--r,#ff6b81)":"inherit";}
+}
+function hideGate(){const g=$("licGate");if(g)g.style.display="none";}
+async function check(){
+ if(!LIC_PUB){licOk=true;hideGate();return true;}
+ if(!(window.crypto&&crypto.subtle)){
+  licOk=false;
+  showGate("Цей браузер не підтримує перевірку ліцензії. Відкрийте програму в Chrome або Safari за захищеною адресою (https).",true);
+  return false;
+ }
+ const code=devCode();let key="";
+ try{key=localStorage.getItem(K_LIC)||"";}catch(e){}
+ const ok=key?await verify(code,key):false;
+ licOk=ok;
+ if(ok)hideGate();else showGate("");
+ return ok;
+}
+window.licActivate=async function(){
+ const code=devCode(),key=($("licKey").value||"").trim();
+ if(!key){showGate("Вставте ключ активації.",true);return;}
+ if(!(window.crypto&&crypto.subtle)){showGate("Браузер не підтримує перевірку ліцензії.",true);return;}
+ const ok=await verify(code,key);
+ if(!ok){showGate("Ключ не підходить до цього пристрою. Перевірте, що скопіювали його повністю, і що власник видав його саме для цього коду.",true);return;}
+ try{localStorage.setItem(K_LIC,key.replace(/\s+/g,""));}catch(e){}
+ licOk=true;hideGate();
+};
+window.licCopy=function(){
+ const c=devCode();
+ try{navigator.clipboard.writeText(c).then(()=>{const m=$("licMsg");if(m){m.style.color="inherit";m.textContent="Код скопійовано.";}},()=>prompt("Код пристрою:",c));}
+ catch(e){prompt("Код пристрою:",c);}
+};
+/* вхід у програму можливий лише з дійсною активацією */
+const _enter=window.enterApp;
+if(typeof _enter==="function"){
+ window.enterApp=function(){
+  const a=arguments,self=this;
+  if(licOk)return _enter.apply(self,a);
+  (pending||check()).then(ok=>{if(ok)_enter.apply(self,a);});
+ };
+}
+pending=check();
+/* повторна перевірка: якщо активацію прибрано — екран активації повертається */
+async function recheck(){try{pending=check();await pending;}catch(e){}}
+setInterval(recheck,60000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)recheck();});
+})();
+</script>
+
 <script src="advisor.js"></script>
 </body>
 </html>
