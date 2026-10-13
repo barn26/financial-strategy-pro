@@ -1428,10 +1428,11 @@ window.addEventListener("load",function(){
 ========================================================= */
 (function(){
 "use strict";
-var APP_REV="1.8";
+var APP_REV="1.9";
 window.APP_REV=APP_REV;
 /* ЖУРНАЛ ЗМІН: з кожною новою версією додавайте запис ЗВЕРХУ */
 var CHANGELOG=[
+ ["1.9",["Тема сама міняється за часом доби: вдень світла, ввечері й уночі темна (за замовчуванням з 07:00 до 19:00).","У Налаштуваннях → «Вигляд і валюта» можна вибрати інший режим (темна, світла, як у системі) або змінити години перемикання.","Кнопка 🌗 у шапці в автоматичному режимі міняє тему лише до найближчої зміни."]],
  ["1.8",["Програма підлаштовується під поворот екрана: у горизонтальному режимі шапка стає компактною, а таблиці та картки розкладаються в 2–4 колонки.","Враховано вирізи екрана (чубчик) збоку при повороті.","Маніфест більше не блокує портретну орієнтацію (оновлений manifest.json)."]],
  ["1.7",["Швидкий запис: перед збереженням витрати показується вікно з підставленими категорією й рахунком. Можна змінити їх або просто натиснути «Підтвердити»."]],
  ["1.6",["Натискання на номер версії в шапці відкриває це вікно зі списком змін."]],
@@ -1492,7 +1493,8 @@ var STEPS=[
  ["🤖","ШІ-помічник тепер і радник","ШІ-помічник відповідає також як фінансовий радник. Під звичайними кнопками є другий ряд: «З чого мені почати?», «Скільки відкладати?», «Чому саме так?», «Як швидше накопичити?», «Борги чи накопичення?», «Коли буде подушка?», «Куди вкласти гроші?». Можна писати й своїми словами, наприклад «чи можу я витратити 500 грн?». У відповідях радника є блок «💭 Як я міркую».","ШІ-помічник"],
  ["🧭","Радник і поради на Головній","Блок «Радник і поради» на Головній містить підказки радника, покроковий план дій, блок «Куди вкласти» з інструкціями та налаштування радника. Окремого чату «Запитайте радника» більше немає: усі його відповіді тепер у ШІ-помічнику.","Головна"],
  ["📱","Поворот екрана","Телефон можна тримати і вертикально, і горизонтально: програма підлаштовується. У горизонтальному режимі шапка з меню займає один компактний рядок, а картки розкладаються в кілька колонок. Якщо програма не повертається, вимкніть блокування повороту екрана в налаштуваннях телефону й за потреби перевстановіть іконку програми на головний екран.","Налаштування"],
- ["🏷️","Версія програми в шапці та оновлення","У шапці під назвою програми видно «Версія N (дата)»: номер програми та день, коли ця версія вперше запустилась на цьому пристрої. Нова версія підхоплюється при запуску; якщо з'явився банер «Доступна нова версія», натисніть «Оновити». Натисніть на номер версії, щоб побачити, що нового. Якщо номер не змінився після оновлення, повністю закрийте програму й відкрийте її знову.","Налаштування"]
+ ["🏷️","Версія програми в шапці та оновлення","У шапці під назвою програми видно «Версія N (дата)»: номер програми та день, коли ця версія вперше запустилась на цьому пристрої. Нова версія підхоплюється при запуску; якщо з'явився банер «Доступна нова версія», натисніть «Оновити». Натисніть на номер версії, щоб побачити, що нового. Якщо номер не змінився після оновлення, повністю закрийте програму й відкрийте її знову.","Налаштування"],
+ ["🕒","Тема за часом доби","Тема сама міняється: вдень світла, ввечері й уночі темна (за замовчуванням світла з 07:00, темна з 19:00). Налаштування → «Вигляд і валюта»: оберіть режим «🕒 За часом доби», «Темна», «Світла» або «Авто (як у системі)» і за потреби змініть години перемикання. Кнопка 🌗 у шапці в автоматичному режимі міняє тему лише до найближчої зміни, потім автоперемикання продовжується.","Налаштування"]
 ];
 function esc2(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function build(){
@@ -1548,4 +1550,126 @@ try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock()
 function kick(){setTimeout(function(){try{window.dispatchEvent(new Event("resize"));}catch(e){}},250);}
 window.addEventListener("orientationchange",kick);
 try{if(screen.orientation&&screen.orientation.addEventListener)screen.orientation.addEventListener("change",kick);}catch(e){}
+})();
+
+/* =========================================================
+   🕒 ТЕМА ЗА ЧАСОМ ДОБИ
+   Режим «За часом доби»: світла вдень, темна ввечері й уночі. Години змінюються в Налаштуваннях.
+   Інші режими (темна, світла, як у системі) працюють як раніше.
+========================================================= */
+(function(){
+"use strict";
+if(window.__finTheme)return;
+window.__finTheme=1;
+var G=function(id){return document.getElementById(id);};
+var KEY="fin26_theme_ovr",mem=null;
+function mins(s,def){var m=String(s||def).match(/^(\d{1,2}):(\d{2})$/);if(!m)m=String(def).match(/^(\d{1,2}):(\d{2})$/);return(+m[1])*60+(+m[2]);}
+function cfg(){var st=S.settings;return{a:mins(st.themeDayFrom,"07:00"),b:mins(st.themeNightFrom,"19:00")};}
+function isDay(d){var c=cfg(),n=d.getHours()*60+d.getMinutes();return c.a<c.b?(n>=c.a&&n<c.b):(n>=c.a||n<c.b);}
+function nextBoundary(d){
+ var c=cfg(),best=null;
+ [c.a,c.b].forEach(function(m){
+  for(var k=0;k<2;k++){
+   var t=new Date(d.getFullYear(),d.getMonth(),d.getDate()+k,Math.floor(m/60),m%60,0,0);
+   if(t>d&&(best===null||t<best))best=t;
+  }
+ });
+ return best?best.getTime():d.getTime()+3600000;
+}
+function setOvr(t){
+ var o={t:t,until:nextBoundary(new Date())};
+ mem=o;
+ try{localStorage.setItem(KEY,JSON.stringify(o));}catch(e){}
+}
+function clearOvr(){mem=null;try{localStorage.removeItem(KEY);}catch(e){}}
+function ovr(){
+ var o=mem;
+ if(!o){try{o=JSON.parse(localStorage.getItem(KEY)||"null");}catch(e){o=null;}}
+ if(o&&o.until>Date.now())return o.t;
+ if(o)clearOvr();
+ return null;
+}
+function eff(){return ovr()||(isDay(new Date())?"light":"dark");}
+
+var _ap=window.applyTheme;
+window.applyTheme=function(){
+ try{
+  if(S&&S.settings){
+   /* одноразово вмикаємо автоматичний режим за часом доби */
+   if(!S.settings.themeAutoMig){S.settings.themeAutoMig=1;S.settings.theme="time";if(typeof markDirty==="function")markDirty();}
+   if(S.settings.theme==="time"){
+    var e=eff();
+    document.documentElement.dataset.theme=e;
+    var m=document.querySelector('meta[name="theme-color"]');
+    if(m)m.content=e==="light"?"#eef3f9":"#07111f";
+    return;
+   }
+  }
+ }catch(err){}
+ return _ap?_ap.apply(this,arguments):undefined;
+};
+
+var _st=window.setTheme;
+window.setTheme=function(v){clearOvr();return _st?_st.apply(this,arguments):undefined;};
+
+var _tt=window.toggleTheme;
+window.toggleTheme=function(){
+ if(S&&S.settings&&S.settings.theme==="time"){
+  var cur=document.documentElement.dataset.theme==="light"?"light":"dark";
+  setOvr(cur==="light"?"dark":"light");
+  window.applyTheme();
+  return;
+ }
+ return _tt?_tt.apply(this,arguments):undefined;
+};
+
+window.advThemeSave=function(){
+ var d=G("advThemeDay"),n=G("advThemeNight");
+ if(!d||!n)return;
+ if(!d.value||!n.value||d.value===n.value){
+  alert("Вкажіть різний час для світлої та темної теми.");
+  d.value=S.settings.themeDayFrom||"07:00";n.value=S.settings.themeNightFrom||"19:00";
+  return;
+ }
+ S.settings.themeDayFrom=d.value;S.settings.themeNightFrom=n.value;
+ clearOvr();markDirty();window.applyTheme();
+};
+
+function ui(){
+ if(!S||!S.settings)return;
+ var sel=G("themeSel");if(!sel)return;
+ if(!sel.querySelector('option[value="time"]')){
+  var o=document.createElement("option");o.value="time";o.textContent="🕒 За часом доби";
+  sel.insertBefore(o,sel.firstChild);
+ }
+ if(!G("advThemeTimes")){
+  var f=sel.closest?sel.closest(".field"):sel.parentNode;
+  var d=document.createElement("div");d.id="advThemeTimes";d.className="field";
+  d.innerHTML='<label>Для режиму «За часом доби»: світла з — темна з</label>'+
+   '<div style="display:flex;gap:8px"><input type="time" id="advThemeDay" style="flex:1;min-width:0" onchange="advThemeSave()"><input type="time" id="advThemeNight" style="flex:1;min-width:0" onchange="advThemeSave()"></div>'+
+   '<div class="small muted" style="margin-top:6px">За замовчуванням світла з 07:00, темна з 19:00. Кнопка 🌗 у шапці в цьому режимі міняє тему лише до найближчої зміни.</div>';
+  f.insertAdjacentElement("afterend",d);
+ }
+ var t=G("advThemeDay"),n=G("advThemeNight");
+ if(t&&document.activeElement!==t)t.value=S.settings.themeDayFrom||"07:00";
+ if(n&&document.activeElement!==n)n.value=S.settings.themeNightFrom||"19:00";
+ if(document.activeElement!==sel)sel.value=S.settings.theme||"dark";
+}
+
+function tick(){try{if(S&&S.settings&&S.settings.theme==="time")window.applyTheme();}catch(e){}}
+setInterval(tick,30000);
+document.addEventListener("visibilitychange",function(){if(!document.hidden)tick();});
+window.addEventListener("focus",tick);
+window.addEventListener("pageshow",tick);
+
+var _rf=window.refresh;
+if(typeof _rf==="function"){
+ window.refresh=function(){
+  var r=_rf.apply(this,arguments);
+  try{ui();}catch(e){}
+  return r;
+ };
+}
+window.addEventListener("load",function(){setTimeout(function(){try{ui();if(S&&S.settings)window.applyTheme();}catch(e){}},500);});
+try{if(typeof S!=="undefined"&&S&&S.settings)window.applyTheme();}catch(e){}
 })();
