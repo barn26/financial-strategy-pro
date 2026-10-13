@@ -1428,7 +1428,7 @@ window.addEventListener("load",function(){
 ========================================================= */
 (function(){
 "use strict";
-var APP_REV="1.3";
+var APP_REV="1.4";
 window.APP_REV=APP_REV;
 function p2(n){return String(n).padStart(2,"0");}
 function installDate(){
