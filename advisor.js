@@ -1428,11 +1428,10 @@ window.addEventListener("load",function(){
 ========================================================= */
 (function(){
 "use strict";
-var APP_REV="1.8";
+var APP_REV="1.7";
 window.APP_REV=APP_REV;
 /* ЖУРНАЛ ЗМІН: з кожною новою версією додавайте запис ЗВЕРХУ */
 var CHANGELOG=[
- ["1.8",["Програма підлаштовується під поворот екрана: у горизонтальному режимі шапка стає компактною, а таблиці та картки розкладаються в 2–4 колонки.","Враховано вирізи екрана (чубчик) збоку при повороті.","Маніфест більше не блокує портретну орієнтацію (оновлений manifest.json)."]],
  ["1.7",["Швидкий запис: перед збереженням витрати показується вікно з підставленими категорією й рахунком. Можна змінити їх або просто натиснути «Підтвердити»."]],
  ["1.6",["Натискання на номер версії в шапці відкриває це вікно зі списком змін."]],
  ["1.5",["Інструкція доповнена блоком «Нові можливості»: ліміти, швидкий запис, підсумок тижня, дублі, ШІ-помічник із радником, версія.","Кроки в інструкції нумеруються підряд, без повторів."]],
@@ -1491,7 +1490,6 @@ var STEPS=[
  ["🔍","Дублі операцій","Якщо ви зберігаєте операцію, яка збігається з наявною (дата, сума, категорія), програма попередить і попросить підтвердження. У розділі «📊 Тиждень» → «🔍 Дублі операцій» кнопка «Перевірити історію» показує групи однакових записів, а «Лишити 1» видаляє зайві. Це можуть бути й справжні повтори (дві однакові покупки за день), тому перевіряйте перед видаленням.","Тиждень"],
  ["🤖","ШІ-помічник тепер і радник","ШІ-помічник відповідає також як фінансовий радник. Під звичайними кнопками є другий ряд: «З чого мені почати?», «Скільки відкладати?», «Чому саме так?», «Як швидше накопичити?», «Борги чи накопичення?», «Коли буде подушка?», «Куди вкласти гроші?». Можна писати й своїми словами, наприклад «чи можу я витратити 500 грн?». У відповідях радника є блок «💭 Як я міркую».","ШІ-помічник"],
  ["🧭","Радник і поради на Головній","Блок «Радник і поради» на Головній містить підказки радника, покроковий план дій, блок «Куди вкласти» з інструкціями та налаштування радника. Окремого чату «Запитайте радника» більше немає: усі його відповіді тепер у ШІ-помічнику.","Головна"],
- ["📱","Поворот екрана","Телефон можна тримати і вертикально, і горизонтально: програма підлаштовується. У горизонтальному режимі шапка з меню займає один компактний рядок, а картки розкладаються в кілька колонок. Якщо програма не повертається, вимкніть блокування повороту екрана в налаштуваннях телефону й за потреби перевстановіть іконку програми на головний екран.","Налаштування"],
  ["🏷️","Версія програми в шапці та оновлення","У шапці під назвою програми видно «Версія N (дата)»: номер програми та день, коли ця версія вперше запустилась на цьому пристрої. Нова версія підхоплюється при запуску; якщо з'явився банер «Доступна нова версія», натисніть «Оновити». Натисніть на номер версії, щоб побачити, що нового. Якщо номер не змінився після оновлення, повністю закрийте програму й відкрийте її знову.","Налаштування"]
 ];
 function esc2(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
@@ -1512,40 +1510,56 @@ build();
 window.addEventListener("load",build);
 })();
 
-/* =========================================================
-   📱 ПІДЛАШТУВАННЯ ПІД ПОВОРОТ ЕКРАНА
-   Горизонтальний режим: компактна шапка, більше колонок, відступи від вирізів екрана.
-========================================================= */
+
+/* ===== АДАПТАЦІЯ ПІД ПОВОРОТ ЕКРАНА: portrait / landscape ===== */
 (function(){
-"use strict";
-if(window.__finOrient)return;
-window.__finOrient=1;
-var css=
- 'html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}'+
- 'body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);}'+
- '#qeToast,#limToast{left:max(12px,env(safe-area-inset-left,0px))!important;right:max(12px,env(safe-area-inset-right,0px))!important;}'+
- '@media (orientation:landscape) and (max-height:520px){'+
-  'header .headerInner{flex-direction:row!important;align-items:center!important;gap:10px!important;padding:5px 12px!important;}'+
-  'header .logo{font-size:15px!important;white-space:nowrap;flex:0 0 auto;}'+
-  'header .logo small:not(#advVer){display:none!important;}'+
-  'header nav{flex:1 1 auto;min-width:0;width:auto!important;padding:2px 0!important;}'+
-  'header nav button{padding:7px 9px!important;font-size:13px;}'+
-  '.container{padding:8px 12px!important;}'+
-  '.grid2,.grid3,.grid4,.periodBox{grid-template-columns:repeat(2,minmax(0,1fr))!important;}'+
-  '.aiMessages{height:min(330px,50vh)!important;}'+
-  '.modal{padding:8px!important;}'+
-  '.modalBox,.instructionBox{max-height:calc(100vh - 16px)!important;}'+
-  '#qeToast{bottom:56px!important;}#limToast{bottom:10px!important;}'+
- '}'+
- '@media (orientation:landscape) and (max-height:520px) and (min-width:900px){'+
-  '.grid3{grid-template-columns:repeat(3,minmax(0,1fr))!important;}'+
-  '.grid4{grid-template-columns:repeat(4,minmax(0,1fr))!important;}'+
- '}';
-var st=document.createElement("style");st.id="advOrient";st.textContent=css;
-(document.head||document.documentElement).appendChild(st);
-/* на випадок, якщо система тримає застарілий блок орієнтації */
-try{if(screen.orientation&&screen.orientation.unlock)screen.orientation.unlock();}catch(e){}
-function kick(){setTimeout(function(){try{window.dispatchEvent(new Event("resize"));}catch(e){}},250);}
-window.addEventListener("orientationchange",kick);
-try{if(screen.orientation&&screen.orientation.addEventListener)screen.orientation.addEventListener("change",kick);}catch(e){}
+  "use strict";
+  var styleId = "fin26-orientation-adaptive-style";
+  function installOrientationStyles(){
+    if(document.getElementById(styleId)) return;
+    var css = `
+      html{ -webkit-text-size-adjust:100%; }
+      @media (orientation:landscape) and (max-height:600px){
+        header{position:sticky;top:0;}
+        .headerInner{flex-direction:row;align-items:center;justify-content:space-between;gap:8px;padding:7px 12px;}
+        .headerInner h1,.headerInner .title,.headerInner .brand{font-size:clamp(14px,2.2vw,21px);}
+        nav,.nav,.tabs,.navTabs{flex-direction:row;flex-wrap:wrap;gap:5px;}
+        main,.container,.appContainer{padding:8px;}
+        .grid2{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+        .grid3{grid-template-columns:repeat(3,minmax(0,1fr)) !important;}
+        .grid4{grid-template-columns:repeat(4,minmax(0,1fr)) !important;}
+        .featureGrid,.securityGrid{grid-template-columns:repeat(2,minmax(0,1fr)) !important;}
+        .kpi{padding:9px;}
+        .card,.panel,.section,.box{margin-bottom:9px;}
+        .modal{overflow-y:auto;align-items:flex-start;padding:8px;}
+        .modalBox,.loginBox,.instructionBox{max-height:calc(100dvh - 16px);overflow-y:auto;}
+        canvas{max-width:100%;}
+      }
+      @media (orientation:landscape) and (min-width:560px){
+        .grid3{grid-template-columns:repeat(3,minmax(0,1fr));}
+        .grid4{grid-template-columns:repeat(4,minmax(0,1fr));}
+      }
+    `;
+    var s=document.createElement('style');s.id=styleId;s.textContent=css;document.head.appendChild(s);
+  }
+  function resizeCharts(){
+    try{
+      if(window.Chart && Chart.instances){
+        Object.keys(Chart.instances).forEach(function(k){
+          var c=Chart.instances[k]; if(c && typeof c.resize==='function') c.resize();
+        });
+      }
+    }catch(e){}
+    window.dispatchEvent(new Event('resize'));
+  }
+  var queued=false;
+  function refreshLayout(){
+    installOrientationStyles();
+    if(queued)return; queued=true;
+    requestAnimationFrame(function(){queued=false;resizeCharts();});
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',refreshLayout,{once:true});
+  else refreshLayout();
+  window.addEventListener('orientationchange',function(){setTimeout(refreshLayout,120);setTimeout(refreshLayout,450);});
+  window.addEventListener('resize',refreshLayout,{passive:true});
 })();
