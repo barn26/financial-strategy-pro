@@ -128,6 +128,7 @@ function tips(){
 /* ---------- відображення ---------- */
 function render(){
  if(typeof S==="undefined"||!S||!G("advKpi"))return;
+ try{cushRender();}catch(e){}
  var bal=totalBalance(),fr=frozen(),av=Math.max(0,bal-fr),A=avgDaily(),cm=cushMonths(),owe=oweList(),goals=goalList();
  var ccls=cm>=3?"green":(cm>=1?"yellow":"red");
  var steps=[
@@ -237,6 +238,7 @@ function build(){
  
  P.steps=mk('<div id="advSteps"></div>');
  P.frozen=mk('<div id="advFrozen"></div>');
+ P.cush=mk('<div id="advCush"></div>');
  P.settings=mk(
   '<div class="grid grid2"><div class="field" style="margin:0"><label>Відкладати з кожного доходу, % (порожньо = авто, 20%)</label><input id="advPct" type="number" min="1" max="90" step="1"></div>'+
   '<div style="align-self:end"><button class="btn green" onclick="advSavePct()">💾 Зберегти</button></div></div>'+
@@ -365,6 +367,7 @@ function think(q){
   R.push("Місячні витрати ≈"+money(c.m)+" → ціль на 3 місяці: "+money(target)+".","Вже в подушці: "+money(cur)+".","Відкладання "+c.pct+"% від доходу "+money(c.inc)+" ≈ "+money(per)+"/міс. (якщо дохід раз на місяць).");
   T=cur>=target?"Подушка вже покриває 3 місяці витрат, чудово. Тепер можна рухатись до цілей і вкладень.":
    "Подушка покриває **"+c.cm.toFixed(1)+" міс.** з трьох. Лишилось накопичити **"+money(target-cur)+"**"+(e?", і за такого темпу це "+e+".":". Додайте дохід, і я порахую строк.")+"\n\nПришвидшити можна двома шляхами: підняти відсоток відкладання або скоротити «бажання».";
+  var cs=cushSummary();if(cs)T+="\n\n"+cs;
   return{r:R,t:T};
  }
 
@@ -512,6 +515,7 @@ function homeLayout(){
  var plan=document.createElement("div");plan.appendChild(P.steps);P.frozen.style.marginTop="14px";plan.appendChild(P.frozen);
  [
   grp("advGTips","💬 Поради радника","Повний список порад радника",[P.tips]),
+  grp("advGCush","🛟 План накопичення подушки","Скільки й як відкладати, щоб досягти цілі",[P.cush]),
   grp("advGPlan","🪜 План дій крок за кроком","Етапи та заморожені кошти",[plan]),
   grp("advGInv","📈 Куди вкласти: перевірені інструменти (Україна)","Депозит, ОВДП та офіційні джерела",[P.invest]),
   recCard?grp("advGRec","💡 Поради та рекомендації","Поради за вашою ситуацією",[recCard]):null,
@@ -525,6 +529,151 @@ function homeLayout(){
  home.appendChild(g1);home.appendChild(g2);home.appendChild(g3);
  home.insertBefore(widget,home.firstChild);
 }
+/* ---------- ПЛАН НАКОПИЧЕННЯ ПОДУШКИ ---------- */
+function cushCalc(){
+ var ci=null;try{ci=cushionInfo();}catch(e){ci=null;}
+ if(!ci)return{err:"Замало даних: внесіть доходи й витрати хоча б за 7 днів, і я складу план накопичення."};
+ if(ci.noExp)return{err:"У розрахункових періодах немає витрат, тому порахувати подушку поки не можна."};
+ var st=S.settings.periodStart,en=S.settings.periodEnd,dur=days(st,en),N=Math.max(1,Number(S.settings.cushAvg)||3);
+ var inc=0,ex=0,td=0,i,ps,pe,r;
+ for(i=1;i<=N;i++){
+  ps=addDays(st,-dur*i);pe=addDays(ps,dur-1);
+  if(!S.transactions.some(function(t){return t.date>=ps&&t.date<=pe&&(t.type==="income"||t.type==="expense");}))continue;
+  r=rangeStats(ps,pe);inc+=r.income;ex+=r.expense;td+=dur;
+ }
+ if(!td){
+  var t0=today();
+  if(t0>=st){var el=Math.min(dur,days(st,t0));if(el>=7){r=rangeStats(st,addDays(st,el-1));inc=r.income;ex=r.expense;td=el;}}
+ }
+ if(!td)return{err:"Замало даних: внесіть доходи й витрати хоча б за 7 днів, і я складу план накопичення."};
+ var k=30.4375/td,I=inc*k,X=ex*k;
+ if(!(I>0))return{err:"Не бачу доходів у розрахункових періодах. Додайте доходи, і я складу план."};
+ /* розмір і частота надходжень за 90 днів */
+ var from=addD(today(),-90);
+ var evs=S.transactions.filter(function(t){return t.type==="income"&&t.date>=from;});
+ var first=S.transactions.reduce(function(m,t){return t.date<m?t.date:m;},today());
+ var span=Math.max(30,Math.min(90,days(first,today())));
+ var sumEv=evs.reduce(function(s,t){return s+amt(t);},0);
+ var avgInc=evs.length?sumEv/evs.length:I,perMonth=evs.length?evs.length/(span/30.4375):1;
+ /* наступна мета */
+ var E=ci.monthlyExp,S0=ci.savings,months=ci.months,next=0,nextLabel="";
+ if(months<1){next=E;nextLabel="запас на 1 місяць витрат";}
+ else if(months<3){next=E*3;nextLabel="запас на 3 місяці витрат";}
+ else if(S0<ci.targetAmt){next=ci.targetAmt;nextLabel="запас на "+ci.target+" міс. витрат";}
+ var gap=next>0?Math.max(0,next-S0):0;
+ var free=Math.max(0,I-X),freePct=free/I*100;
+ /* сценарії відкладання */
+ var sc=[10,20,30].map(function(p){
+  var pm=I*p/100,pp=avgInc*p/100,m=(gap>0&&pm>0)?Math.ceil(gap/pm):0;
+  return{p:p,pm:pm,pp:pp,m:m,ok:pm<=free+0.5,cut:Math.max(0,pm-free)};
+ });
+ var rec=0;
+ [30,20,10].forEach(function(p){if(!rec&&p<=freePct+0.01)rec=p;});
+ if(!rec&&freePct>=5)rec=Math.floor(freePct/5)*5;
+ return{ci:ci,I:I,X:X,E:E,S0:S0,months:months,next:next,nextLabel:nextLabel,gap:gap,free:free,freePct:freePct,sc:sc,rec:rec,avgInc:avgInc,perMonth:perMonth,k:k};
+}
+function etaText(m){return m<=1?"≈ 1 міс. (до "+fd(addD(today(),30))+")":"≈ "+m+" міс. (до "+fd(addD(today(),m*30))+")";}
+function cushSummary(){
+ var c;try{c=cushCalc();}catch(e){return "";}
+ if(!c||c.err)return "";
+ if(!c.next)return "Подушка вже досягла цілі, тож тепер можна спрямовувати надлишок у цілі й вкладення.";
+ if(!c.rec)return "Зараз витрати майже дорівнюють доходу, тож відкладати нема з чого. Спершу скоротіть «бажання» хоча б на "+money(Math.max(c.sc[0].cut,c.I*0.05-c.free))+" на місяць, і тоді відкладайте щонайменше 10% кожного доходу.";
+ var pm=c.I*c.rec/100,m=pm>0&&c.gap>0?Math.ceil(c.gap/pm):0;
+ return "Рекомендую відкладати "+c.rec+"% від кожного доходу: це ≈ "+money(c.avgInc*c.rec/100)+" із кожного надходження ("+money(c.avgInc)+")"+(m?", і мета «"+c.nextLabel+"» (≈ "+money(c.next)+") буде досягнута "+etaText(m)+".":".")+" Деталі: «Радник і поради» → «План накопичення подушки».";
+}
+window.advCushApply=function(p){
+ p=Number(p);if(!(p>0))return;
+ S.settings.advPct=p;markDirty();refresh();
+};
+function cushRender(){
+ var box=G("advCush");if(!box||typeof S==="undefined"||!S)return;
+ var c=cushCalc();
+ if(c.err){box.innerHTML='<div class="empty">'+esc(c.err)+'</div>';return;}
+ var h='',i;
+ h+=adv(c.months<1?"r":(c.months<3?"y":"g"),"Зараз у подушці "+money(c.S0)+" ("+c.months.toFixed(1)+" міс. витрат). Для розрахунку подушки взято витрати ≈ "+money(c.E)+" на місяць; середній дохід ≈ "+money(c.I)+", усі витрати ≈ "+money(c.X)+" на місяць.");
+ if(!c.next){
+  h+=adv("g","Подушка вже досягла цілі ("+c.ci.target+" міс.). Надлишок можна спрямовувати в цілі та вкладення, а відсоток відкладання тримати за потреби.");
+  box.innerHTML=h;return;
+ }
+ h+=adv("b","Найближча мета — "+c.nextLabel+": "+money(c.next)+". Не вистачає "+money(c.gap)+".");
+ if(c.free>0)h+=adv(c.freePct>=20?"g":"y","Після витрат у середньому лишається ≈ "+money(c.free)+" на місяць ("+Math.round(c.freePct)+"% доходу). Саме з цього й можна відкладати.");
+ else h+=adv("r","Витрати дорівнюють доходу або перевищують його, тож відкладати нема з чого. Спершу скоротіть витрати (див. нижче), навіть мінімальне відкладання вже допоможе.");
+
+ h+='<div style="font-weight:800;margin:14px 0 6px">💰 Скільки відкладати з кожного доходу</div>';
+ c.sc.forEach(function(s){
+  var lbl=s.p===10?"комфортно, повільно":(s.p===20?"збалансовано (правило 50/30/20)":"швидко");
+  h+='<div class="item"><div class="itemTitle">'+(s.p===c.rec?"👉 ":"")+s.p+'% — '+lbl+(s.p===c.rec?' <span class="badge">рекомендую</span>':'')+'</div>'+
+   '<div class="small muted">З кожного надходження ≈ <b>'+money(s.pp)+'</b> (середнє надходження '+money(c.avgInc)+'); на місяць ≈ '+money(s.pm)+'.'+
+   (s.m?' До мети: '+etaText(s.m)+'.':'')+'</div>'+
+   '<div class="small" style="margin-top:4px;color:'+(s.ok?'var(--g)':'var(--y)')+'">'+(s.ok?'✅ Реально без змін у бюджеті':'⚠️ Потрібно скоротити витрати на ≈ '+money(s.cut)+' на місяць')+'</div></div>';
+ });
+ if(c.rec){
+  var cur=Number(S.settings.advPct)||20;
+  h+=adv("g","Рекомендую: "+c.rec+"% від кожного доходу, тобто ≈ "+money(c.avgInc*c.rec/100)+" одразу після надходження («спершу заплати собі»).");
+  if(cur!==c.rec)h+='<button class="btn green smallBtn" style="margin:4px 0 6px" onclick="advCushApply('+c.rec+')">✅ Використовувати '+c.rec+'% у порадах радника (зараз '+cur+'%)</button>';
+ }
+
+ /* збалансований розподіл */
+ var sv=c.rec||10,rest=100-sv,nd=Math.round(rest*0.625),wn=rest-nd,a=analytics();
+ h+='<div style="font-weight:800;margin:14px 0 6px">⚖️ Як розподілити кожен дохід</div>';
+ h+='<div class="item"><div class="small">🛟 Подушка: <b>'+sv+'%</b> · 🏠 Потреби: до <b>'+nd+'%</b> · 🎉 Бажання: до <b>'+wn+'%</b></div>'+
+  (a.income>0?'<div class="small muted" style="margin-top:4px">Зараз у поточному періоді: потреби '+Math.round(a.needs/a.income*100)+'%, бажання '+Math.round(a.wants/a.income*100)+'% від доходу.</div>':'')+'</div>';
+ if(a.income>0){
+  var np=a.needs/a.income*100,wp=a.wants/a.income*100;
+  if(wp>wn)h+=adv("y","Бажання займають "+Math.round(wp)+"% доходу, а орієнтир — до "+wn+"%. Скоротивши їх до цього рівня, ви вивільните ≈ "+money((wp-wn)/100*c.I)+" на місяць для подушки.");
+  if(np>nd)h+=adv("y","Потреби займають "+Math.round(np)+"% доходу (орієнтир — до "+nd+"%). Перегляньте комунальні платежі, підписки та регулярні платежі.");
+ }
+
+ /* де знайти гроші */
+ var from30=addD(today(),-30),nl=needsList(),sums={};
+ S.transactions.forEach(function(t){
+  if(t.type!=="expense"||t.date<from30)return;
+  var cat=t.category||"Інше";
+  if(nl.indexOf(cat)>=0||cat==="Погашення боргу")return;
+  sums[cat]=(sums[cat]||0)+amt(t);
+ });
+ var top=Object.keys(sums).sort(function(x,y){return sums[y]-sums[x];}).slice(0,3);
+ if(top.length){
+  h+='<div style="font-weight:800;margin:14px 0 6px">✂️ Де можна скоротити (останні 30 днів)</div>';
+  top.forEach(function(n){h+='<div class="item"><div class="small"><b>'+esc(n)+'</b>: '+money(sums[n])+' · якщо менше на 15% → <b>+'+money(sums[n]*0.15)+'</b> на місяць у подушку</div></div>';});
+ }
+
+ /* етапи */
+ var st=[["1 тиждень витрат",c.E*7/30.4375],["1 місяць витрат",c.E],["3 місяці витрат",c.E*3]];
+ if(c.ci.target>3)st.push([c.ci.target+" міс. витрат",c.ci.targetAmt]);
+ st=st.filter(function(x){return x[1]>c.S0;});
+ if(st.length){
+  h+='<div style="font-weight:800;margin:14px 0 6px">🪜 Етапи</div>';
+  var pm=c.rec?c.I*c.rec/100:0;
+  st.forEach(function(x){
+   var m=pm>0?Math.ceil((x[1]-c.S0)/pm):0;
+   h+='<div class="item"><div class="small"><b>'+x[0]+'</b>: '+money(x[1])+' · лишилось '+money(x[1]-c.S0)+(m?' · '+etaText(m):'')+'</div></div>';
+  });
+ }
+
+ /* борги */
+ var owe=oweList();
+ if(owe.length){
+  h+=adv("b","Є борг «"+owe[0].name+"». Поки подушки менше за 1 місяць, спрямовуйте на борг не більше ≈10% доходу ("+money(c.avgInc*0.1)+" з кожного надходження), решту відкладання — у подушку. Коли набереться 1 місяць витрат, борг можна гасити швидше.");
+ }
+
+ h+='<div style="font-weight:800;margin:14px 0 6px">✅ Як зробити це легко</div>';
+ [
+  "Відкладайте одразу після надходження, а не з того, що лишилось: коли з'явиться вікно радника, підтверджуйте заморожування.",
+  "Тримайте подушку окремо від щоденних грошей (окремий рахунок, див. Налаштування → розрахунок подушки), щоб не витрачати її випадково.",
+  "Половину неочікуваних надходжень (премія, повернений борг, подарунок) відправляйте в подушку.",
+  "Раз на тиждень дивіться «📊 Тиждень»: це допомагає вчасно помітити, що бажання виходять за орієнтир.",
+  "Якщо якогось місяця не вийшло, не кидайте: відкладіть хоча б 5%. Регулярність важливіша за суму."
+ ].forEach(function(x){h+='<div class="small" style="margin:5px 0;line-height:1.45">• '+esc(x)+'</div>';});
+ h+='<div class="small muted" style="margin-top:10px">Це орієнтири, а не гарантії. План перераховується автоматично, коли змінюються ваші доходи й витрати.</div>';
+ box.innerHTML=h;
+}
+window.advOpenCushion=function(){
+ var g=G("advGCush");
+ if(G("hAdv-body")&&G("hAdv-body").classList.contains("collapsed"))toggleSection("hAdv");
+ if(G("advGCush-body")&&G("advGCush-body").classList.contains("collapsed"))toggleSection("advGCush");
+ if(g)g.scrollIntoView({behavior:"smooth"});
+};
 window.advOpenTips=function(){
  var g=G("advGTips");
  if(G("hAdv-body")&&G("hAdv-body").classList.contains("collapsed"))toggleSection("hAdv");
@@ -1428,10 +1577,11 @@ window.addEventListener("load",function(){
 ========================================================= */
 (function(){
 "use strict";
-var APP_REV="2.0";
+var APP_REV="2.1";
 window.APP_REV=APP_REV;
 /* ЖУРНАЛ ЗМІН: з кожною новою версією додавайте запис ЗВЕРХУ */
 var CHANGELOG=[
+ ["2.1",["Новий блок «🛟 План накопичення подушки» (Головна → Радник і поради): скільки відкладати з кожного доходу (10/20/30%), строки до мети, збалансований розподіл доходу, де скоротити витрати, етапи й поради.","Біля поради про малу подушку з'явилось посилання «Як накопичити: покроковий план».","ШІ-помічник у відповіді про подушку тепер радить конкретний відсоток і суму."]],
  ["2.0",["Захист від копіювання: активація за кодом пристрою. Програма працює лише на пристроях, для яких власник видав ключ (вмикається окремо).","У вікні версії (натисніть на номер у шапці) показано код цього пристрою."]],
  ["1.9",["Тема сама міняється за часом доби: вдень світла, ввечері й уночі темна (за замовчуванням з 07:00 до 19:00).","У Налаштуваннях → «Вигляд і валюта» можна вибрати інший режим (темна, світла, як у системі) або змінити години перемикання.","Кнопка 🌗 у шапці в автоматичному режимі міняє тему лише до найближчої зміни."]],
  ["1.8",["Програма підлаштовується під поворот екрана: у горизонтальному режимі шапка стає компактною, а таблиці та картки розкладаються в 2–4 колонки.","Враховано вирізи екрана (чубчик) збоку при повороті.","Маніфест більше не блокує портретну орієнтацію (оновлений manifest.json)."]],
@@ -1497,7 +1647,8 @@ var STEPS=[
  ["📱","Поворот екрана","Телефон можна тримати і вертикально, і горизонтально: програма підлаштовується. У горизонтальному режимі шапка з меню займає один компактний рядок, а картки розкладаються в кілька колонок. Якщо програма не повертається, вимкніть блокування повороту екрана в налаштуваннях телефону й за потреби перевстановіть іконку програми на головний екран.","Налаштування"],
  ["🏷️","Версія програми в шапці та оновлення","У шапці під назвою програми видно «Версія N (дата)»: номер програми та день, коли ця версія вперше запустилась на цьому пристрої. Нова версія підхоплюється при запуску; якщо з'явився банер «Доступна нова версія», натисніть «Оновити». Натисніть на номер версії, щоб побачити, що нового. Якщо номер не змінився після оновлення, повністю закрийте програму й відкрийте її знову.","Налаштування"],
  ["🕒","Тема за часом доби","Тема сама міняється: вдень світла, ввечері й уночі темна (за замовчуванням світла з 07:00, темна з 19:00). Налаштування → «Вигляд і валюта»: оберіть режим «🕒 За часом доби», «Темна», «Світла» або «Авто (як у системі)» і за потреби змініть години перемикання. Кнопка 🌗 у шапці в автоматичному режимі міняє тему лише до найближчої зміни, потім автоперемикання продовжується.","Налаштування"],
- ["🔑","Активація за кодом пристрою","Якщо власник увімкнув захист, при першому запуску на новому пристрої з'являється екран «Програму не активовано» з кодом пристрою. Натисніть 📋, надішліть код власнику, вставте отриманий ключ і натисніть «Активувати». Код пристрою видно й пізніше: натисніть на номер версії в шапці. Після очищення даних сайту чи перевстановлення програми код зміниться, і потрібен новий ключ.","Налаштування"]
+ ["🔑","Активація за кодом пристрою","Якщо власник увімкнув захист, при першому запуску на новому пристрої з'являється екран «Програму не активовано» з кодом пристрою. Натисніть 📋, надішліть код власнику, вставте отриманий ключ і натисніть «Активувати». Код пристрою видно й пізніше: натисніть на номер версії в шапці. Після очищення даних сайту чи перевстановлення програми код зміниться, і потрібен новий ключ.","Налаштування"],
+ ["🛟","План накопичення подушки","Головна → «Радник і поради» → «План накопичення подушки» (або посилання під порадою про малу подушку). Радник показує, скільки відкладати з кожного доходу (10%, 20% або 30%), за який час буде досягнута найближча мета, як розподілити дохід між потребами, бажаннями та подушкою, де можна скоротити витрати та які є етапи. Кнопка «Використовувати …%» ставить рекомендований відсоток у поради радника. План перераховується сам, коли змінюються доходи й витрати.","Радник"]
 ];
 function esc2(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function build(){
@@ -1675,4 +1826,26 @@ if(typeof _rf==="function"){
 }
 window.addEventListener("load",function(){setTimeout(function(){try{ui();if(S&&S.settings)window.applyTheme();}catch(e){}},500);});
 try{if(typeof S!=="undefined"&&S&&S.settings)window.applyTheme();}catch(e){}
+})();
+
+/* =========================================================
+   🔗 Посилання «Як накопичити» біля поради про малу подушку
+========================================================= */
+(function(){
+"use strict";
+var _ra=window.renderAdviceItems;
+if(typeof _ra!=="function")return;
+window.renderAdviceItems=function(list){
+ var html=_ra.apply(this,arguments);
+ try{
+  var link='<div class="small" style="margin-top:6px"><a href="#" onclick="advOpenCushion();return false" style="color:var(--b);font-weight:700">📋 Як накопичити: покроковий план →</a></div>';
+  (list||[]).forEach(function(x){
+   if(x&&x.l!=="g"&&String(x.text).indexOf("Фінансова подушка")===0){
+    var t=esc(x.text),k=html.indexOf(t+"</div>");
+    if(k>=0)html=html.slice(0,k+t.length)+link+html.slice(k+t.length);
+   }
+  });
+ }catch(e){}
+ return html;
+};
 })();
