@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🔑 Видача ключів — Financial Strategy</title>
+<style>
+:root{color-scheme:dark light;--bg:#07111f;--card:#0d1b2a;--line:#274058;--text:#e8f0fa;--muted:#8fa6bd;--g:#36e09a;--r:#ff6b81;--b:#46e0ff}
+@media (prefers-color-scheme:light){:root{--bg:#eef3f9;--card:#fff;--line:#c9d6e4;--text:#14243a;--muted:#5b6f86;--g:#0a8f5b;--r:#c0344d;--b:#0b7aa0}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;padding:14px}
+.wrap{max-width:640px;margin:auto}
+h1{font-size:20px;margin:6px 0 4px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0}
+h2{font-size:16px;margin:0 0 10px}
+label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+input,textarea{width:100%;background:transparent;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:15px}
+textarea{font-family:monospace;font-size:12px}
+button{background:var(--b);color:#00131c;border:0;border-radius:10px;padding:10px 14px;font-weight:700;font-size:14px;margin:8px 8px 0 0;cursor:pointer}
+button.g{background:var(--g)} button.r{background:var(--r);color:#fff} button.o{background:transparent;color:var(--text);border:1px solid var(--line)}
+.small{font-size:12px;color:var(--muted);line-height:1.5}
+.warn{border-color:var(--r)}
+.out{font-family:monospace;font-size:13px;word-break:break-all;padding:10px;border:1px dashed var(--line);border-radius:10px;margin-top:8px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+td,th{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left;vertical-align:top}
+.ok{color:var(--g)} .bad{color:var(--r)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🔑 Видача ключів активації</h1>
+<div class="small">Це приватний інструмент власника. <b>Не завантажуйте цей файл у репозиторій і нікому не передавайте.</b> Тримайте його лише на своєму комп’ютері чи телефоні.</div>
+<div id="env" class="small bad" style="margin-top:6px"></div>
+
+<div class="card" id="cKeys">
+ <h2>1. Ваша ключова пара</h2>
+ <div id="keysState" class="small"></div>
+ <button class="g" onclick="mkKeys()" id="btnMk">Створити ключову пару</button>
+ <button class="o" onclick="document.getElementById('restoreBox').style.display='block'">Відновити з резервної копії</button>
+ <div id="restoreBox" style="display:none">
+  <label>Вставте резервну копію приватного ключа</label>
+  <textarea id="restoreTxt" rows="4"></textarea>
+  <button onclick="restoreKeys()">Відновити</button>
+ </div>
+ <div id="pubBox" style="display:none">
+  <label>Публічний ключ (його не треба ховати; його вставляють у програму)</label>
+  <div class="out" id="pubOut"></div>
+  <button onclick="cp('pubOut')">📋 Копіювати публічний ключ</button>
+  <label style="margin-top:16px">Резервна копія приватного ключа (СЕКРЕТНО)</label>
+  <div class="small bad">Збережіть її в надійному місці (менеджер паролів, зашифрована нотатка). Без неї після очищення даних цього сторінки ви не зможете видавати ключі для вже встановленої програми, і доведеться створити нову пару й оновити програму.</div>
+  <div class="out warn" id="privOut" style="display:none"></div>
+  <button class="r" onclick="showPriv()">Показати резервну копію</button>
+  <button class="o" onclick="cp('privOut')">📋 Копіювати</button>
+ </div>
+</div>
+
+<div class="card">
+ <h2>2. Видати ключ для пристрою</h2>
+ <label>Код пристрою (його показує програма на екрані «Програму не активовано»)</label>
+ <input id="devCode" placeholder="XXXXX-XXXXX" autocapitalize="characters" autocomplete="off">
+ <label>Кому/який пристрій (для вашого списку)</label>
+ <input id="devNote" placeholder="Наприклад: мій телефон" autocomplete="off">
+ <button class="g" onclick="issue()">Створити ключ</button>
+ <div id="issueMsg" class="small" style="margin-top:8px"></div>
+ <div id="keyOut" class="out" style="display:none"></div>
+ <button id="btnCopyKey" class="o" style="display:none" onclick="cp('keyOut')">📋 Копіювати ключ</button>
+</div>
+
+<div class="card">
+ <h2>3. Видані ключі</h2>
+ <div id="listBox" class="small">Поки порожньо.</div>
+</div>
+</div>
+
+<script>
+/* ---- чисті функції ---- */
+const ALG={name:"ECDSA",namedCurve:"P-256"},SIGN={name:"ECDSA",hash:"SHA-256"};
+function b64u(buf){
+ const u=new Uint8Array(buf);let s="";
+ for(let i=0;i<u.length;i++)s+=String.fromCharCode(u[i]);
+ return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+async function makeKeys(){
+ const kp=await crypto.subtle.generateKey(ALG,true,["sign","verify"]);
+ const pub=await crypto.subtle.exportKey("jwk",kp.publicKey);
+ const priv=await crypto.subtle.exportKey("jwk",kp.privateKey);
+ return{pub:{kty:pub.kty,crv:pub.crv,x:pub.x,y:pub.y},priv:priv};
+}
+function normCode(c){
+ c=String(c||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+ return c.length===10?c.slice(0,5)+"-"+c.slice(5):"";
+}
+async function signCode(privJwk,code){
+ const k=await crypto.subtle.importKey("jwk",privJwk,ALG,false,["sign"]);
+ const sig=await crypto.subtle.sign(SIGN,k,new TextEncoder().encode("FIN26|"+code));
+ return b64u(sig);
+}
+/* ---- інтерфейс ---- */
+const $=id=>document.getElementById(id);
+const LS_PRIV="fin26_tool_priv",LS_PUB="fin26_tool_pub",LS_LIST="fin26_tool_list";
+function load(k){try{return JSON.parse(localStorage.getItem(k)||"null");}catch(e){return null;}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){alert("Не вдалося зберегти дані в браузері.");}}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function refreshKeys(){
+ const pub=load(LS_PUB),priv=load(LS_PRIV);
+ if(pub&&priv){
+  $("keysState").innerHTML='<span class="ok">✅ Ключова пара є.</span> Публічний ключ нижче вставляється в програму один раз.';
+  $("pubOut").textContent=JSON.stringify(pub);
+  $("pubBox").style.display="block";
+  $("btnMk").style.display="none";
+ }else{
+  $("keysState").textContent="Ключової пари ще немає. Створіть її один раз (або відновіть з резервної копії).";
+  $("pubBox").style.display="none";
+  $("btnMk").style.display="inline-block";
+ }
+}
+async function mkKeys(){
+ if(load(LS_PRIV)&&!confirm("Ключова пара вже є. Нова пара зробить недійсними всі раніше видані ключі. Продовжити?"))return;
+ try{
+  const k=await makeKeys();
+  save(LS_PRIV,k.priv);save(LS_PUB,k.pub);save(LS_LIST,[]);
+  refreshKeys();renderList();
+  alert("Готово. Тепер збережіть резервну копію приватного ключа та передайте публічний ключ для вставки в програму.");
+ }catch(e){alert("Не вдалося створити ключі: "+e.message);}
+}
+function showPriv(){
+ const p=load(LS_PRIV);if(!p)return;
+ const o=$("privOut");o.textContent=JSON.stringify(p);o.style.display="block";
+}
+async function restoreKeys(){
+ try{
+  const p=JSON.parse($("restoreTxt").value);
+  if(!p||!p.d||!p.x||!p.y)throw new Error("це не схоже на приватний ключ");
+  await crypto.subtle.importKey("jwk",p,ALG,false,["sign"]);
+  save(LS_PRIV,p);save(LS_PUB,{kty:p.kty,crv:p.crv,x:p.x,y:p.y});
+  if(!load(LS_LIST))save(LS_LIST,[]);
+  $("restoreBox").style.display="none";refreshKeys();renderList();
+  alert("Ключі відновлено.");
+ }catch(e){alert("Не вдалося відновити: "+e.message);}
+}
+function cp(id){
+ const t=$(id).textContent;
+ if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>alert("Скопійовано."),()=>prompt("Скопіюйте вручну:",t));
+ else prompt("Скопіюйте вручну:",t);
+}
+async function issue(){
+ const priv=load(LS_PRIV);
+ if(!priv){$("issueMsg").innerHTML='<span class="bad">Спершу створіть або відновіть ключову пару (розділ 1).</span>';return;}
+ const code=normCode($("devCode").value);
+ if(!code){$("issueMsg").innerHTML='<span class="bad">Код має містити 10 символів, наприклад K7F29-QX4M3.</span>';return;}
+ try{
+  const key=await signCode(priv,code);
+  const full="FIN26-"+key;
+  $("keyOut").textContent=full;$("keyOut").style.display="block";$("btnCopyKey").style.display="inline-block";
+  $("issueMsg").innerHTML='<span class="ok">Ключ для пристрою '+esc(code)+' готовий. Надішліть його власнику пристрою.</span>';
+  const list=load(LS_LIST)||[];
+  list.unshift({code:code,note:$("devNote").value.trim(),date:new Date().toLocaleDateString("uk-UA")});
+  save(LS_LIST,list);renderList();
+ }catch(e){$("issueMsg").innerHTML='<span class="bad">Помилка: '+esc(e.message)+'</span>';}
+}
+function renderList(){
+ const l=load(LS_LIST)||[];
+ if(!l.length){$("listBox").textContent="Поки порожньо.";return;}
+ $("listBox").innerHTML='<table><tr><th>Дата</th><th>Код</th><th>Примітка</th><th></th></tr>'+
+  l.map((x,i)=>'<tr><td>'+esc(x.date)+'</td><td style="font-family:monospace">'+esc(x.code)+'</td><td>'+esc(x.note||"")+'</td><td><button class="o" style="margin:0;padding:4px 8px" onclick="reissue('+i+')">Ключ</button></td></tr>').join("")+'</table>'+
+  '<div class="small" style="margin-top:8px">Видалити пристрій зі списку не скасовує вже виданий ключ: він діє, доки діє публічний ключ у програмі.</div>';
+}
+async function reissue(i){
+ const l=load(LS_LIST)||[],x=l[i],priv=load(LS_PRIV);if(!x||!priv)return;
+ $("devCode").value=x.code;$("devNote").value=x.note||"";
+ const key="FIN26-"+await signCode(priv,x.code);
+ $("keyOut").textContent=key;$("keyOut").style.display="block";$("btnCopyKey").style.display="inline-block";
+ $("issueMsg").innerHTML='<span class="ok">Ключ для '+esc(x.code)+' створено знову.</span>';
+ window.scrollTo(0,0);
+}
+if(!(window.crypto&&crypto.subtle)){
+ $("env").textContent="⚠️ Цей браузер не дозволяє криптографію на цій адресі. Відкрийте файл у сучасному Chrome/Safari як локальний файл або з https.";
+}
+refreshKeys();renderList();
+</script>
+</body>
+</html>
