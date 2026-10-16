@@ -229,10 +229,68 @@ function tips(){
  return out;
 }
 
+/* поради радника входять у загальний список порад (без повторів): тепер скрізь один список */
+(function(){
+ var _ba=window.buildAdvice;
+ if(typeof _ba!=="function")return;
+ window.buildAdvice=function(){
+  var list=_ba.apply(this,arguments);
+  try{
+   var has=function(re){return list.some(function(x){return re.test(x.text);});};
+   var add=[];
+   tips().forEach(function(t){
+    var text=t[1];
+    if(/^Усе стабільно/.test(text))return;
+    if(/^Перша мета — подушка/.test(text)&&has(/^Фінансова подушка/))return;
+    if(/^Із доходу періоду лишається лише/.test(text)&&has(/^Резерв \d+% доходу/))return;
+    if(/^Записів про витрати ще мало/.test(text)&&has(/ще немає операцій/))return;
+    add.push({l:t[0],text:text});
+   });
+   var o={r:0,y:1,b:2,g:3};
+   list=list.concat(add).map(function(x,i){return[x,i];}).sort(function(p,q){return(o[p[0].l]-o[q[0].l])||(p[1]-q[1]);}).map(function(p){return p[0];});
+  }catch(e){}
+  return list;
+ };
+})();
+function adviceLabel(){
+ var b=G("advAdvBtn"),f=G("recommendations");if(!b||!f)return;
+ var n=0;try{n=buildAdvice().length;}catch(e){}
+ var open=f.style.display==="block";
+ b.style.display=(n>3||open)?"":"none";
+ b.textContent=open?"Менше ▴":"Усі поради ("+n+") ▾";
+}
+window.advToggleAdvice=function(){
+ var f=G("recommendations"),t=G("homeAdvice");if(!f||!t)return;
+ var open=f.style.display==="block";
+ f.style.display=open?"none":"block";t.style.display=open?"block":"none";
+ adviceLabel();
+};
+/* «Фінансовий стан»: без рядків, що дублюють «Огляд періоду»; 50/30/20 — коротко, подробиці в «Бюджеті» */
+function homeTidy(){
+ ["stateBalance","stateIncome","stateExpense"].forEach(function(id){
+  var e=G(id),l=(e&&e.closest)?e.closest(".statLine"):null;if(l)l.style.display="none";
+ });
+ var n=G("budgetNeeds"),card=(n&&n.closest)?n.closest(".card"):null;if(!card)return;
+ if(!G("advBudgetMini")){
+  Array.prototype.forEach.call(card.querySelectorAll(".statLine"),function(x){x.style.display="none";});
+  var s=G("budgetSummary");if(s)s.style.display="none";
+  var m=document.createElement("div");m.id="advBudgetMini";card.appendChild(m);
+ }
+ var box=G("advBudgetMini");if(!box)return;
+ var an=analytics();
+ if(!(an.income>0)){box.innerHTML='<div class="empty">У періоді ще немає доходів: розподіл з\'явиться після першого надходження.</div>';return;}
+ var np=an.needs/an.income*100,wp=an.wants/an.income*100,rp=Math.max(0,an.result)/an.income*100,tot=Math.max(100,np+wp+rp);
+ function seg(p,c){return'<div style="width:'+(p/tot*100)+'%;background:'+c+'"></div>';}
+ box.innerHTML='<div class="small" style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span>🏠 Потреби <b>'+Math.round(np)+'%</b></span><span>🎉 Бажання <b>'+Math.round(wp)+'%</b></span><span>🛟 Резерв <b>'+Math.round(rp)+'%</b></span></div>'+
+  '<div style="display:flex;height:8px;border-radius:6px;overflow:hidden;margin:8px 0;background:rgba(127,127,127,.2)">'+seg(np,"var(--b)")+seg(wp,"var(--y)")+seg(rp,"var(--g)")+'</div>'+
+  '<div class="small muted">Орієнтир: 50 / 30 / 20. <a href="#" onclick="go(\'budget\');return false" style="color:var(--b);font-weight:700">Докладніше →</a></div>';
+}
 /* ---------- відображення ---------- */
 function render(){
  if(typeof S==="undefined"||!S||!G("advKpi"))return;
   try{cushSection();}catch(e){}
+ try{homeTidy();}catch(e){}
+ try{adviceLabel();}catch(e){}
  var bal=totalBalance(),fr=frozen(),av=Math.max(0,bal-fr),A=avgDaily(),cm=cushMonths(),owe=oweList(),goals=goalList();
  var ccls=cm>=3?"green":(cm>=1?"yellow":"red");
  var steps=[
@@ -253,20 +311,17 @@ function render(){
   return '<div class="item"><div class="row" style="justify-content:space-between"><div><b>❄️ '+money(f.amount)+'</b> <span class="badge">'+esc(f.purpose)+'</span><div class="small muted">з '+fd(f.date)+'</div></div><button class="btn smallBtn" onclick="advRelease(\''+f.id+'\')">🔓 Розморозити</button></div></div>';
  }).join(""):'<div class="empty">Заморожених коштів немає</div>';
  G("advKpi").innerHTML=
-  '<div class="grid grid4">'+
-  '<div class="kpi"><div class="label">ЗАГАЛЬНИЙ БАЛАНС</div><div class="value" style="font-size:20px">'+money(bal)+"</div></div>"+
+  '<div class="grid grid3">'+
   '<div class="kpi"><div class="label">❄️ ЗАМОРОЖЕНО</div><div class="value cyan" style="font-size:20px">'+money(fr)+"</div></div>"+
   '<div class="kpi"><div class="label">ДОСТУПНО</div><div class="value green" style="font-size:20px">'+money(av)+"</div></div>"+
   '<div class="kpi"><div class="label">🛟 ПОДУШКА</div><div class="value '+ccls+'" style="font-size:20px">'+cm.toFixed(1)+' з '+cState().target+' міс.</div><div class="progress" style="margin-top:8px"><div style="width:'+Math.min(100,cm/Math.max(1,cState().target)*100)+'%"></div></div></div>'+
   "</div>";
- G("advTips").innerHTML=tips().map(function(x){return adv(x[0],x[1]);}).join("");
  G("advSteps").innerHTML=stepsHtml;
  G("advFrozen").innerHTML='<div class="head"><h3 style="margin:0">❄️ Заморожені кошти</h3><button class="btn cyan smallBtn" onclick="advManual()">+ Заморозити</button></div>'+fHtml;
  var ok=cm>=3&&!owe.length;
  var lk=G("advLock");
  if(lk){lk.textContent=ok?"🟢 Можна розглядати":"🔒 Спершу: подушка 3 міс. і борги";lk.className="badge "+(ok?"green":"yellow");}
  if(G("advPct"))G("advPct").placeholder="авто";
- try{renderTransfer();}catch(e){}
 }
 
 /* ---------- побудова розділу ---------- */
@@ -274,71 +329,10 @@ function link(u){return '<a href="https://'+u+'" target="_blank" rel="noopener" 
 var TITLE_PANEL="📊 Огляд періоду"; /* назва першого згорнутого блоку на «Головній» — змінюйте тут */
 var P={};
 function mk(html,id){var d=document.createElement("div");d.className="card";if(id)d.id=id;d.innerHTML=html;return d;}
-function renderTransfer(){
- var box=G("advTransferBox");
- if(!box||typeof S==="undefined"||!S)return;
- var active=(S.accounts||[]).filter(function(a){return a.active!==false;});
- if(active.length<2){
-  box.innerHTML='<div class="empty">Для переказу потрібно щонайменше два активні рахунки. Створіть ще один у розділі «Рахунки».</div>';
-  return;
- }
- var from=G("advTransferFrom")&&G("advTransferFrom").value;
- var to=G("advTransferTo")&&G("advTransferTo").value;
- var options=active.map(function(a){return '<option value="'+esc(a.id)+'">'+esc(a.name)+' — '+money(accountBalance(a.id))+'</option>';}).join("");
- var todayVal=today();
- box.innerHTML=
-  '<div class="small muted" style="margin-bottom:12px">Переказ змінює баланси двох рахунків, але не рахується доходом або витратою у фінансовій статистиці.</div>'+
-  '<div class="grid grid2">'+
-   '<div class="field"><label>З рахунку</label><select id="advTransferFrom">'+options+'</select></div>'+
-   '<div class="field"><label>На рахунок</label><select id="advTransferTo">'+options+'</select></div></div>'+
-  '<div class="field"><label>Сума переказу, ₴</label><input id="advTransferAmount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Наприклад, 1500"></div>'+
-  '<div class="grid grid2"><div class="field"><label>Дата</label><input id="advTransferDate" type="date" value="'+todayVal+'"></div>'+
-   '<div class="field"><label>Коментар (необов’язково)</label><input id="advTransferMemo" maxlength="180" placeholder="Наприклад, на заощадження"></div></div>'+
-  '<div class="row"><button class="btn cyan" onclick="advDoTransfer()">↔️ Виконати переказ</button></div>'+
-  '<div id="advTransferMessage" class="small muted" style="margin-top:8px"></div>'+
-  '<h3 style="margin:16px 0 8px">Останні перекази</h3>'+
-  '<div id="advTransferRecent"></div>';
- if(from&&active.some(function(a){return a.id===from;}))G("advTransferFrom").value=from;
- if(to&&active.some(function(a){return a.id===to;}))G("advTransferTo").value=to;
- if(active.length>1&&G("advTransferFrom").value===G("advTransferTo").value)G("advTransferTo").value=active.find(function(a){return a.id!==G("advTransferFrom").value;}).id;
- var list=(S.transactions||[]).filter(function(t){return t.type==="transfer";}).slice().sort(function(a,b){return String(b.date||"").localeCompare(String(a.date||""));}).slice(0,10);
- var recent=G("advTransferRecent");
- if(recent)recent.innerHTML=list.length?list.map(function(t){
-  var fa=(S.accounts||[]).find(function(a){return a.id===t.fromAccountId;}),ta=(S.accounts||[]).find(function(a){return a.id===t.toAccountId;});
-  return '<div class="item"><div class="itemTitle">↗ '+money(amt(t))+'</div><div class="small muted">'+esc(fa?fa.name:"Рахунок видалено")+' → '+esc(ta?ta.name:"Рахунок видалено")+' • '+esc(fd(t.date||today()))+'</div>'+(t.memo?'<div class="small">'+esc(t.memo)+'</div>':"")+'</div>';
- }).join(""):'<div class="empty">Переказів поки немає</div>';
-}
-function doTransfer(){
- if(typeof S==="undefined"||!S||!Array.isArray(S.accounts)||!Array.isArray(S.transactions)){alert("Не вдалося отримати дані рахунків. Оновіть застосунок і спробуйте ще раз.");return;}
- var fromId=G("advTransferFrom")&&G("advTransferFrom").value;
- var toId=G("advTransferTo")&&G("advTransferTo").value;
- var raw=G("advTransferAmount")&&G("advTransferAmount").value;
- var amount=Number(String(raw||"").replace(",","."));
- var date=G("advTransferDate")&&G("advTransferDate").value;
- var memo=(G("advTransferMemo")&&G("advTransferMemo").value||"").trim();
- var from=S.accounts.find(function(a){return a.id===fromId&&a.active!==false;});
- var to=S.accounts.find(function(a){return a.id===toId&&a.active!==false;});
- if(!from||!to){alert("Оберіть два активні рахунки.");return;}
- if(fromId===toId){alert("Рахунок списання та рахунок зарахування мають бути різними.");return;}
- if(!Number.isFinite(amount)||amount<=0){alert("Введіть суму переказу, більшу за нуль.");return;}
- amount=Math.round(amount*100)/100;
- if(!date){alert("Вкажіть дату переказу.");return;}
- var balance=accountBalance(fromId);
- if(amount>balance+0.001){alert("Недостатньо коштів на рахунку «"+from.name+"». Доступно: "+money(Math.max(0,balance))+".");return;}
- if(!confirm("Підтвердити переказ "+money(amount)+" з «"+from.name+"» на «"+to.name+"»?"))return;
- S.transactions.push({id:uid(),type:"transfer",amount:amount,amt:amount,date:date,fromAccountId:fromId,toAccountId:toId,category:"Переказ між рахунками",memo:memo,group:"transfer"});
- markDirty();
- if(G("advTransferAmount"))G("advTransferAmount").value="";
- if(G("advTransferMemo"))G("advTransferMemo").value="";
- try{refresh();}catch(e){try{render();renderTransfer();}catch(_){}}
- alert("Переказ успішно збережено. Баланси рахунків оновлено.");
-}
-window.advDoTransfer=doTransfer;
 
 function build(){
  if(P.kpi)return;
  P.kpi=document.createElement("div");P.kpi.id="advKpi";
- P.tips=mk('<div id="advTips"></div>');
  
  P.steps=mk('<div id="advSteps"></div>');
  P.frozen=mk('<div id="advFrozen"></div>');
@@ -346,7 +340,6 @@ function build(){
   '<div class="grid grid2"><div class="field" style="margin:0"><label>Відкладати з кожного доходу, % (порожньо = авто: за етапом подушки й тим, скільки лишається на життя)</label><input id="advPct" type="number" min="1" max="90" step="1"></div>'+
   '<div style="align-self:end"><button class="btn green" onclick="advSavePct()">💾 Зберегти</button></div></div>'+
   '<div class="small muted" style="margin-top:10px">Радник працює локально: усі розрахунки робляться в застосунку, дані нікуди не передаються. Це орієнтири, а не індивідуальна фінансова чи інвестиційна консультація.</div>');
- P.transfer=mk('<div id="advTransferBox"></div>','advTransferCard');
  var dt='<div class="small muted" style="line-height:1.7;margin-top:8px">';
  P.invest=mk(
   '<div class="head"><span class="small muted">Статус розділу</span><span class="badge" id="advLock">—</span></div>'+
@@ -610,22 +603,18 @@ function homeLayout(){
  [quick,dg,prw].forEach(function(n){n.style.marginTop="14px";});
  widget.style.marginTop="0";
  var body=g2.querySelector(".sectionBody");
- var ab=advC.querySelector("button");if(ab)ab.setAttribute("onclick","advOpenTips()");
+ var ab=advC.querySelector("button");if(ab){ab.id="advAdvBtn";ab.setAttribute("onclick","advToggleAdvice()");}
+ var ah=advC.querySelector("h3");if(ah)ah.textContent="💡 Поради";
+ advC.id="advAdviceCard";
+ if(rec){rec.style.display="none";advC.appendChild(rec);if(recCard&&recCard.parentNode)recCard.parentNode.removeChild(recCard);}
  body.appendChild(P.kpi);
  advC.style.marginTop="14px";body.appendChild(advC);
  var plan=document.createElement("div");plan.appendChild(P.steps);P.frozen.style.marginTop="14px";plan.appendChild(P.frozen);
  [
-  grp("advGTips","💬 Поради радника","Повний список порад радника",[P.tips]),
   grp("advGPlan","🪜 План дій крок за кроком","Етапи та заморожені кошти",[plan]),
   grp("advGInv","📈 Куди вкласти: перевірені інструменти (Україна)","Депозит, ОВДП та офіційні джерела",[P.invest]),
-  recCard?grp("advGRec","💡 Поради та рекомендації","Поради за вашою ситуацією",[recCard]):null,
   grp("advGSet","⚙️ Налаштування радника","Відсоток відкладання",[P.settings])
  ].forEach(function(g){if(g)body.appendChild(g);});
- /* Переказ — підкатегорія розділу «Рахунки», а не розділу радника. */
- var accountsBody=G("accounts-body");
- if(accountsBody && P.transfer && !G("advGTransfer")){
-  accountsBody.appendChild(grp("advGTransfer","↔️ Переказ між рахунками","Переміщення коштів між рахунками без зміни доходів і витрат",[P.transfer]));
- }
  home.appendChild(g1);home.appendChild(g2);home.appendChild(g3);
  home.insertBefore(widget,home.firstChild);
 }
@@ -695,10 +684,9 @@ window.advOpenCushion=function(){go("cushion");};
 window.advOpenInvest=function(){openAdvGroup("advGInv");};
 window.advOpenSettings=function(){openAdvGroup("advGSet");};
 window.advOpenTips=function(){
- var g=G("advGTips");
  if(G("hAdv-body")&&G("hAdv-body").classList.contains("collapsed"))toggleSection("hAdv");
- if(G("advGTips-body")&&G("advGTips-body").classList.contains("collapsed"))toggleSection("advGTips");
- if(g)g.scrollIntoView({behavior:"smooth"});
+ var f=G("recommendations");if(f&&f.style.display!=="block")window.advToggleAdvice();
+ var c=G("advAdviceCard");if(c)c.scrollIntoView({behavior:"smooth"});
 };
 function renameAI(){
  var ai=G("aiAssistant"),h=ai&&ai.querySelector("h2");
@@ -1598,10 +1586,11 @@ window.addEventListener("load",function(){
 ========================================================= */
 (function(){
 "use strict";
-var APP_REV="2.6";
+var APP_REV="2.7";
 window.APP_REV=APP_REV;
 /* ЖУРНАЛ ЗМІН: з кожною новою версією додавайте запис ЗВЕРХУ */
 var CHANGELOG=[
+ ["2.7",["Прибрано повтори між розділами: замість трьох списків порад тепер одна картка «💡 Поради» (три головні та кнопка «Усі поради»), а поради радника входять до загального списку без дублів.","У «Фінансовому стані» немає рядків «Баланс, Доходи, Витрати» (вони є в «Огляді періоду»), у блоці радника немає другого «Загального балансу».","50/30/20 на Головній стало коротким (відсотки та смужка), подробиці лишились у розділі «Бюджет».","Другу форму переказу від радника прибрано: лишилась кнопка «🔁 Переказ» у розділі «Рахунки»."],"16.10.2026"],
  ["2.6",["У журналі змін біля кожної версії тепер вказано дату її створення."],"16.10.2026"],
  ["2.5",["Розділ «Подушка»: прибрано дубль — другий «План накопичення» (6/12/24 міс.) і другий прогноз у «Деталях», які рахували інакше. Лишився один план від радника: відсоток від кожного доходу та строк до мети.","Перевірено, що вікно доходу однакове для звичайного внесення, швидкого доходу й «⚡ Швидкого запису»."],"15.10.2026"],
  ["2.4",["Подушка тепер скрізь рахується лише із замороженої «Подушки безпеки», а не із залишків на рахунках: розділ «Подушка», поради, вікно доходу, ШІ-помічник і вкладка радника показують однакові цифри.","Вікно радника при доході стало зрозумілішим: пропонований відсоток, блок «Чому саме такий відсоток» (етап подушки, скільки потрібно на життя, скільки не вистачає до мети) і сума, що лишається на життя. Те саме вікно тепер і після «⚡ Швидкого запису».","Радник повідомляє, коли подушка досягла 1 місяця, 3 місяців і цілі, і радить, що робити далі: борги, цілі чи вкладення.","Прибрано дубль «План накопичення подушки»: пояснення відсотка тепер у розділі «🛡️ Подушка». Приховано застарілі налаштування «рахунки подушки» та кнопку «Створити ціль «Фінансова подушка»».","Виправлено: без даних про витрати радник не обнуляє пропоновану суму."],"15.10.2026"],
@@ -1669,7 +1658,7 @@ var STEPS=[
  ["📊","Підсумок тижня","Меню → «📊 Тиждень»: витрати, доходи, різниця, середнє за день, три найбільші категорії, найбільша витрата та порівняння з попереднім тижнем. Перемикайте «Цей тиждень» і «Минулий тиждень». У неділю й понеділок на Головній з'являється нагадування, що підсумок готовий.","Тиждень"],
  ["🔍","Дублі операцій","Якщо ви зберігаєте операцію, яка збігається з наявною (дата, сума, категорія), програма попередить і попросить підтвердження. У розділі «📊 Тиждень» → «🔍 Дублі операцій» кнопка «Перевірити історію» показує групи однакових записів, а «Лишити 1» видаляє зайві. Це можуть бути й справжні повтори (дві однакові покупки за день), тому перевіряйте перед видаленням.","Тиждень"],
  ["🤖","ШІ-помічник тепер і радник","ШІ-помічник відповідає також як фінансовий радник. Під звичайними кнопками є другий ряд: «З чого мені почати?», «Скільки відкладати?», «Чому саме так?», «Як швидше накопичити?», «Борги чи накопичення?», «Коли буде подушка?», «Куди вкласти гроші?». Можна писати й своїми словами, наприклад «чи можу я витратити 500 грн?». У відповідях радника є блок «💭 Як я міркую».","ШІ-помічник"],
- ["🧭","Радник і поради на Головній","Блок «Радник і поради» на Головній містить підказки радника, покроковий план дій, блок «Куди вкласти» з інструкціями та налаштування радника. Окремого чату «Запитайте радника» більше немає: усі його відповіді тепер у ШІ-помічнику.","Головна"],
+ ["🧭","Радник і поради на Головній","Блок «Радник і поради» на Головній містить картку «💡 Поради» (три головні поради та кнопка «Усі поради» з повним списком, у якому є й поради радника), покроковий план дій, блок «Куди вкласти» з інструкціями та налаштування радника. Переказ між рахунками робиться кнопкою «🔁 Переказ» у розділі «Рахунки». Окремого чату «Запитайте радника» більше немає: усі його відповіді тепер у ШІ-помічнику.","Головна"],
  ["📱","Поворот екрана","Телефон можна тримати і вертикально, і горизонтально: програма підлаштовується. У горизонтальному режимі шапка з меню займає один компактний рядок, а картки розкладаються в кілька колонок. Якщо програма не повертається, вимкніть блокування повороту екрана в налаштуваннях телефону й за потреби перевстановіть іконку програми на головний екран.","Налаштування"],
  ["🏷️","Версія програми в шапці та оновлення","У шапці під назвою програми видно «Версія N (дата)»: номер програми та день, коли ця версія вперше запустилась на цьому пристрої. Нова версія підхоплюється при запуску; якщо з'явився банер «Доступна нова версія», натисніть «Оновити». Натисніть на номер версії, щоб побачити, що нового. Якщо номер не змінився після оновлення, повністю закрийте програму й відкрийте її знову.","Налаштування"],
  ["🕒","Тема за часом доби","Тема сама міняється: вдень світла, ввечері й уночі темна (за замовчуванням світла з 07:00, темна з 19:00). Налаштування → «Вигляд і валюта»: оберіть режим «🕒 За часом доби», «Темна», «Світла» або «Авто (як у системі)» і за потреби змініть години перемикання. Кнопка 🌗 у шапці в автоматичному режимі міняє тему лише до найближчої зміни, потім автоперемикання продовжується.","Налаштування"],
