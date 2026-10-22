@@ -372,22 +372,6 @@ function build(){
 }
 
 /* ---------- підключення до застосунку ---------- */
-/* ---------- знімок для LIFE PULSE PRO: лише баланс і «Можна витратити сьогодні» ---------- */
-var LP_SNAP_KEY="lp_finance_snapshot_v1",lpTimer=null,lpSig="",lpTs=0;
-function lpPublish(){
- try{
-  var d=window.calculateSpend(),b=Number(window.totalBalance()),free=Number(d&&d.amount);
-  if(!isFinite(b)||!isFinite(free))return;
-  var snap={v:1,balance:Math.round(b*100)/100,free:Math.round(free*100)/100,cur:(S&&S.settings&&S.settings.currency)||"₴"};
-  var sig=JSON.stringify(snap),now=Date.now();
-  if(sig===lpSig&&now-lpTs<600000)return; /* без змін і свіжо — не пишемо */
-  lpSig=sig;lpTs=now;
-  snap.updated=new Date(now).toISOString();
-  localStorage.setItem(LP_SNAP_KEY,JSON.stringify(snap));
- }catch(e){}
-}
-function lpPublishSoon(){clearTimeout(lpTimer);lpTimer=setTimeout(lpPublish,500);}
-window.addEventListener("load",function(){setTimeout(lpPublish,2500);});
 var _tb=window.totalBalance,_cs=window.calculateSpend,_rf=window.refresh,_st=window.saveTransaction,_sq=window.saveQuick;
 window.calculateSpend=function(){ /* заморожені кошти не входять у «Можна витратити сьогодні» */
  var f=frozen();
@@ -395,7 +379,7 @@ window.calculateSpend=function(){ /* заморожені кошти не вхо
  window.totalBalance=function(){return _tb()-f;};
  try{return _cs.apply(this,arguments);}finally{window.totalBalance=_tb;}
 };
-window.refresh=function(){var r=_rf.apply(this,arguments);try{render();}catch(e){}try{calRender();}catch(e){}try{lpPublishSoon();}catch(e){}return r;};
+window.refresh=function(){var r=_rf.apply(this,arguments);try{render();}catch(e){}try{calRender();}catch(e){}return r;};
 function onIncome(n){if(S.transactions.length>n){var t=S.transactions[S.transactions.length-1];if(t&&t.type==="income")setTimeout(function(){modal(t);},60);}}
 window.saveTransaction=async function(type){var n=S.transactions.length;var r=await _st.apply(this,arguments);if(type==="income")onIncome(n);return r;};
 window.saveQuick=function(type){var n=S.transactions.length;var r=_sq.apply(this,arguments);if(type==="income")onIncome(n);return r;};
@@ -1413,26 +1397,38 @@ if(typeof _sq==="function"){
  };
 }
 
-/* ---------- 5. ПІДСУМОК ТИЖНЯ ---------- */
-var wkView="cur";
-function wkRange(view){
- var now=new Date(),mon=mondayOf(now);
- if(view==="prev"){
-  var s=addDays(mon,-7);
-  return{s:ymd(s),e:ymd(addDays(mon,-1)),ps:ymd(addDays(s,-7)),pe:ymd(addDays(s,-1)),elapsed:7};
+/* ---------- 5. ЗВІТИ: ТИЖДЕНЬ І КАЛЕНДАРНИЙ МІСЯЦЬ ---------- */
+var rpMode="week",rpOff=0;
+var MONTHS=["січень","лютий","березень","квітень","травень","червень","липень","серпень","вересень","жовтень","листопад","грудень"];
+var DOW=["Нд","Пн","Вт","Ср","Чт","Пт","Сб"];
+function pd(s){var p=String(s).split("-");return new Date(+p[0],+p[1]-1,+p[2]);}
+function rpRange(mode,off){
+ var now=new Date(),td=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+ if(mode==="month"){
+  var f=new Date(td.getFullYear(),td.getMonth()+off,1),l=new Date(f.getFullYear(),f.getMonth()+1,0);
+  var partial=l>td,e=partial?td:l,el=Math.round((e-f)/864e5)+1;
+  var pf=new Date(f.getFullYear(),f.getMonth()-1,1),pl=new Date(f.getFullYear(),f.getMonth(),0);
+  var pe=partial?addDays(pf,el-1):pl;if(pe>pl)pe=pl;
+  return{mode:mode,off:off,s:ymd(f),e:ymd(e),ps:ymd(pf),pe:ymd(pe),elapsed:el,total:l.getDate(),partial:partial,
+   title:cap(MONTHS[f.getMonth()])+" "+f.getFullYear()+(partial?" (триває)":"")};
  }
- var el=Math.round((new Date(now.getFullYear(),now.getMonth(),now.getDate())-mon)/864e5)+1;
- return{s:ymd(mon),e:ymd(now),ps:ymd(addDays(mon,-7)),pe:ymd(addDays(mon,-7+el-1)),elapsed:el};
+ var mon=addDays(mondayOf(td),off*7),sun=addDays(mon,6);
+ var part=sun>td,e2=part?td:sun,el2=Math.round((e2-mon)/864e5)+1,pm=addDays(mon,-7);
+ return{mode:mode,off:off,s:ymd(mon),e:ymd(e2),ps:ymd(pm),pe:ymd(addDays(pm,el2-1)),elapsed:el2,total:7,partial:part,
+  title:(off===0?"Цей тиждень":(off===-1?"Минулий тиждень":"Тиждень"))+": "+fd(ymd(mon))+" — "+fd(ymd(sun))};
 }
 function sumRange(s,e){
- var r={exp:0,inc:0,cats:{},max:null,dates:{},n:0};
+ var r={exp:0,inc:0,cats:{},icats:{},max:null,dates:{},n:0};
  S.transactions.forEach(function(t){
   if(!t.date||t.date<s||t.date>e)return;
   if(t.type==="expense"){
    var a=A(t);r.exp+=a;r.n++;r.dates[t.date]=1;
    var c=t.category||"Інше";r.cats[c]=(r.cats[c]||0)+a;
    if(!r.max||a>A(r.max))r.max=t;
-  }else if(t.type==="income"){r.inc+=A(t);r.n++;r.dates[t.date]=1;}
+  }else if(t.type==="income"){
+   var b=A(t);r.inc+=b;r.n++;r.dates[t.date]=1;
+   var k=t.category||"Інше";r.icats[k]=(r.icats[k]||0)+b;
+  }
  });
  return r;
 }
@@ -1443,49 +1439,101 @@ function delta(cur_,prev,good){ /* good: "down" — менше це добре (
  var up=p>0,ok=(good==="down")?!up:up;
  return'<span style="color:'+(ok?"var(--g)":"var(--r)")+';font-weight:700">'+(up?"▲ +":"▼ ")+p+'%</span>';
 }
-function wkRender(){
+function firstTxDate(){
+ var m=null;
+ S.transactions.forEach(function(t){if(t.date&&(t.type==="expense"||t.type==="income")&&(m===null||t.date<m))m=t.date;});
+ return m;
+}
+function catRow(n,sum,total,prev){
+ var share=total>0?sum/total*100:0;
+ return'<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;gap:8px" class="small"><span>'+esc(n)+'</span><span><b>'+money(sum)+'</b> · '+Math.round(share)+'% · '+delta(sum,prev,"down")+'</span></div>'+
+  '<div class="progress"><div style="width:'+Math.min(100,share)+'%;background:var(--b)"></div></div></div>';
+}
+function barRows(rows){ /* rows: [{l,exp,inc}] */
+ var mx=0;rows.forEach(function(x){if(x.exp>mx)mx=x.exp;});
+ return rows.map(function(x){
+  var w=mx>0?x.exp/mx*100:0;
+  return'<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px" class="small"><span style="width:52px;flex:none" class="muted">'+x.l+'</span><div class="progress" style="flex:1"><div style="width:'+w+'%;background:var(--b)"></div></div><span style="width:92px;flex:none;text-align:right"><b>'+money(x.exp)+'</b></span></div>';
+ }).join("");
+}
+function rpRender(){
  var box=G("qeWeekBox");if(!box||!S)return;
- var b1=G("qeWkCur"),b2=G("qeWkPrev");
- if(b1)b1.style.opacity=wkView==="cur"?"1":".55";
- if(b2)b2.style.opacity=wkView==="prev"?"1":".55";
- var r=wkRange(wkView),c=sumRange(r.s,r.e),p=sumRange(r.ps,r.pe);
+ var bw=G("rpModeWeek"),bm=G("rpModeMonth");
+ if(bw)bw.style.opacity=rpMode==="week"?"1":".55";
+ if(bm)bm.style.opacity=rpMode==="month"?"1":".55";
+ var r=rpRange(rpMode,rpOff),c=sumRange(r.s,r.e),p=sumRange(r.ps,r.pe);
+ var ttl=G("rpTitle");if(ttl)ttl.textContent=r.title;
+ var nx=G("rpNext");if(nx){nx.disabled=rpOff>=0;nx.style.opacity=rpOff>=0?".35":"1";}
+ var first=firstTxDate(),pv=G("rpPrev");
+ if(pv){var noMore=!first||r.s<=first;pv.disabled=noMore;pv.style.opacity=noMore?".35":"1";}
+ var unit=rpMode==="month"?"місяць":"тиждень";
+ var h='<div class="muted small" style="margin-bottom:10px">'+fd(r.s)+' — '+fd(r.e)+(r.partial?' ('+r.elapsed+' з '+r.total+' дн.)':'')+' · порівняння з '+fd(r.ps)+' — '+fd(r.pe)+'</div>';
+ if(!c.n&&!p.n){box.innerHTML=h+'<div class="empty">За цей '+unit+' записів немає.</div>';return;}
  var daily=r.elapsed>0?c.exp/r.elapsed:0;
  var noRec=Math.max(0,r.elapsed-Object.keys(c.dates).length);
- var h='<div class="muted small" style="margin-bottom:10px">'+fd(r.s)+' — '+fd(r.e)+' · порівняння з '+fd(r.ps)+' — '+fd(r.pe)+'</div>';
- if(!c.n&&!p.n){box.innerHTML=h+'<div class="empty">За цей тиждень записів ще немає.</div>';return;}
  h+='<div class="grid grid2" style="margin-bottom:10px">'+
   '<div class="kpi"><div class="label">ВИТРАТИ</div><div class="value red">'+money(c.exp)+'</div><div class="small">'+delta(c.exp,p.exp,"down")+'</div></div>'+
   '<div class="kpi"><div class="label">ДОХОДИ</div><div class="value green">'+money(c.inc)+'</div><div class="small">'+delta(c.inc,p.inc,"up")+'</div></div>'+
   '<div class="kpi"><div class="label">РІЗНИЦЯ</div><div class="value" style="color:'+((c.inc-c.exp)>=0?"var(--g)":"var(--r)")+'">'+money(c.inc-c.exp)+'</div></div>'+
   '<div class="kpi"><div class="label">В СЕРЕДНЬОМУ ЗА ДЕНЬ</div><div class="value">'+money(daily)+'</div></div>'+
  '</div>';
- var names=Object.keys(c.cats).sort(function(a,b){return c.cats[b]-c.cats[a];}).slice(0,3);
+ /* розподіл по днях тижня або по тижнях місяця */
+ var rows=[];
+ if(rpMode==="week"){
+  var d0=pd(r.s),d1=pd(r.e);
+  for(var d=d0;d<=d1;d=addDays(d,1)){var x=sumRange(ymd(d),ymd(d));rows.push({l:DOW[d.getDay()]+" "+d.getDate(),exp:x.exp});}
+ }else{
+  var ms=pd(r.s),me=pd(r.e),mon=mondayOf(ms);
+  while(mon<=me){
+   var ws=mon<ms?ms:mon,we=addDays(mon,6);if(we>me)we=me;
+   var y=sumRange(ymd(ws),ymd(we));rows.push({l:ws.getDate()+"–"+we.getDate(),exp:y.exp});
+   mon=addDays(mon,7);
+  }
+ }
+ if(rows.length>1)h+='<div style="font-weight:800;margin:6px 0">Витрати '+(rpMode==="week"?"по днях":"по тижнях")+'</div>'+barRows(rows);
+ /* категорії витрат */
+ var names=Object.keys(c.cats).sort(function(x,y){return c.cats[y]-c.cats[x];});
  if(names.length){
-  h+='<div style="font-weight:800;margin:6px 0">Найбільші категорії</div>';
-  names.forEach(function(n){
-   var share=c.exp>0?c.cats[n]/c.exp*100:0;
-   h+='<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;gap:8px" class="small"><span>'+esc(n)+'</span><span><b>'+money(c.cats[n])+'</b> · '+Math.round(share)+'% · '+delta(c.cats[n],p.cats[n]||0,"down")+'</span></div>'+
-    '<div class="progress"><div style="width:'+Math.min(100,share)+'%;background:var(--b)"></div></div></div>';
-  });
+  h+='<div style="font-weight:800;margin:12px 0 6px">Витрати за категоріями</div>';
+  names.slice(0,5).forEach(function(n){h+=catRow(n,c.cats[n],c.exp,p.cats[n]||0);});
+  if(names.length>5){
+   h+='<details><summary class="small muted" style="cursor:pointer;margin-bottom:6px">Ще '+(names.length-5)+' категорій</summary>'+
+    names.slice(5).map(function(n){return catRow(n,c.cats[n],c.exp,p.cats[n]||0);}).join("")+'</details>';
+  }
  }
- if(c.max){
-  h+='<div class="small" style="margin-top:6px">💥 Найбільша витрата: <b>'+money(A(c.max))+'</b> — '+esc(c.max.memo||c.max.category||"")+' ('+fd(c.max.date)+')</div>';
+ /* доходи за категоріями */
+ var inames=Object.keys(c.icats).sort(function(x,y){return c.icats[y]-c.icats[x];});
+ if(inames.length){
+  h+='<div style="font-weight:800;margin:12px 0 6px">Доходи за категоріями</div>';
+  inames.forEach(function(n){h+='<div class="small" style="display:flex;justify-content:space-between;gap:8px;margin-bottom:4px"><span>'+esc(n)+'</span><span><b class="green">'+money(c.icats[n])+'</b> · '+delta(c.icats[n],p.icats[n]||0,"up")+'</span></div>';});
  }
+ if(c.max)h+='<div class="small" style="margin-top:10px">💥 Найбільша витрата: <b>'+money(A(c.max))+'</b> — '+esc(c.max.memo||c.max.category||"")+' ('+fd(c.max.date)+')</div>';
+ /* висновки */
  var ins=[];
  if(p.exp>0&&c.exp>0){
-  var pc=Math.round((c.exp-p.exp)/p.exp*100);
-  if(pc>=5)ins.push("Витрати на "+pc+"% більші, ніж за попередній такий самий відрізок.");
-  else if(pc<=-5)ins.push("Витрати на "+Math.abs(pc)+"% менші, ніж за попередній такий самий відрізок. Гарний темп!");
-  else ins.push("Витрати майже на рівні попереднього відрізка.");
+  var pc=Math.round((c.exp-p.exp)/p.exp*100),cmp=r.partial?"ті самі дні попереднього "+(rpMode==="month"?"місяця":"тижня"):"попередній "+unit;
+  if(pc>=5)ins.push("Витрати на "+pc+"% більші, ніж за "+cmp+".");
+  else if(pc<=-5)ins.push("Витрати на "+Math.abs(pc)+"% менші, ніж за "+cmp+". Гарний темп!");
+  else ins.push("Витрати майже на рівні, як за "+cmp+".");
  }
  var gc=null,gd=0;
- Object.keys(c.cats).forEach(function(n){var d=c.cats[n]-(p.cats[n]||0);if(d>gd){gd=d;gc=n;}});
+ Object.keys(c.cats).forEach(function(n){var dd=c.cats[n]-(p.cats[n]||0);if(dd>gd){gd=dd;gc=n;}});
  if(gc&&c.exp>0&&gd>=c.exp*0.1)ins.push("Найбільше зросла категорія «"+gc+"»: +"+money(gd)+".");
- if(wkView==="cur"&&noRec>=2)ins.push("Є дні без записів ("+noRec+"): можливо, не всі витрати внесені.");
+ if(c.inc>0)ins.push("Витрати становлять "+Math.round(c.exp/c.inc*100)+"% доходів за цей відрізок"+(c.inc>=c.exp?", лишилось "+money(c.inc-c.exp)+".":", тобто витрачено більше, ніж надійшло."));
+ if(rpMode==="month"&&r.partial&&r.elapsed>=3){
+  var fc=c.exp/r.elapsed*r.total;
+  ins.push("За поточним темпом (≈"+money(daily)+"/день) витрати за весь місяць складуть ≈"+money(fc)+".");
+ }
+ if(r.partial&&noRec>=(rpMode==="month"?Math.max(3,Math.round(r.elapsed*0.4)):2))ins.push("Є дні без записів ("+noRec+" з "+r.elapsed+"): можливо, не всі витрати внесені.");
  if(ins.length)h+='<div class="item" style="margin-top:10px"><div class="small">'+ins.map(function(x){return"• "+esc(x);}).join("<br>")+'</div></div>';
  box.innerHTML=h;
 }
-window.qeWk=function(v){wkView=v;wkRender();};
+window.rpSet=function(mode){rpMode=mode;rpOff=0;rpRender();};
+window.rpMove=function(dir){
+ if(dir>0&&rpOff>=0)return;
+ rpOff+=dir;rpRender();
+};
+window.qeWk=function(v){rpMode="week";rpOff=(v==="prev")?-1:0;rpRender();}; /* сумісність зі старою назвою */
 
 /* ---------- 6. ПОШУК ДУБЛІВ В ІСТОРІЇ ---------- */
 function dupGroups(){
@@ -1528,10 +1576,18 @@ window.qeDupFix=function(enc){
 
 /* ---------- 7. ПОБУДОВА ІНТЕРФЕЙСУ ---------- */
 var built=false;
-function weekKey(){ /* на неділю — поточний тиждень, на понеділок — минулий */
- var d=new Date(),dow=d.getDay();
- if(dow===0)return{key:"w"+ymd(mondayOf(d)),view:"cur"};
- if(dow===1)return{key:"w"+ymd(addDays(mondayOf(d),-7)),view:"prev"};
+function repSeen(k){var l=S.settings.repSeen;return(Array.isArray(l)&&l.indexOf(k)>=0)||S.settings.weekSeen===k;}
+function repMark(k){
+ var l=Array.isArray(S.settings.repSeen)?S.settings.repSeen.slice():[];
+ if(l.indexOf(k)<0)l.push(k);
+ S.settings.repSeen=l.slice(-12);
+}
+function repKey(){ /* нагадування: 1–2 числа — підсумок минулого місяця, нд/пн — тижня */
+ var d=new Date(),dom=d.getDate(),dow=d.getDay(),c=[];
+ if(dom<=2){var pm=new Date(d.getFullYear(),d.getMonth()-1,1);c.push({key:"m"+pm.getFullYear()+"-"+pad(pm.getMonth()+1),mode:"month",off:-1,title:"Підсумок місяця готовий"});}
+ if(dow===0)c.push({key:"w"+ymd(mondayOf(d)),mode:"week",off:0,title:"Підсумок тижня готовий"});
+ if(dow===1)c.push({key:"w"+ymd(addDays(mondayOf(d),-7)),mode:"week",off:-1,title:"Підсумок тижня готовий"});
+ for(var i=0;i<c.length;i++)if(!repSeen(c[i].key))return c[i];
  return null;
 }
 function ensure(){
@@ -1552,15 +1608,17 @@ function ensure(){
   if(anchor){
    var sec=document.createElement("section");sec.id="weekly";
    sec.innerHTML=
-    '<div class="card sectionToggle" onclick="toggleSection(\'weekly\')"><div class="head" style="margin-bottom:0"><div><h2 style="margin:0">📊 Підсумок тижня</h2><div class="muted small">Витрати за тиждень і порівняння з попереднім · пошук дублів</div></div><span class="badge arrowBadge" id="weekly-arrow">▶</span></div></div>'+
+    '<div class="card sectionToggle" onclick="toggleSection(\'weekly\')"><div class="head" style="margin-bottom:0"><div><h2 style="margin:0">📊 Звіти: тиждень і місяць</h2><div class="muted small">Доходи й витрати за тиждень чи календарний місяць · пошук дублів</div></div><span class="badge arrowBadge" id="weekly-arrow">▶</span></div></div>'+
     '<div id="weekly-body" class="sectionBody collapsed">'+
-     '<div class="card"><div style="display:flex;gap:8px;margin-bottom:10px"><button class="btn primary" id="qeWkCur" onclick="qeWk(\'cur\')">Цей тиждень</button><button class="btn primary" id="qeWkPrev" onclick="qeWk(\'prev\')">Минулий тиждень</button></div><div id="qeWeekBox"></div></div>'+
+     '<div class="card"><div style="display:flex;gap:8px;margin-bottom:10px"><button class="btn primary" id="rpModeWeek" onclick="rpSet(\'week\')">Тиждень</button><button class="btn primary" id="rpModeMonth" onclick="rpSet(\'month\')">Місяць</button></div>'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><button class="btn smallBtn" id="rpPrev" onclick="rpMove(-1)">◀</button><div id="rpTitle" style="flex:1;text-align:center;font-weight:800"></div><button class="btn smallBtn" id="rpNext" onclick="rpMove(1)">▶</button></div>'+
+      '<div id="qeWeekBox"></div></div>'+
      '<div class="card"><h2 style="margin-top:0">🔍 Дублі операцій</h2><div class="muted small" style="margin-bottom:10px">Перевірка історії на однакові записи (дата, сума, категорія, рахунок).</div><button class="btn cyan" onclick="qeDupScan()">Перевірити історію</button><div id="qeDupBox" style="margin-top:10px"></div></div>'+
     '</div>';
    anchor.insertAdjacentElement("afterend",sec);
    var nav=document.querySelector("nav");
    if(nav&&!nav.querySelector('button[onclick="go(\'weekly\')"]')){
-    var b=document.createElement("button");b.textContent="📊 Тиждень";b.setAttribute("onclick","go('weekly')");
+    var b=document.createElement("button");b.textContent="📊 Звіти";b.setAttribute("onclick","go('weekly')");
     var ref=nav.querySelector('button[onclick="go(\'calendar\')"]')||nav.querySelector('button[onclick="go(\'history\')"]');
     if(ref)ref.insertAdjacentElement("afterend",b);else nav.appendChild(b);
    }
@@ -1573,25 +1631,25 @@ function ensure(){
 }
 function banner(){
  var el=G("qeWeekBanner");if(!el||!S)return;
- var wk=weekKey();
- if(!wk||S.settings.weekSeen===wk.key){el.style.display="none";return;}
+ var wk=repKey();
+ if(!wk){el.style.display="none";return;}
  el.style.display="block";
- el.innerHTML='<div class="item" style="cursor:pointer;border-color:rgba(90,169,255,.4);background:rgba(90,169,255,.08)" onclick="qeWeekOpen()"><div class="itemTitle">📊 Підсумок тижня готовий</div><div class="small muted">Натисніть, щоб переглянути витрати та порівняння</div></div>';
+ el.innerHTML='<div class="item" style="cursor:pointer;border-color:rgba(90,169,255,.4);background:rgba(90,169,255,.08)" onclick="qeWeekOpen()"><div class="itemTitle">📊 '+wk.title+'</div><div class="small muted">Натисніть, щоб переглянути витрати, доходи та порівняння</div></div>';
 }
 window.qeWeekOpen=function(){
- var wk=weekKey();
- if(wk){wkView=wk.view;S.settings.weekSeen=wk.key;try{persist();}catch(e){}}
- wkRender();banner();go("weekly");
+ var wk=repKey();
+ if(wk){rpMode=wk.mode;rpOff=wk.off;repMark(wk.key);try{persist();}catch(e){}}
+ rpRender();banner();go("weekly");
 };
 
 var _rf=window.refresh;
 window.refresh=function(){
  var r=_rf?_rf.apply(this,arguments):undefined;
- try{ensure();wkRender();banner();}catch(e){}
+ try{ensure();rpRender();banner();}catch(e){}
  return r;
 };
 window.addEventListener("load",function(){
- setTimeout(function(){try{ensure();wkRender();banner();}catch(e){}},600);
+ setTimeout(function(){try{ensure();rpRender();banner();}catch(e){}},600);
 });
 })();
 
@@ -1606,7 +1664,7 @@ var APP_REV="2.8";
 window.APP_REV=APP_REV;
 /* ЖУРНАЛ ЗМІН: з кожною новою версією додавайте запис ЗВЕРХУ */
 var CHANGELOG=[
- ["2.8",["Зв'язок з LIFE PULSE PRO: програма зберігає у спільному сховищі браузера лише дві цифри — загальний баланс і «Можна витратити сьогодні» — щоб LIFE PULSE PRO показував їх автоматично. Операції, рахунки, фото та інші дані туди не передаються.","Цифри оновлюються щоразу, коли ви відкриваєте програму або змінюєте дані."],"17.10.2026"],
+ ["2.8",["Новий розділ «📊 Звіти»: доходи й витрати за тиждень і за календарний місяць (з 1-го по останнє число), а не лише за фінансовий період.","Стрілками ◀ ▶ можна переглядати попередні тижні та місяці; показано розподіл витрат по днях чи по тижнях, усі категорії витрат і доходів, порівняння з попереднім відрізком і прогноз витрат до кінця поточного місяця.","На початку місяця (1–2 числа) на Головній з'являється нагадування про готовий підсумок місяця."],"22.10.2026"],
  ["2.7",["Прибрано повтори між розділами: замість трьох списків порад тепер одна картка «💡 Поради» (три головні та кнопка «Усі поради»), а поради радника входять до загального списку без дублів.","У «Фінансовому стані» немає рядків «Баланс, Доходи, Витрати» (вони є в «Огляді періоду»), у блоці радника немає другого «Загального балансу».","50/30/20 на Головній стало коротким (відсотки та смужка), подробиці лишились у розділі «Бюджет».","Другу форму переказу від радника прибрано: лишилась кнопка «🔁 Переказ» у розділі «Рахунки»."],"16.10.2026"],
  ["2.6",["У журналі змін біля кожної версії тепер вказано дату її створення."],"16.10.2026"],
  ["2.5",["Розділ «Подушка»: прибрано дубль — другий «План накопичення» (6/12/24 міс.) і другий прогноз у «Деталях», які рахували інакше. Лишився один план від радника: відсоток від кожного доходу та строк до мети.","Перевірено, що вікно доходу однакове для звичайного внесення, швидкого доходу й «⚡ Швидкого запису»."],"15.10.2026"],
@@ -1672,16 +1730,15 @@ window.addEventListener("load",put);
 var STEPS=[
  ["🚦","Ліміти категорій","Меню → «🚦 Ліміти». Оберіть категорію, вкажіть суму ліміту на період і збережіть. Програма показує, скільки витрачено й скільки залишилось, прогноз до кінця періоду та скільки можна витрачати на день. Після запису витрати з'являється попередження, коли використано задану частку ліміту (за замовчуванням 80%) і коли ліміт перевищено. Кнопка «✨ Запропонувати за моїми витратами» ставить ліміти за середніми витратами за останні 90 днів. Ліміти діють на ваш фінансовий період, а якщо його не задано — на календарний місяць.","Ліміти"],
  ["⚡","Швидкий запис одним рядком","На Головній під «Можна витратити сьогодні» напишіть, наприклад: «кава 85», «вчора таксі 140», «12.10 продукти 320», «2к одяг» або «+5000 зарплата» (плюс означає дохід). Під полем видно, як програма зрозуміла запис. Категорію вона підбирає за назвою, за вашими минулими записами й за вбудованим словником; якщо не впевнена — запитає. Перед збереженням програма показує вікно, де категорія й рахунок уже підставлені: змініть їх за потреби або просто натисніть «Підтвердити». Кнопка «↩ Скасувати» одразу після запису прибирає його.","Головна"],
- ["📊","Підсумок тижня","Меню → «📊 Тиждень»: витрати, доходи, різниця, середнє за день, три найбільші категорії, найбільша витрата та порівняння з попереднім тижнем. Перемикайте «Цей тиждень» і «Минулий тиждень». У неділю й понеділок на Головній з'являється нагадування, що підсумок готовий.","Тиждень"],
- ["🔍","Дублі операцій","Якщо ви зберігаєте операцію, яка збігається з наявною (дата, сума, категорія), програма попередить і попросить підтвердження. У розділі «📊 Тиждень» → «🔍 Дублі операцій» кнопка «Перевірити історію» показує групи однакових записів, а «Лишити 1» видаляє зайві. Це можуть бути й справжні повтори (дві однакові покупки за день), тому перевіряйте перед видаленням.","Тиждень"],
+ ["📊","Звіти за тиждень і місяць","Меню → «📊 Звіти»: перемикайте «Тиждень» і «Місяць» (календарний, з 1-го по останнє число), а стрілками ◀ ▶ переглядайте попередні тижні та місяці. Показано витрати, доходи, різницю, середнє за день, розподіл витрат по днях тижня чи по тижнях місяця, усі категорії витрат і доходів із порівнянням з попереднім відрізком, найбільшу витрату та висновки; для поточного місяця ще й прогноз витрат до його кінця. Незавершений тиждень чи місяць порівнюється з тими самими днями попереднього. У неділю й понеділок (тиждень) та 1–2 числа (місяць) на Головній з'являється нагадування, що підсумок готовий.","Звіти"],
+ ["🔍","Дублі операцій","Якщо ви зберігаєте операцію, яка збігається з наявною (дата, сума, категорія), програма попередить і попросить підтвердження. У розділі «📊 Звіти» → «🔍 Дублі операцій» кнопка «Перевірити історію» показує групи однакових записів, а «Лишити 1» видаляє зайві. Це можуть бути й справжні повтори (дві однакові покупки за день), тому перевіряйте перед видаленням.","Звіти"],
  ["🤖","ШІ-помічник тепер і радник","ШІ-помічник відповідає також як фінансовий радник. Під звичайними кнопками є другий ряд: «З чого мені почати?», «Скільки відкладати?», «Чому саме так?», «Як швидше накопичити?», «Борги чи накопичення?», «Коли буде подушка?», «Куди вкласти гроші?». Можна писати й своїми словами, наприклад «чи можу я витратити 500 грн?». У відповідях радника є блок «💭 Як я міркую».","ШІ-помічник"],
  ["🧭","Радник і поради на Головній","Блок «Радник і поради» на Головній містить картку «💡 Поради» (три головні поради та кнопка «Усі поради» з повним списком, у якому є й поради радника), покроковий план дій, блок «Куди вкласти» з інструкціями та налаштування радника. Переказ між рахунками робиться кнопкою «🔁 Переказ» у розділі «Рахунки». Окремого чату «Запитайте радника» більше немає: усі його відповіді тепер у ШІ-помічнику.","Головна"],
  ["📱","Поворот екрана","Телефон можна тримати і вертикально, і горизонтально: програма підлаштовується. У горизонтальному режимі шапка з меню займає один компактний рядок, а картки розкладаються в кілька колонок. Якщо програма не повертається, вимкніть блокування повороту екрана в налаштуваннях телефону й за потреби перевстановіть іконку програми на головний екран.","Налаштування"],
  ["🏷️","Версія програми в шапці та оновлення","У шапці під назвою програми видно «Версія N (дата)»: номер програми та день, коли ця версія вперше запустилась на цьому пристрої. Нова версія підхоплюється при запуску; якщо з'явився банер «Доступна нова версія», натисніть «Оновити». Натисніть на номер версії, щоб побачити, що нового. Якщо номер не змінився після оновлення, повністю закрийте програму й відкрийте її знову.","Налаштування"],
  ["🕒","Тема за часом доби","Тема сама міняється: вдень світла, ввечері й уночі темна (за замовчуванням світла з 07:00, темна з 19:00). Налаштування → «Вигляд і валюта»: оберіть режим «🕒 За часом доби», «Темна», «Світла» або «Авто (як у системі)» і за потреби змініть години перемикання. Кнопка 🌗 у шапці в автоматичному режимі міняє тему лише до найближчої зміни, потім автоперемикання продовжується.","Налаштування"],
  ["🔑","Активація за кодом пристрою","Якщо власник увімкнув захист, при першому запуску на новому пристрої з'являється екран «Програму не активовано» з кодом пристрою. Натисніть 📋, надішліть код власнику, вставте отриманий ключ і натисніть «Активувати». Код пристрою видно й пізніше: натисніть на номер версії в шапці. Після очищення даних сайту чи перевстановлення програми код зміниться, і потрібен новий ключ.","Налаштування"],
- ["🛟","Подушка та заморожування доходу","Фінансова подушка — це кошти, які ви заморозили в «Подушка безпеки»; залишки на рахунках не враховуються. Коли ви вносите дохід (у звичайній формі чи через «⚡ Швидкий запис»), одразу з'являється вікно радника: він пропонує, який відсоток цього доходу заморозити, і пояснює чому. Відсоток залежить від етапу подушки (до 1 міс. витрат — 20%, до 3 міс. — 15%, далі — 10%) та від того, щоб решти доходу вистачило на життя до наступного основного доходу за вашими середніми витратами; суму можна змінити прямо у вікні. Власний відсоток задається в «Радник і поради» → «Налаштування радника» (порожньо — рахує сам). Коли подушка досягає 1 місяця, 3 місяців і цілі, радник повідомляє про це й радить, що робити далі (борги, цілі, вкладення). Прогрес і пояснення також є в розділі «🛡️ Подушка».","Радник"],
- ["🔗","Зв'язок з LIFE PULSE PRO","Програма автоматично передає в LIFE PULSE PRO лише дві цифри: загальний баланс і «Можна витратити сьогодні». Вони оновлюються щоразу, коли ви відкриваєте Financial Strategy або змінюєте дані. Операції, рахунки та фото не передаються. Працює, якщо обидві програми відкриті в одному браузері на одному домені (barn26.github.io).","Налаштування"]
+ ["🛟","Подушка та заморожування доходу","Фінансова подушка — це кошти, які ви заморозили в «Подушка безпеки»; залишки на рахунках не враховуються. Коли ви вносите дохід (у звичайній формі чи через «⚡ Швидкий запис»), одразу з'являється вікно радника: він пропонує, який відсоток цього доходу заморозити, і пояснює чому. Відсоток залежить від етапу подушки (до 1 міс. витрат — 20%, до 3 міс. — 15%, далі — 10%) та від того, щоб решти доходу вистачило на життя до наступного основного доходу за вашими середніми витратами; суму можна змінити прямо у вікні. Власний відсоток задається в «Радник і поради» → «Налаштування радника» (порожньо — рахує сам). Коли подушка досягає 1 місяця, 3 місяців і цілі, радник повідомляє про це й радить, що робити далі (борги, цілі, вкладення). Прогрес і пояснення також є в розділі «🛡️ Подушка».","Радник"]
 ];
 function esc2(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function build(){
